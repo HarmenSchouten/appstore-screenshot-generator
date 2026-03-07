@@ -7,10 +7,11 @@
     "convert:en": "deno run -A src/convert.ts --lang en",
     "build": "deno run -A src/build.ts",
     "build:en": "deno task generate:en && deno task convert:en",
-    "dev": "deno run -A src/server.ts"
+    "dev": "deno run -A --watch src/server.ts"
   },
   "imports": {
     "@std/path": "jsr:@std/path@^1.0.0",
-    "@std/fs": "jsr:@std/fs@^1.0.0"
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "hono": "npm:hono@4"
   }
 }

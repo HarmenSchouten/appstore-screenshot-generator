@@ -69,6 +69,21 @@ deno task build
 npm run build
 ```
 
+### Development Server (Web UI)
+
+```bash
+# Start the development server with web UI
+deno task dev
+
+# Open http://localhost:3000 in your browser
+```
+
+The web UI allows you to:
+- Preview all configured screenshots
+- Switch between languages and platforms
+- Generate screenshots with one click
+- View build output
+
 ### Generate by Language
 
 ```bash
