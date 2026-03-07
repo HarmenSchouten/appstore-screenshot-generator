@@ -288,7 +288,10 @@ function assetUrl(path: string | undefined, prefix: string): string {
  */
 function renderGlows(glows: GlowEffect[], containerWidth: number): string {
   return glows.map(glow => {
-    const color = GLOW_COLORS[glow.color] || GLOW_COLORS.purple;
+    // Support both named colors and hex values
+    const color = glow.color.startsWith('#') 
+      ? glow.color 
+      : (GLOW_COLORS[glow.color] || GLOW_COLORS.purple);
     // Size is relative to container width
     const sizePercent = (glow.size / containerWidth) * 100;
     

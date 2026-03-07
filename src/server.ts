@@ -30,6 +30,10 @@ import {
   getProjectDir,
   type ProjectConfig,
   type ProjectInfo,
+  type ColorPalette,
+  GRADIENT_TEMPLATES,
+  DEFAULT_PALETTES,
+  applyPaletteToGradient,
 } from './projects.ts';
 
 const app = new Hono();
@@ -982,6 +986,16 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     // Glow colors
     const GLOW_COLORS = ${JSON.stringify(GLOW_COLORS)};
     
+    // Color palette system
+    window.GRADIENT_TEMPLATES = ${JSON.stringify(GRADIENT_TEMPLATES)};
+    window.DEFAULT_PALETTES = ${JSON.stringify(DEFAULT_PALETTES)};
+    window.applyPaletteToGradient = (template, palette) => {
+      return template
+        .replace(/\\{primary\\}/g, palette.primary)
+        .replace(/\\{secondary\\}/g, palette.secondary)
+        .replace(/\\{accent\\}/g, palette.accent);
+    };
+    
     // ========================================
     // URL Routing Helpers
     // ========================================
@@ -1049,6 +1063,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       const [showProjectModal, setShowProjectModal] = useState(false);
       const [showGenerateModal, setShowGenerateModal] = useState(false);
       const [showMediaManager, setShowMediaManager] = useState(false);
+      const [showThemeEditor, setShowThemeEditor] = useState(false);
       const [generateProgress, setGenerateProgress] = useState({ current: 0, total: 0, item: '', results: null, outputDir: '' });
       const [previewVersion, setPreviewVersion] = useState(0); // Increment to force preview refresh
       
@@ -1447,6 +1462,25 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               \`}
             </div>
             
+            <!-- Theme & Colors -->
+            <div class="p-3 border-t border-zinc-800">
+              <button 
+                onClick=\${() => setShowThemeEditor(true)}
+                class="w-full p-3 rounded bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 text-left group"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-palette text-purple-400"></i>
+                    <div>
+                      <div class="text-sm font-medium">Theme & Colors</div>
+                      <div class="text-xs text-zinc-500">Palette, gradients, fonts</div>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-zinc-600 group-hover:text-zinc-400 text-xs"></i>
+                </div>
+              </button>
+            </div>
+            
             <!-- Media Library -->
             <div class="p-3 border-t border-zinc-800">
               <button 
@@ -1533,6 +1567,18 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               assets=\${assets}
               onClose=\${() => setShowMediaManager(false)}
               onRefresh=\${refreshAssets}
+            />
+          \`}
+          
+          <!-- Theme Editor Modal -->
+          \${showThemeEditor && html\`
+            <\${ThemeEditor}
+              config=\${config}
+              onClose=\${() => setShowThemeEditor(false)}
+              onSave=\${(newConfig) => {
+                saveConfig(newConfig);
+                setShowThemeEditor(false);
+              }}
             />
           \`}
         </div>
@@ -2048,6 +2094,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               <\${GlowEditorInline}
                 glows=\${screenshot.glows}
                 onChange=\${(glows) => onUpdate({ glows })}
+                palette=\${config.palette}
               />
             </\${CollapsibleSection}>
             
@@ -2234,6 +2281,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               <\${GlowEditorInline}
                 glows=\${fg.glows || []}
                 onChange=\${(glows) => onUpdate({ glows })}
+                palette=\${config.palette}
               />
             </\${CollapsibleSection}>
             
@@ -2256,9 +2304,13 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     // ========================================
     // Glow Editor (Inline version for CollapsibleSection)
     // ========================================
-    function GlowEditorInline({ glows, onChange }) {
+    function GlowEditorInline({ glows, onChange, palette }) {
+      const defaultPalette = { primary: '#a855f7', secondary: '#6366f1', accent: '#ec4899' };
+      const p = palette || defaultPalette;
+      
       const addGlow = () => {
-        onChange([...glows, { color: 'purple', size: 400, top: '20%', left: '20%' }]);
+        // Use palette primary color as default
+        onChange([...glows, { color: p.primary, size: 400, top: '20%', left: '20%' }]);
       };
       
       const updateGlow = (index, updates) => {
@@ -2269,6 +2321,12 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       
       const removeGlow = (index) => {
         onChange(glows.filter((_, i) => i !== index));
+      };
+      
+      // Get current color value (for color picker)
+      const getColorValue = (color) => {
+        if (color.startsWith('#')) return color;
+        return GLOW_COLORS[color] || '#a855f7';
       };
       
       return html\`
@@ -2283,15 +2341,35 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Color</label>
-                  <select
-                    value=\${glow.color}
-                    onChange=\${(e) => updateGlow(i, { color: e.target.value })}
-                    class="w-full px-2 py-1 rounded text-sm"
-                  >
-                    \${Object.keys(GLOW_COLORS).map(c => html\`
-                      <option value=\${c}>\${c}</option>
-                    \`)}
-                  </select>
+                  <div class="flex gap-1">
+                    <input
+                      type="color"
+                      value=\${getColorValue(glow.color)}
+                      onInput=\${(e) => updateGlow(i, { color: e.target.value })}
+                      class="w-10 h-8 rounded cursor-pointer flex-shrink-0"
+                    />
+                    <select
+                      value=\${glow.color.startsWith('#') ? '_custom' : glow.color}
+                      onChange=\${(e) => {
+                        if (e.target.value !== '_custom') {
+                          updateGlow(i, { color: e.target.value });
+                        }
+                      }}
+                      class="flex-1 px-1 py-1 rounded text-xs"
+                    >
+                      <option value="_custom" disabled>Custom</option>
+                      <optgroup label="Palette">
+                        <option value=\${p.primary}>Primary</option>
+                        <option value=\${p.secondary}>Secondary</option>
+                        <option value=\${p.accent}>Accent</option>
+                      </optgroup>
+                      <optgroup label="Presets">
+                        \${Object.keys(GLOW_COLORS).map(c => html\`
+                          <option value=\${c}>\${c}</option>
+                        \`)}
+                      </optgroup>
+                    </select>
+                  </div>
                 </div>
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Size</label>
@@ -2750,6 +2828,251 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                 </div>
               </div>
             \`}
+          </div>
+        </div>
+      \`;
+    }
+    
+    // ========================================
+    // Theme Editor Modal
+    // ========================================
+    function ThemeEditor({ config, onClose, onSave }) {
+      const defaultPalette = { primary: '#a855f7', secondary: '#6366f1', accent: '#ec4899' };
+      const currentPalette = config.palette || defaultPalette;
+      const currentGradient = config.theme?.background?.gradient || '';
+      
+      // Detect which gradient template matches the current gradient
+      const detectSelectedGradient = () => {
+        for (const t of window.GRADIENT_TEMPLATES) {
+          const css = window.applyPaletteToGradient(t.template, currentPalette);
+          if (css === currentGradient) {
+            return t.id;
+          }
+        }
+        return 'custom'; // No match found, it's a custom gradient
+      };
+      
+      const [palette, setPalette] = useState(currentPalette);
+      const [selectedGradient, setSelectedGradient] = useState(detectSelectedGradient);
+      const [customGradient, setCustomGradient] = useState(currentGradient);
+      const [fontFamily, setFontFamily] = useState(config.theme?.fontFamily || 'Inter, sans-serif');
+      const [googleFontsUrl, setGoogleFontsUrl] = useState(config.theme?.googleFontsUrl || '');
+      
+      // Generate gradients from palette
+      const gradients = window.GRADIENT_TEMPLATES.map(t => ({
+        id: t.id,
+        name: t.name,
+        css: window.applyPaletteToGradient(t.template, palette),
+      }));
+      
+      const updatePalette = (updates) => {
+        setPalette(p => ({ ...p, ...updates }));
+      };
+      
+      const handleSave = () => {
+        const gradient = selectedGradient === 'custom' 
+          ? customGradient 
+          : gradients.find(g => g.id === selectedGradient)?.css || customGradient;
+        
+        onSave({
+          ...config,
+          palette,
+          theme: {
+            ...config.theme,
+            background: { gradient },
+            fontFamily,
+            googleFontsUrl: googleFontsUrl || undefined,
+          },
+        });
+      };
+      
+      const applyPreset = (presetPalette) => {
+        setPalette(presetPalette);
+      };
+      
+      return html\`
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick=\${(e) => e.target === e.currentTarget && onClose()}>
+          <div class="bg-zinc-900 rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <!-- Header -->
+            <div class="flex items-center justify-between p-4 border-b border-zinc-800">
+              <h2 class="font-bold text-lg"><i class="fa-solid fa-palette mr-2"></i>Theme & Colors</h2>
+              <button onClick=\${onClose} class="text-zinc-500 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-4 space-y-6">
+              <!-- Color Palette Section -->
+              <div>
+                <h3 class="text-sm font-medium mb-3">Color Palette</h3>
+                <div class="grid grid-cols-3 gap-4">
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Primary</label>
+                    <div class="flex gap-2">
+                      <input
+                        type="color"
+                        value=\${palette.primary}
+                        onInput=\${(e) => updatePalette({ primary: e.target.value })}
+                        class="w-12 h-9 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value=\${palette.primary}
+                        onInput=\${(e) => updatePalette({ primary: e.target.value })}
+                        class="flex-1 px-2 py-1 rounded text-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Secondary</label>
+                    <div class="flex gap-2">
+                      <input
+                        type="color"
+                        value=\${palette.secondary}
+                        onInput=\${(e) => updatePalette({ secondary: e.target.value })}
+                        class="w-12 h-9 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value=\${palette.secondary}
+                        onInput=\${(e) => updatePalette({ secondary: e.target.value })}
+                        class="flex-1 px-2 py-1 rounded text-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Accent</label>
+                    <div class="flex gap-2">
+                      <input
+                        type="color"
+                        value=\${palette.accent}
+                        onInput=\${(e) => updatePalette({ accent: e.target.value })}
+                        class="w-12 h-9 rounded cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value=\${palette.accent}
+                        onInput=\${(e) => updatePalette({ accent: e.target.value })}
+                        class="flex-1 px-2 py-1 rounded text-sm font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Preset Palettes -->
+                <div class="mt-4">
+                  <label class="text-xs text-zinc-500 block mb-2">Preset Palettes</label>
+                  <div class="flex flex-wrap gap-2">
+                    \${window.DEFAULT_PALETTES.map(preset => html\`
+                      <button
+                        onClick=\${() => applyPreset(preset.palette)}
+                        class="flex items-center gap-2 px-3 py-1.5 rounded text-xs bg-zinc-800 hover:bg-zinc-700"
+                        title=\${preset.name}
+                      >
+                        <div class="flex">
+                          <div class="w-3 h-3 rounded-l" style="background: \${preset.palette.primary}"></div>
+                          <div class="w-3 h-3" style="background: \${preset.palette.secondary}"></div>
+                          <div class="w-3 h-3 rounded-r" style="background: \${preset.palette.accent}"></div>
+                        </div>
+                        \${preset.name}
+                      </button>
+                    \`)}
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Background Gradient Section -->
+              <div>
+                <h3 class="text-sm font-medium mb-3">Background Gradient</h3>
+                <div class="grid grid-cols-4 gap-2 mb-3">
+                  \${gradients.map(g => html\`
+                    <button
+                      onClick=\${() => setSelectedGradient(g.id)}
+                      class=\${"p-1 rounded border-2 " + (selectedGradient === g.id ? "border-indigo-500" : "border-transparent hover:border-zinc-600")}
+                    >
+                      <div
+                        class="h-12 rounded"
+                        style="background: \${g.css}"
+                      />
+                      <div class="text-xs text-zinc-400 mt-1 truncate">\${g.name}</div>
+                    </button>
+                  \`)}
+                  <button
+                    onClick=\${() => setSelectedGradient('custom')}
+                    class=\${"p-1 rounded border-2 " + (selectedGradient === 'custom' ? "border-indigo-500" : "border-transparent hover:border-zinc-600")}
+                  >
+                    <div class="h-12 rounded bg-zinc-800 flex items-center justify-center">
+                      <i class="fa-solid fa-code text-zinc-500"></i>
+                    </div>
+                    <div class="text-xs text-zinc-400 mt-1">Custom</div>
+                  </button>
+                </div>
+                
+                \${selectedGradient === 'custom' && html\`
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Custom CSS Gradient</label>
+                    <input
+                      type="text"
+                      value=\${customGradient}
+                      onInput=\${(e) => setCustomGradient(e.target.value)}
+                      class="w-full px-3 py-2 rounded text-sm font-mono"
+                      placeholder="linear-gradient(135deg, #a855f7 0%, #0a0a0a 100%)"
+                    />
+                    <div class="mt-2 h-16 rounded" style="background: \${customGradient}"></div>
+                  </div>
+                \`}
+                
+                <!-- Preview current selection -->
+                <div class="mt-3">
+                  <label class="text-xs text-zinc-500 block mb-1">Preview</label>
+                  <div
+                    class="h-20 rounded"
+                    style="background: \${selectedGradient === 'custom' ? customGradient : (gradients.find(g => g.id === selectedGradient)?.css || '')}"
+                  ></div>
+                </div>
+              </div>
+              
+              <!-- Typography Section -->
+              <div>
+                <h3 class="text-sm font-medium mb-3">Typography</h3>
+                <div class="space-y-3">
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Font Family</label>
+                    <input
+                      type="text"
+                      value=\${fontFamily}
+                      onInput=\${(e) => setFontFamily(e.target.value)}
+                      class="w-full px-3 py-2 rounded text-sm"
+                      placeholder="Inter, sans-serif"
+                    />
+                  </div>
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Google Fonts URL (optional)</label>
+                    <input
+                      type="text"
+                      value=\${googleFontsUrl}
+                      onInput=\${(e) => setGoogleFontsUrl(e.target.value)}
+                      class="w-full px-3 py-2 rounded text-sm font-mono"
+                      placeholder="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="flex gap-3 p-4 border-t border-zinc-800">
+              <button
+                onClick=\${onClose}
+                class="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick=\${handleSave}
+                class="flex-1 px-4 py-2 btn-primary rounded text-sm"
+              >
+                <i class="fa-solid fa-check mr-1"></i> Apply Theme
+              </button>
+            </div>
           </div>
         </div>
       \`;
