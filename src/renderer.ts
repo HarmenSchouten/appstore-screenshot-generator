@@ -78,6 +78,15 @@ export interface FeatureGraphic {
   phoneRotation?: number;
   phoneScale?: number;
   mascot?: MascotOptions | null;
+  // Icon box styling
+  iconBoxScale?: number;      // box size percentage, default 100
+  iconBoxRadius?: number;     // box border radius in px
+  iconBoxColor?: string;      // box background color
+  // Icon image styling  
+  iconScale?: number;         // image scale percentage, default 100
+  iconRadius?: number;        // image border radius in px
+  iconOffsetX?: number;       // image horizontal offset
+  iconOffsetY?: number;       // image vertical offset
 }
 
 export interface ThemeConfig {
@@ -471,6 +480,17 @@ export function renderFeatureGraphic(options: FeatureGraphicRenderOptions): stri
   const phoneScale = featureGraphic.phoneScale ?? 100;
   const showIcon = featureGraphic.showIcon !== false;
   const showAppName = featureGraphic.showAppName !== false;
+  // Icon box
+  const iconBoxScale = featureGraphic.iconBoxScale ?? 100;
+  const iconBoxRadius = featureGraphic.iconBoxRadius ?? 16;
+  const iconBoxColor = featureGraphic.iconBoxColor || 'rgba(255,255,255,0.15)';
+  const iconBoxSize = Math.round(64 * iconBoxScale / 100);
+  // Icon image
+  const iconScale = featureGraphic.iconScale ?? 100;
+  const iconRadius = featureGraphic.iconRadius ?? 0;
+  const iconOffsetX = featureGraphic.iconOffsetX ?? 0;
+  const iconOffsetY = featureGraphic.iconOffsetY ?? 0;
+  const iconImgSize = Math.round(48 * iconBoxScale / 100 * iconScale / 100);
   
   const fontUrl = theme.googleFontsUrl 
     ? `@import url('${theme.googleFontsUrl}');` 
@@ -520,19 +540,22 @@ export function renderFeatureGraphic(options: FeatureGraphicRenderOptions): stri
     }
     
     .logo-icon {
-      width: 64px;
-      height: 64px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 16px;
+      width: ${iconBoxSize}px;
+      height: ${iconBoxSize}px;
+      background: ${iconBoxColor};
+      border-radius: ${iconBoxRadius}px;
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden;
     }
     
     .logo-icon img {
-      width: 48px;
-      height: 48px;
+      width: ${iconImgSize}px;
+      height: ${iconImgSize}px;
       object-fit: contain;
+      border-radius: ${iconRadius}px;
+      transform: translate(${iconOffsetX}px, ${iconOffsetY}px);
     }
     
     .logo-text {
@@ -642,20 +665,29 @@ export function renderFeatureGraphic(options: FeatureGraphicRenderOptions): stri
           ${featureGraphic.imagePath ? `<img src="${assetUrl(featureGraphic.imagePath, assetUrlPrefix)}" alt="Screenshot" />` : ''}
         </div>
       </div>
-      ${featureGraphic.mascot ? `
+    </div>
+    ${featureGraphic.mascot ? (() => {
+      const mascot = featureGraphic.mascot;
+      const size = mascot.size || 120;
+      const offset = mascot.offset || 20;
+      const position = mascot.position || 'bottom-right';
+      const posStyles = [
+        position.includes('bottom') ? `bottom: ${offset}px` : `top: ${offset}px`,
+        position.includes('right') ? `right: ${offset}px` : `left: ${offset}px`,
+      ].join('; ');
+      return `
         <div class="mascot" style="
-          width: ${featureGraphic.mascot.size || 120}px;
-          height: ${featureGraphic.mascot.size || 120}px;
-          bottom: 60px;
-          right: 220px;
+          width: ${size}px;
+          height: ${size}px;
+          ${posStyles};
           overflow: hidden;
-          ${featureGraphic.mascot.borderRadius ? `border-radius: ${featureGraphic.mascot.borderRadius}px;` : ''}
+          ${mascot.borderRadius ? `border-radius: ${mascot.borderRadius}px;` : ''}
         ">
-          <img src="${assetUrl(featureGraphic.mascot.imagePath || app.defaultMascotPath, assetUrlPrefix)}" 
+          <img src="${assetUrl(mascot.imagePath || app.defaultMascotPath, assetUrlPrefix)}" 
                style="width: 100%; height: 100%; object-fit: contain;" />
         </div>
-      ` : ''}
-    </div>
+      `;
+    })() : ''}
   </div>
 </body>
 </html>`;

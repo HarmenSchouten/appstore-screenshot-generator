@@ -495,6 +495,59 @@ app.post('/api/assets/upload', async (c) => {
   return c.json({ path: `assets/${category}/${file.name}` });
 });
 
+/**
+ * Rename asset
+ */
+app.patch('/api/assets/rename', async (c) => {
+  const { oldPath, newName } = await c.req.json();
+  
+  if (!oldPath || !newName) {
+    return c.json({ error: 'oldPath and newName required' }, 400);
+  }
+  
+  const assetsDir = getProjectAssetsDir(currentProjectId);
+  // oldPath is like "assets/screenshots/file.png"
+  const relativePath = oldPath.replace(/^assets\//, '');
+  const oldFilePath = join(assetsDir, relativePath);
+  
+  // Keep same directory, just change filename
+  const dir = relativePath.substring(0, relativePath.lastIndexOf('/'));
+  const ext = relativePath.substring(relativePath.lastIndexOf('.'));
+  const newFileName = newName.includes('.') ? newName : newName + ext;
+  const newFilePath = join(assetsDir, dir, newFileName);
+  const newAssetPath = `assets/${dir}/${newFileName}`;
+  
+  try {
+    await Deno.rename(oldFilePath, newFilePath);
+    return c.json({ success: true, newPath: newAssetPath });
+  } catch (error) {
+    return c.json({ error: error instanceof Error ? error.message : 'Rename failed' }, 500);
+  }
+});
+
+/**
+ * Delete asset
+ */
+app.delete('/api/assets', async (c) => {
+  const { path: assetPath } = await c.req.json();
+  
+  if (!assetPath) {
+    return c.json({ error: 'path required' }, 400);
+  }
+  
+  const assetsDir = getProjectAssetsDir(currentProjectId);
+  // assetPath is like "assets/screenshots/file.png"
+  const relativePath = assetPath.replace(/^assets\//, '');
+  const filePath = join(assetsDir, relativePath);
+  
+  try {
+    await Deno.remove(filePath);
+    return c.json({ success: true });
+  } catch (error) {
+    return c.json({ error: error instanceof Error ? error.message : 'Delete failed' }, 500);
+  }
+});
+
 // ============================================================
 // Generation API
 // ============================================================
@@ -995,6 +1048,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       const [generating, setGenerating] = useState(false);
       const [showProjectModal, setShowProjectModal] = useState(false);
       const [showGenerateModal, setShowGenerateModal] = useState(false);
+      const [showMediaManager, setShowMediaManager] = useState(false);
       const [generateProgress, setGenerateProgress] = useState({ current: 0, total: 0, item: '', results: null, outputDir: '' });
       const [previewVersion, setPreviewVersion] = useState(0); // Increment to force preview refresh
       
@@ -1393,6 +1447,25 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               \`}
             </div>
             
+            <!-- Media Library -->
+            <div class="p-3 border-t border-zinc-800">
+              <button 
+                onClick=\${() => setShowMediaManager(true)}
+                class="w-full p-3 rounded bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 text-left group"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-images text-indigo-400"></i>
+                    <div>
+                      <div class="text-sm font-medium">Media Library</div>
+                      <div class="text-xs text-zinc-500">\${assets.screenshots.length + assets.mascots.length + assets.icons.length} files</div>
+                    </div>
+                  </div>
+                  <i class="fa-solid fa-chevron-right text-zinc-600 group-hover:text-zinc-400 text-xs"></i>
+                </div>
+              </button>
+            </div>
+            
             <!-- Generate button -->
             <div class="p-3 border-t border-zinc-800">
               <button 
@@ -1451,6 +1524,15 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               generating=\${generating}
               onClose=\${() => setShowGenerateModal(false)}
               onOpenFolder=\${openOutputFolder}
+            />
+          \`}
+          
+          <!-- Media Manager Modal -->
+          \${showMediaManager && html\`
+            <\${MediaManager}
+              assets=\${assets}
+              onClose=\${() => setShowMediaManager(false)}
+              onRefresh=\${refreshAssets}
             />
           \`}
         </div>
@@ -1655,6 +1737,30 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
             onInput=\${(e) => onChange(Number(e.target.value))}
             class="w-full"
           />
+        </div>
+      \`;
+    }
+    
+    // ========================================
+    // Color Input Component
+    // ========================================
+    function ColorInput({ label, value, onChange, placeholder = 'rgba(255,255,255,0.15)' }) {
+      return html\`
+        <div>
+          <label class="text-xs text-zinc-500 block mb-1">\${label}</label>
+          <div class="flex gap-2">
+            <div
+              class="w-9 h-9 rounded border border-zinc-700 flex-shrink-0"
+              style="background: \${value || placeholder}"
+            />
+            <input
+              type="text"
+              value=\${value || ''}
+              onInput=\${(e) => onChange(e.target.value)}
+              class="flex-1 px-3 py-2 rounded text-sm font-mono"
+              placeholder=\${placeholder}
+            />
+          </div>
         </div>
       \`;
     }
@@ -2013,6 +2119,82 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                   Show App Name
                 </label>
               </div>
+              \${fg.showIcon !== false ? html\`
+                <\${ImageSelect}
+                  label="App Icon"
+                  value=\${config.app?.iconPath || ''}
+                  onChange=\${(v) => onUpdateConfig({ ...config, app: { ...config.app, iconPath: v } })}
+                  options=\${assets.icons}
+                  category="icons"
+                  onAssetsRefresh=\${onAssetsRefresh}
+                />
+                <div class="text-xs text-zinc-400 mt-3 mb-1">Icon Box</div>
+                <div class="grid grid-cols-2 gap-3">
+                  <\${Slider}
+                    label="Size"
+                    value=\${fg.iconBoxScale ?? 100}
+                    onChange=\${(v) => onUpdate({ iconBoxScale: v })}
+                    min=\${50}
+                    max=\${200}
+                    step=\${5}
+                    unit="%"
+                  />
+                  <\${Slider}
+                    label="Radius"
+                    value=\${fg.iconBoxRadius ?? 16}
+                    onChange=\${(v) => onUpdate({ iconBoxRadius: v })}
+                    min=\${0}
+                    max=\${50}
+                    step=\${1}
+                    unit="px"
+                  />
+                </div>
+                <\${ColorInput}
+                  label="Background"
+                  value=\${fg.iconBoxColor || 'rgba(255,255,255,0.15)'}
+                  onChange=\${(v) => onUpdate({ iconBoxColor: v })}
+                  placeholder="rgba(255,255,255,0.15)"
+                />
+                <div class="text-xs text-zinc-400 mt-3 mb-1">Icon Image</div>
+                <div class="grid grid-cols-2 gap-3">
+                  <\${Slider}
+                    label="Scale"
+                    value=\${fg.iconScale ?? 100}
+                    onChange=\${(v) => onUpdate({ iconScale: v })}
+                    min=\${50}
+                    max=\${150}
+                    step=\${5}
+                    unit="%"
+                  />
+                  <\${Slider}
+                    label="Radius"
+                    value=\${fg.iconRadius ?? 0}
+                    onChange=\${(v) => onUpdate({ iconRadius: v })}
+                    min=\${0}
+                    max=\${50}
+                    step=\${1}
+                    unit="px"
+                  />
+                  <\${Slider}
+                    label="Offset X"
+                    value=\${fg.iconOffsetX ?? 0}
+                    onChange=\${(v) => onUpdate({ iconOffsetX: v })}
+                    min=\${-20}
+                    max=\${20}
+                    step=\${1}
+                    unit="px"
+                  />
+                  <\${Slider}
+                    label="Offset Y"
+                    value=\${fg.iconOffsetY ?? 0}
+                    onChange=\${(v) => onUpdate({ iconOffsetY: v })}
+                    min=\${-20}
+                    max=\${20}
+                    step=\${1}
+                    unit="px"
+                  />
+                </div>
+              \` : ''}
             </\${CollapsibleSection}>
             
             <!-- Phone Screenshot Section -->
@@ -2200,17 +2382,17 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                 <label class="text-xs text-zinc-500 block mb-1">Position</label>
                 <div class="grid grid-cols-2 gap-2">
                   \${[
-                    { value: 'top-left', label: '↖ Top Left' },
-                    { value: 'top-right', label: '↗ Top Right' },
-                    { value: 'bottom-left', label: '↙ Bottom Left' },
-                    { value: 'bottom-right', label: '↘ Bottom Right' },
+                    { value: 'top-left', rotation: '-45', label: 'Top Left' },
+                    { value: 'top-right', rotation: '45', label: 'Top Right' },
+                    { value: 'bottom-left', rotation: '-135', label: 'Bottom Left' },
+                    { value: 'bottom-right', rotation: '135', label: 'Bottom Right' },
                   ].map(pos => html\`
                     <button
                       onClick=\${() => updateMascot({ position: pos.value })}
-                      class=\${"px-2 py-1.5 rounded text-xs " + 
+                      class=\${"px-2 py-1.5 rounded text-xs flex items-center gap-1.5 " + 
                         ((mascot.position || 'bottom-right') === pos.value ? "bg-indigo-600" : "bg-zinc-800 hover:bg-zinc-700")}
                     >
-                      \${pos.label}
+                      <i class="fa-solid fa-arrow-up" style=\${"transform: rotate(" + pos.rotation + "deg)"}></i> \${pos.label}
                     </button>
                   \`)}
                 </div>
@@ -2568,6 +2750,233 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                 </div>
               </div>
             \`}
+          </div>
+        </div>
+      \`;
+    }
+    
+    // ========================================
+    // Media Manager Modal
+    // ========================================
+    function MediaManager({ assets, onClose, onRefresh }) {
+      const [activeTab, setActiveTab] = useState('screenshots');
+      const [editingItem, setEditingItem] = useState(null);
+      const [newName, setNewName] = useState('');
+      const fileInputRef = useRef(null);
+      const [uploading, setUploading] = useState(false);
+      
+      const allAssets = {
+        screenshots: assets.screenshots || [],
+        mascots: assets.mascots || [],
+        icons: assets.icons || [],
+      };
+      
+      const currentAssets = allAssets[activeTab] || [];
+      
+      const handleUpload = async (e) => {
+        const files = e.target.files;
+        if (!files?.length) return;
+        
+        setUploading(true);
+        for (const file of files) {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('category', activeTab);
+          
+          try {
+            await fetch('/api/assets/upload', {
+              method: 'POST',
+              body: formData,
+            });
+          } catch (err) {
+            console.error('Upload failed:', err);
+          }
+        }
+        await onRefresh();
+        setUploading(false);
+        e.target.value = '';
+      };
+      
+      const handleRename = async (oldPath) => {
+        if (!newName.trim()) return;
+        
+        try {
+          const res = await fetch('/api/assets/rename', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldPath, newName: newName.trim() }),
+          });
+          if (res.ok) {
+            await onRefresh();
+            setEditingItem(null);
+            setNewName('');
+          }
+        } catch (err) {
+          console.error('Rename failed:', err);
+        }
+      };
+      
+      const handleDelete = async (path) => {
+        if (!confirm('Delete this file? This cannot be undone.')) return;
+        
+        try {
+          const res = await fetch('/api/assets', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ path }),
+          });
+          if (res.ok) {
+            await onRefresh();
+          }
+        } catch (err) {
+          console.error('Delete failed:', err);
+        }
+      };
+      
+      const startEditing = (path) => {
+        setEditingItem(path);
+        const filename = path.split('/').pop();
+        const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+        setNewName(nameWithoutExt);
+      };
+      
+      const tabs = [
+        { id: 'screenshots', label: 'Screenshots', icon: 'fa-mobile-screen' },
+        { id: 'mascots', label: 'Mascots', icon: 'fa-user-astronaut' },
+        { id: 'icons', label: 'Icons', icon: 'fa-icons' },
+      ];
+      
+      return html\`
+        <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick=\${onClose}>
+          <div class="bg-zinc-900 rounded-lg w-[600px] max-h-[80vh] overflow-hidden flex flex-col" onClick=\${(e) => e.stopPropagation()}>
+            <!-- Header -->
+            <div class="p-4 border-b border-zinc-800">
+              <div class="flex justify-between items-center">
+                <h2 class="font-bold text-lg"><i class="fa-solid fa-images mr-2"></i>Media Manager</h2>
+                <button onClick=\${onClose} class="text-zinc-500 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="flex border-b border-zinc-800">
+              \${tabs.map(tab => html\`
+                <button
+                  key=\${tab.id}
+                  onClick=\${() => setActiveTab(tab.id)}
+                  class=\${"flex-1 px-4 py-3 text-sm flex items-center justify-center gap-2 border-b-2 transition-colors " + 
+                    (activeTab === tab.id 
+                      ? "border-indigo-500 text-white bg-zinc-800/50" 
+                      : "border-transparent text-zinc-400 hover:text-white hover:bg-zinc-800/30")}
+                >
+                  <i class=\${"fa-solid " + tab.icon}></i>
+                  \${tab.label}
+                  <span class="text-xs px-1.5 py-0.5 rounded bg-zinc-700">\${allAssets[tab.id].length}</span>
+                </button>
+              \`)}
+            </div>
+            
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-4">
+              \${currentAssets.length === 0 ? html\`
+                <div class="text-center py-12 text-zinc-500">
+                  <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                  <div>No \${activeTab} yet</div>
+                  <div class="text-sm mt-1">Upload some files to get started</div>
+                </div>
+              \` : html\`
+                <div class="grid grid-cols-3 gap-3">
+                  \${currentAssets.map(path => {
+                    const filename = path.split('/').pop();
+                    const isEditing = editingItem === path;
+                    
+                    return html\`
+                      <div key=\${path} class="bg-zinc-800 rounded overflow-hidden group">
+                        <div class="aspect-square bg-zinc-700 relative">
+                          <img 
+                            src=\${"/assets/" + path.replace('assets/', '')}
+                            class="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                          <!-- Overlay actions -->
+                          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              onClick=\${() => startEditing(path)}
+                              class="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
+                              title="Rename"
+                            >
+                              <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button
+                              onClick=\${() => handleDelete(path)}
+                              class="p-2 bg-red-900/80 hover:bg-red-800 rounded"
+                              title="Delete"
+                            >
+                              <i class="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
+                        </div>
+                        
+                        \${isEditing ? html\`
+                          <div class="p-2">
+                            <input
+                              type="text"
+                              value=\${newName}
+                              onInput=\${(e) => setNewName(e.target.value)}
+                              onKeyDown=\${(e) => {
+                                if (e.key === 'Enter') handleRename(path);
+                                if (e.key === 'Escape') { setEditingItem(null); setNewName(''); }
+                              }}
+                              class="w-full px-2 py-1 text-xs rounded"
+                              autoFocus
+                            />
+                            <div class="flex gap-1 mt-1">
+                              <button
+                                onClick=\${() => handleRename(path)}
+                                class="flex-1 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded"
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick=\${() => { setEditingItem(null); setNewName(''); }}
+                                class="flex-1 px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 rounded"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        \` : html\`
+                          <div class="p-2 text-xs text-zinc-400 truncate" title=\${filename}>
+                            \${filename}
+                          </div>
+                        \`}
+                      </div>
+                    \`;
+                  })}
+                </div>
+              \`}
+            </div>
+            
+            <!-- Footer with upload -->
+            <div class="p-4 border-t border-zinc-800">
+              <input
+                ref=\${fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange=\${handleUpload}
+                class="hidden"
+              />
+              <button
+                onClick=\${() => fileInputRef.current?.click()}
+                disabled=\${uploading}
+                class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                \${uploading 
+                  ? html\`<i class="fa-solid fa-spinner fa-spin"></i> Uploading...\`
+                  : html\`<i class="fa-solid fa-upload"></i> Upload \${activeTab === 'screenshots' ? 'Screenshots' : activeTab === 'mascots' ? 'Mascots' : 'Icons'}\`
+                }
+              </button>
+            </div>
           </div>
         </div>
       \`;

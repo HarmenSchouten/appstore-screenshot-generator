@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "My App",
-    "iconPath": "assets/icon.png",
+    "iconPath": "assets/icons/mascot.png",
     "defaultMascotPath": "assets/mascot.png"
   },
   "theme": {
@@ -125,7 +125,18 @@
             "showAppName": true,
             "phoneRotation": 7,
             "phoneScale": 100,
-            "mascot": null
+            "mascot": {
+              "position": "bottom-right",
+              "imagePath": "assets/screenshots/mascot.png",
+              "size": 30,
+              "offset": 20,
+              "borderRadius": 0
+            },
+            "iconRadius": 12,
+            "iconScale": 100,
+            "iconOffsetX": 0,
+            "iconBoxRadius": 18,
+            "iconBoxColor": "rgba(255,255,255,.15)"
           }
         },
         "ios": {
