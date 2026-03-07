@@ -117,54 +117,60 @@ export interface FeatureGraphicRenderOptions {
 }
 
 /**
- * Phone frame CSS - consistent styling for all phone mockups
- * Uses CSS custom properties for dynamic sizing
- * Border radius uses calc() based on width for consistent circular corners
+ * Phone frame CSS - iOS style frame with side buttons
+ * Clean design matching real iPhone appearance
  */
 const phoneFrameCSS = `
   .phone-frame {
-    --phone-width: 100%;
-    background: linear-gradient(145deg, #2a2a2e 0%, #1a1a1e 100%);
-    border-radius: 44px; /* Fixed pixel value for consistent rounded corners */
-    padding: 12px;
-    box-shadow:
-      0 30px 60px rgba(0, 0, 0, 0.4),
-      0 0 0 2px rgba(80, 80, 85, 0.5),
-      inset 0 1px 1px rgba(255, 255, 255, 0.1);
     position: relative;
+    background: linear-gradient(145deg, #2a2a2e 0%, #1a1a1e 100%);
+    border-radius: 70px;
+    padding: 14px;
+    box-shadow: 
+      0 60px 120px rgba(0, 0, 0, 0.5),
+      0 0 0 3px rgba(80, 80, 85, 0.6),
+      inset 0 1px 1px rgba(255, 255, 255, 0.1);
   }
   
+  /* Power button (right side) */
   .phone-frame::before {
     content: '';
     position: absolute;
     right: -6px;
-    top: 22%;
+    top: 20%;
     width: 6px;
-    height: 7%;
+    height: 6.5%;
     background: linear-gradient(90deg, #3a3a3e 0%, #2a2a2e 50%, #1a1a1e 100%);
-    border-radius: 0 3px 3px 0;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 1px 0 2px rgba(0, 0, 0, 0.3);
   }
   
+  /* Mute switch + Volume buttons (left side) */
+  /* Uses box-shadow stacking: mute switch (main), volume up (+70px), volume down (+130px) */
   .phone-frame::after {
     content: '';
     position: absolute;
     left: -6px;
-    top: 15%;
+    top: 14.5%;
     width: 6px;
-    height: 2.5%;
+    height: 2.2%;
     background: linear-gradient(270deg, #3a3a3e 0%, #2a2a2e 50%, #1a1a1e 100%);
-    border-radius: 3px 0 0 3px;
-    box-shadow:
-      0 18px 0 0 #2a2a2e,
-      0 36px 0 0 #2a2a2e;
+    border-radius: 4px 0 0 4px;
+    box-shadow: 
+      -1px 0 2px rgba(0, 0, 0, 0.3),
+      0 70px 0 0 #2a2a2e,
+      0 130px 0 0 #2a2a2e;
   }
   
   .phone-screen {
     width: 100%;
     aspect-ratio: 9 / 19.5;
     background: #000;
-    border-radius: 32px; /* Fixed pixel value */
+    border-radius: 56px;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .phone-screen img {
@@ -595,17 +601,21 @@ export function renderFeatureGraphic(options: FeatureGraphicRenderOptions): stri
       width: ${200 * phoneScale / 100}px;
       height: ${420 * phoneScale / 100}px;
       background: linear-gradient(145deg, #2a2a2e 0%, #1a1a1e 100%);
-      border-radius: 32px;
-      padding: 8px;
-      box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 0 2px rgba(255,255,255,0.1);
+      border-radius: 28px;
+      padding: 6px;
+      box-shadow: 
+        0 40px 80px rgba(0,0,0,0.4), 
+        0 0 0 2px rgba(80, 80, 85, 0.5),
+        inset 0 1px 1px rgba(255,255,255,0.1);
       transform: rotate(${phoneRotation}deg);
+      position: relative;
     }
     
     .phone-screen {
       width: 100%;
       height: 100%;
       background: #000;
-      border-radius: 24px;
+      border-radius: 22px;
       overflow: hidden;
     }
     
