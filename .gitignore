@@ -1,6 +1,10 @@
 # Output directories
 output/
 
+# Projects (exclude all except default)
+projects/*
+!projects/default/
+
 # Dependencies
 node_modules/
 
