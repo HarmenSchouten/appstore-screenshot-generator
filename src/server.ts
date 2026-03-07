@@ -6,16 +6,13 @@
  */
 
 import { Hono } from 'jsr:@hono/hono';
-import { serveStatic } from 'jsr:@hono/hono/deno';
-import { join, relative, basename } from '@std/path';
-import { exists, ensureDir } from '@std/fs';
+import { join } from '@std/path';
+import { ensureDir } from '@std/fs';
 import { 
   renderScreenshot, 
   renderFeatureGraphic, 
   GLOW_COLORS,
   type Screenshot,
-  type FeatureGraphic,
-  type GlowEffect,
 } from './renderer.ts';
 import {
   initializeProjects,
@@ -28,13 +25,10 @@ import {
   duplicateProject,
   getProjectAssetsDir,
   getProjectOutputDir,
-  getProjectDir,
   type ProjectConfig,
   type ProjectInfo,
-  type ColorPalette,
   GRADIENT_TEMPLATES,
   DEFAULT_PALETTES,
-  applyPaletteToGradient,
 } from './projects.ts';
 
 const app = new Hono();
