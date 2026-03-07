@@ -1,0 +1,16 @@
+{
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "generate": "deno run --allow-read --allow-write src/generate.ts",
+    "generate:en": "deno run --allow-read --allow-write src/generate.ts --lang en",
+    "convert": "deno run -A src/convert.ts",
+    "convert:en": "deno run -A src/convert.ts --lang en",
+    "build": "deno run -A src/build.ts",
+    "build:en": "deno task generate:en && deno task convert:en",
+    "dev": "deno run -A src/server.ts"
+  },
+  "imports": {
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@std/fs": "jsr:@std/fs@^1.0.0"
+  }
+}

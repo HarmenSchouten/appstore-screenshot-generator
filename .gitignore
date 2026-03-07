@@ -1,0 +1,21 @@
+# Output directories
+output/
+
+# Dependencies
+node_modules/
+
+# Deno lock file (optional)
+deno.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log

@@ -1,0 +1,24 @@
+{
+  "name": "appstore-screenshots",
+  "version": "1.0.0",
+  "description": "Configuration-based screenshot generator for App Store and Google Play",
+  "scripts": {
+    "generate": "deno task generate",
+    "convert": "deno task convert",
+    "build": "deno task build",
+    "dev": "deno task dev"
+  },
+  "dependencies": {
+    "puppeteer": "^24.0.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "app-store",
+    "google-play",
+    "screenshots",
+    "marketing",
+    "deno"
+  ],
+  "author": "",
+  "license": "MIT"
+}
