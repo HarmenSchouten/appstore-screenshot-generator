@@ -10,13 +10,15 @@ Visual screenshot generator for App Store and Google Play. Create professional m
 ## Features
 
 - 🎨 **Visual Editor** - Design screenshots with live preview, no config files needed
+- 🎨 **Theme System** - Color palettes with gradient presets, typography settings
 - 📱 **Multi-platform** - Generate for both iOS App Store and Google Play
 - 🌍 **Multi-language** - Create localized versions for each market
 - 🖼️ **Phone Frames** - Realistic iOS and Android device frames with customizable scale
-- ✨ **Glow Effects** - Dynamic gradient glows for depth and visual interest
+- ✨ **Glow Effects** - Dynamic gradient glows with palette color support
 - 🎭 **Mascot Support** - Add character/branding elements with positioning controls
-- 📊 **Feature Graphics** - Google Play feature graphic generation
+- 📊 **Feature Graphics** - Google Play feature graphic with app icon customization
 - 📁 **Project Management** - Organize multiple apps with separate configurations
+- 🗂️ **Media Manager** - Upload, rename, and delete assets
 - 🔗 **Shareable URLs** - Deep links to specific screenshots for team collaboration
 
 ## Quick Start
@@ -50,8 +52,19 @@ Open **http://localhost:3000** in your browser.
    - **Layout**: Title offset from top
    - **Phone Screenshot**: Select or upload images, single/dual phone modes
    - **Phone Frame**: Scale, position, rotation (for dual layouts)
-   - **Background Glows**: Add colorful gradient orbs
+   - **Background Glows**: Add colorful gradient orbs using palette colors
    - **Mascot**: Optional character overlay with position controls
+
+### Theme & Colors
+
+Click **Theme & Colors** in the sidebar to set your project's color palette and background gradient. Changes apply to all screenshots in the project.
+
+### Media Manager
+
+Click **Media Library** in the sidebar to:
+- View all uploaded assets (screenshots, mascots, icons)
+- Upload new images with drag & drop
+- Rename or delete existing assets
 
 ### URL Routing
 
@@ -84,7 +97,8 @@ appstore-screenshots/
 │       ├── config.json     # Project configuration
 │       ├── assets/         # Uploaded images
 │       │   ├── screenshots/
-│       │   └── mascots/
+│       │   ├── mascots/
+│       │   └── icons/      # App icons for feature graphics
 │       └── output/         # Generated PNGs
 │           ├── en/
 │           │   ├── android/
@@ -124,9 +138,28 @@ appstore-screenshots/
 
 ### Glow Colors
 
-Available colors for background glows:
+Glows can use your palette colors (Primary, Secondary, Accent) or preset colors:
 - `purple`, `blue`, `pink`, `cyan`
 - `amber`, `green`, `red`, `orange`
+
+You can also use the color picker for any custom hex color.
+
+### Theme & Colors
+
+Access the **Theme & Colors** modal from the sidebar to configure:
+
+| Setting | Description |
+|---------|-------------|
+| **Color Palette** | Primary, secondary, and accent colors (hex) |
+| **Preset Palettes** | Quick-apply palettes: Purple Night, Ocean Blue, Sunset, Forest, Rose, Midnight, Ember, Teal |
+| **Background Gradient** | Choose from 10 gradient templates or use custom CSS |
+| **Typography** | Font family and Google Fonts URL |
+
+Gradient templates automatically use your palette colors:
+- Solid Primary/Secondary
+- Primary → Dark, Primary → Secondary, Secondary → Primary
+- Radial Primary/Secondary
+- Mesh Primary, Diagonal Split, Triple Gradient
 
 ### Mascot Options
 
@@ -135,6 +168,21 @@ Available colors for background glows:
 | Position | `top-left`, `top-right`, `bottom-left`, `bottom-right` |
 | Scale | Size relative to canvas (10-100%) |
 | Offset X/Y | Fine-tune position in pixels |
+
+### Feature Graphic Options
+
+Feature graphics (1024×500) are used for Google Play Store headers.
+
+| Setting | Description |
+|---------|-------------|
+| **Headline/Subtitle** | Text content with typography inherited from theme |
+| **App Icon** | Select from uploaded icons in Media Manager |
+| **Icon Box Scale** | Size of the icon container (50-150%) |
+| **Icon Box Radius** | Corner roundness of container (0-50%) |
+| **Icon Box Color** | Background color of container (hex) |
+| **Icon Scale** | Image size within the box (50-150%) |
+| **Icon Radius** | Corner roundness of icon image (0-50%) |
+| **Icon Offset X/Y** | Fine-tune icon position |
 
 ## Dimensions
 
