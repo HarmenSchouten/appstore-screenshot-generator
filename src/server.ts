@@ -938,7 +938,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     }
     input[type="color"] {
       padding: 0 !important;
-      height: 36px !important;
+      height: 32px !important;
       cursor: pointer;
     }
     input[type="range"] {
@@ -1041,6 +1041,202 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     };
     
     // ========================================
+    // Reusable Components
+    // ========================================
+    
+    /**
+     * Number input with +/- buttons
+     * @param {number} value - Current value
+     * @param {function} onChange - Callback with new value
+     * @param {number} min - Minimum value
+     * @param {number} max - Maximum value  
+     * @param {number} step - Step increment (default 1)
+     * @param {string} className - Additional classes for container
+     */
+    function NumberInput({ value, onChange, min = 0, max = 100, step = 1, className = '' }) {
+      const decrement = () => {
+        const newVal = Math.max(min, (value || 0) - step);
+        onChange(newVal);
+      };
+      
+      const increment = () => {
+        const newVal = Math.min(max, (value || 0) + step);
+        onChange(newVal);
+      };
+      
+      const handleInput = (e) => {
+        const newVal = Number(e.target.value);
+        if (!isNaN(newVal)) {
+          onChange(Math.max(min, Math.min(max, newVal)));
+        }
+      };
+      
+      return html\`
+        <div class=\${"flex items-stretch h-8 " + className}>
+          <button
+            type="button"
+            onClick=\${decrement}
+            class="px-2 bg-zinc-700 hover:bg-zinc-600 rounded-l text-zinc-300 hover:text-white transition-colors flex items-center justify-center"
+          >
+            <i class="fa-solid fa-minus text-xs"></i>
+          </button>
+          <input
+            type="number"
+            value=\${value}
+            onInput=\${handleInput}
+            min=\${min}
+            max=\${max}
+            step=\${step}
+            class="w-full px-2 text-sm text-center bg-zinc-800 border-y border-zinc-700 focus:outline-none focus:border-indigo-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <button
+            type="button"
+            onClick=\${increment}
+            class="px-2 bg-zinc-700 hover:bg-zinc-600 rounded-r text-zinc-300 hover:text-white transition-colors flex items-center justify-center"
+          >
+            <i class="fa-solid fa-plus text-xs"></i>
+          </button>
+        </div>
+      \`;
+    }
+    
+    /**
+     * Custom color picker with swatch, hex input, and presets dropdown
+     * @param {string} value - Current hex color value
+     * @param {function} onChange - Callback with new hex value
+     * @param {object} palette - Optional palette object with primary/secondary/accent
+     * @param {string} className - Additional classes
+     */
+    function ColorInput({ value, onChange, palette = null, className = '' }) {
+      const [isOpen, setIsOpen] = useState(false);
+      const [hexInput, setHexInput] = useState(value || '#ffffff');
+      const containerRef = useRef(null);
+      
+      // Update hexInput when value changes externally
+      useEffect(() => {
+        setHexInput(value || '#ffffff');
+      }, [value]);
+      
+      // Close dropdown when clicking outside
+      useEffect(() => {
+        const handleClickOutside = (e) => {
+          if (containerRef.current && !containerRef.current.contains(e.target)) {
+            setIsOpen(false);
+          }
+        };
+        if (isOpen) {
+          document.addEventListener('mousedown', handleClickOutside);
+          return () => document.removeEventListener('mousedown', handleClickOutside);
+        }
+      }, [isOpen]);
+      
+      const handleHexChange = (e) => {
+        const newValue = e.target.value;
+        setHexInput(newValue);
+        // Only update if valid hex
+        if (/^#[0-9A-Fa-f]{6}$/.test(newValue)) {
+          onChange(newValue);
+        }
+      };
+      
+      const handleHexBlur = () => {
+        // Reset to current value if invalid
+        if (!/^#[0-9A-Fa-f]{6}$/.test(hexInput)) {
+          setHexInput(value || '#ffffff');
+        }
+      };
+      
+      const selectColor = (color) => {
+        onChange(color);
+        setHexInput(color);
+        setIsOpen(false);
+      };
+      
+      // Common colors grid
+      const commonColors = [
+        '#ffffff', '#f5f5f5', '#d4d4d4', '#a3a3a3', '#737373', '#525252', '#262626', '#000000',
+        '#fef2f2', '#fee2e2', '#fecaca', '#f87171', '#ef4444', '#dc2626', '#b91c1c', '#7f1d1d',
+        '#fef9c3', '#fef08a', '#fde047', '#facc15', '#eab308', '#ca8a04', '#a16207', '#713f12',
+        '#dcfce7', '#bbf7d0', '#86efac', '#4ade80', '#22c55e', '#16a34a', '#15803d', '#14532d',
+        '#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1', '#0c4a6e',
+        '#ede9fe', '#ddd6fe', '#c4b5fd', '#a78bfa', '#8b5cf6', '#7c3aed', '#6d28d9', '#4c1d95',
+        '#fce7f3', '#fbcfe8', '#f9a8d4', '#f472b6', '#ec4899', '#db2777', '#be185d', '#9d174d',
+      ];
+      
+      return html\`
+        <div ref=\${containerRef} class=\${"relative " + className}>
+          <div class="flex items-stretch h-8 min-w-0">
+            <button
+              type="button"
+              onClick=\${() => setIsOpen(!isOpen)}
+              class="w-10 rounded-l border border-zinc-700 hover:border-zinc-500 transition-colors flex-shrink-0"
+              style=\${"background-color: " + (value || '#ffffff')}
+              title="Click to open color picker"
+            ></button>
+            <input
+              type="text"
+              value=\${hexInput}
+              onInput=\${handleHexChange}
+              onBlur=\${handleHexBlur}
+              maxLength="7"
+              class="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 rounded-r focus:outline-none focus:border-indigo-500 font-mono uppercase"
+              placeholder="#ffffff"
+            />
+          </div>
+          
+          \${isOpen && html\`
+            <div class="absolute z-50 mt-1 p-3 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl w-64 left-0">
+              \${palette && html\`
+                <div class="mb-3">
+                  <div class="text-xs text-zinc-500 mb-1.5">Palette</div>
+                  <div class="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick=\${() => selectColor(palette.primary)}
+                      class="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
+                      style=\${"background-color: " + palette.primary}
+                      title="Primary"
+                    ></button>
+                    <button
+                      type="button"
+                      onClick=\${() => selectColor(palette.secondary)}
+                      class="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
+                      style=\${"background-color: " + palette.secondary}
+                      title="Secondary"
+                    ></button>
+                    <button
+                      type="button"
+                      onClick=\${() => selectColor(palette.accent)}
+                      class="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
+                      style=\${"background-color: " + palette.accent}
+                      title="Accent"
+                    ></button>
+                  </div>
+                </div>
+              \`}
+              
+              <div>
+                <div class="text-xs text-zinc-500 mb-1.5">Colors</div>
+                <div class="grid grid-cols-8 gap-1">
+                  \${commonColors.map(color => html\`
+                    <button
+                      type="button"
+                      onClick=\${() => selectColor(color)}
+                      class=\${"w-6 h-6 rounded border transition-colors " + 
+                        (color === value ? "border-white ring-1 ring-white" : "border-zinc-600 hover:border-zinc-400")}
+                      style=\${"background-color: " + color}
+                      title=\${color}
+                    ></button>
+                  \`)}
+                </div>
+              </div>
+            </div>
+          \`}
+        </div>
+      \`;
+    }
+    
+    // ========================================
     // URL Routing Helpers
     // ========================================
     function parseUrlParams() {
@@ -1112,6 +1308,9 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       const [previewVersion, setPreviewVersion] = useState(0); // Increment to force preview refresh
       const [confirmDeleteScreenshot, setConfirmDeleteScreenshot] = useState(null); // screenshot id to confirm delete
       const [lastGenerated, setLastGenerated] = useState(null); // Previously generated images
+      const saveTimeoutRef = useRef(null);
+      const pendingConfigRef = useRef(null);
+      const SAVE_DEBOUNCE_MS = 120;
       
       // Fetch previously generated images
       const fetchLastGenerated = async () => {
@@ -1176,16 +1375,52 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       const getScreenshots = () => getPlatformConfig()?.screenshots || [];
       const getFeatureGraphic = () => getLangConfig()?.platforms?.android?.featureGraphic;
       
-      // Save config to server and refresh preview
-      const saveConfig = async (newConfig) => {
-        setConfig(newConfig);
-        setPreviewVersion(v => v + 1); // Trigger preview refresh
+      const persistConfig = async (configToPersist) => {
         await fetch('/api/config', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newConfig),
+          body: JSON.stringify(configToPersist),
         });
       };
+
+      const flushPendingSave = async (refreshPreview = true) => {
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+          saveTimeoutRef.current = null;
+        }
+
+        if (!pendingConfigRef.current) {
+          return;
+        }
+
+        const configToPersist = pendingConfigRef.current;
+        pendingConfigRef.current = null;
+        if (refreshPreview) {
+          setPreviewVersion(v => v + 1); // Trigger preview refresh once per debounced batch
+        }
+        await persistConfig(configToPersist);
+      };
+
+      // Save config with debounce to reduce preview flicker while dragging sliders
+      const saveConfig = (newConfig) => {
+        setConfig(newConfig);
+        pendingConfigRef.current = newConfig;
+
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+
+        saveTimeoutRef.current = setTimeout(() => {
+          void flushPendingSave();
+        }, SAVE_DEBOUNCE_MS);
+      };
+
+      // Best-effort flush for pending edits on unmount
+      useEffect(() => {
+        return () => {
+          void flushPendingSave(false);
+        };
+      }, []);
       
       // Update screenshot
       const updateScreenshot = (id, updates) => {
@@ -1255,6 +1490,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       
       // Switch project
       const switchProject = async (projectId) => {
+        await flushPendingSave(false);
         const res = await fetch(\`/api/projects/\${projectId}/activate\`, { method: 'PUT' });
         const data = await res.json();
         setCurrentProject(projectId);
@@ -1343,6 +1579,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       
       // Generate all with progress
       const generateAll = async () => {
+        await flushPendingSave();
         setShowGenerateModal(true);
         setGenerateProgress({ current: 0, total: 0, item: 'Starting...', results: null, outputDir: '' });
         setGenerating(true);
@@ -1931,9 +2168,9 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     }
     
     // ========================================
-    // Color Input Component
+    // Labeled Color Input Component (simple version with label)
     // ========================================
-    function ColorInput({ label, value, onChange, placeholder = 'rgba(255,255,255,0.15)' }) {
+    function LabeledColorInput({ label, value, onChange, placeholder = 'rgba(255,255,255,0.15)' }) {
       return html\`
         <div>
           <label class="text-xs text-zinc-500 block mb-1">\${label}</label>
@@ -2100,21 +2337,10 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Text Color</label>
-                  <div class="flex gap-2">
-                    <input
-                      type="color"
-                      value=\${typo.textColor ?? '#ffffff'}
-                      onInput=\${(e) => updateTypography({ textColor: e.target.value })}
-                      class="w-12 h-9 rounded cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value=\${typo.textColor ?? '#ffffff'}
-                      onInput=\${(e) => updateTypography({ textColor: e.target.value })}
-                      class="flex-1 px-3 py-2 rounded text-sm font-mono"
-                      placeholder="#ffffff"
-                    />
-                  </div>
+                  <\${ColorInput}
+                    value=\${typo.textColor ?? '#ffffff'}
+                    onChange=\${(v) => updateTypography({ textColor: v })}
+                  />
                 </div>
                 <\${Slider}
                   label="Padding"
@@ -2241,6 +2467,15 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               />
             </\${CollapsibleSection}>
             
+            <!-- Shapes Section -->
+            <\${CollapsibleSection} title="Decorative Shapes" defaultOpen=\${false}>
+              <\${ShapeEditorInline}
+                shapes=\${screenshot.shapes}
+                onChange=\${(shapes) => onUpdate({ shapes })}
+                palette=\${config.palette}
+              />
+            </\${CollapsibleSection}>
+            
             <!-- Mascot Section -->
             <\${CollapsibleSection} title="Mascot" defaultOpen=\${false}>
               <\${MascotEditorInline}
@@ -2339,7 +2574,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                     unit="px"
                   />
                 </div>
-                <\${ColorInput}
+                <\${LabeledColorInput}
                   label="Background"
                   value=\${fg.iconBoxColor || 'rgba(255,255,255,0.15)'}
                   onChange=\${(v) => onUpdate({ iconBoxColor: v })}
@@ -2428,6 +2663,15 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               />
             </\${CollapsibleSection}>
             
+            <!-- Shapes Section -->
+            <\${CollapsibleSection} title="Decorative Shapes" defaultOpen=\${false}>
+              <\${ShapeEditorInline}
+                shapes=\${fg.shapes}
+                onChange=\${(shapes) => onUpdate({ shapes })}
+                palette=\${config.palette}
+              />
+            </\${CollapsibleSection}>
+            
             <!-- Mascot Section -->
             <\${CollapsibleSection} title="Mascot" defaultOpen=\${false}>
               <\${MascotEditorInline}
@@ -2484,43 +2728,20 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Color</label>
-                  <div class="flex gap-1">
-                    <input
-                      type="color"
-                      value=\${getColorValue(glow.color)}
-                      onInput=\${(e) => updateGlow(i, { color: e.target.value })}
-                      class="w-10 h-8 rounded cursor-pointer flex-shrink-0"
-                    />
-                    <select
-                      value=\${glow.color.startsWith('#') ? '_custom' : glow.color}
-                      onChange=\${(e) => {
-                        if (e.target.value !== '_custom') {
-                          updateGlow(i, { color: e.target.value });
-                        }
-                      }}
-                      class="flex-1 px-1 py-1 rounded text-xs"
-                    >
-                      <option value="_custom" disabled>Custom</option>
-                      <optgroup label="Palette">
-                        <option value=\${p.primary}>Primary</option>
-                        <option value=\${p.secondary}>Secondary</option>
-                        <option value=\${p.accent}>Accent</option>
-                      </optgroup>
-                      <optgroup label="Presets">
-                        \${Object.keys(GLOW_COLORS).map(c => html\`
-                          <option value=\${c}>\${c}</option>
-                        \`)}
-                      </optgroup>
-                    </select>
-                  </div>
+                  <\${ColorInput}
+                    value=\${getColorValue(glow.color)}
+                    onChange=\${(v) => updateGlow(i, { color: v })}
+                    palette=\${p}
+                  />
                 </div>
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Size</label>
-                  <input
-                    type="number"
+                  <\${NumberInput}
                     value=\${glow.size}
-                    onInput=\${(e) => updateGlow(i, { size: Number(e.target.value) })}
-                    class="w-full px-2 py-1 rounded text-sm"
+                    onChange=\${(v) => updateGlow(i, { size: v })}
+                    min=\${50}
+                    max=\${1000}
+                    step=\${50}
                   />
                 </div>
               </div>
@@ -2654,6 +2875,659 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       \`;
     }
     
+    // ========================================
+    // Shape Editor (Inline version for CollapsibleSection)
+    // ========================================
+    const SHAPE_TYPES = [
+      { value: 'circle', label: 'Circle', icon: 'fa-circle' },
+      { value: 'ring', label: 'Ring', icon: 'fa-circle-notch' },
+      { value: 'rectangle', label: 'Rectangle', icon: 'fa-square' },
+      { value: 'pill', label: 'Pill', icon: 'fa-capsules' },
+      { value: 'curved-line', label: 'Curved Line', icon: 'fa-bezier-curve' },
+      { value: 's-curve', label: 'S-Curve', icon: 'fa-wave-square' },
+      { value: 'wave-line', label: 'Wave Line', icon: 'fa-water' },
+      { value: 'chevron', label: 'Chevron', icon: 'fa-chevron-right' },
+      { value: 'double-chevron', label: 'Double Chevron', icon: 'fa-angles-right' },
+      { value: 'arrow', label: 'Arrow', icon: 'fa-arrow-right' },
+      { value: 'triangle', label: 'Triangle', icon: 'fa-play' },
+      { value: 'diamond', label: 'Diamond', icon: 'fa-diamond' },
+      { value: 'hexagon', label: 'Hexagon', icon: 'fa-hexagon-nodes' },
+      { value: 'star', label: 'Star', icon: 'fa-star' },
+      { value: 'sparkle', label: 'Sparkle', icon: 'fa-sparkles' },
+      { value: 'cross', label: 'Cross', icon: 'fa-plus' },
+      { value: 'blob', label: 'Blob', icon: 'fa-cloud' },
+      { value: 'crescent', label: 'Crescent', icon: 'fa-moon' },
+      { value: 'dots-grid', label: 'Dots Grid', icon: 'fa-grip' },
+      { value: 'scattered-dots', label: 'Scattered Dots', icon: 'fa-ellipsis' },
+    ];
+    
+    // Shape presets for quick add
+    const SHAPE_PRESETS = [
+      {
+        name: 'Nested Rings',
+        shapes: [
+          { type: 'ring', size: 50, color: '#ffffff', opacity: 0.08, strokeWidth: 2, posX: 70, posY: 50, zIndex: 0 },
+          { type: 'ring', size: 35, color: '#ffffff', opacity: 0.12, strokeWidth: 1.5, posX: 70, posY: 50, zIndex: 0 },
+        ]
+      },
+      {
+        name: 'Corner Chevron',
+        shapes: [
+          { type: 'chevron', size: 15, color: '#ffffff', opacity: 0.2, strokeWidth: 3, direction: 'right', posX: 90, posY: 20, zIndex: 5 },
+        ]
+      },
+      {
+        name: 'Floating Arc',
+        shapes: [
+          { type: 'curved-line', size: 60, color: '#ffffff', opacity: 0.15, strokeWidth: 2, orientation: 'horizontal', curvature: 30, posX: 50, posY: 80, zIndex: 0 },
+        ]
+      },
+      {
+        name: 'Dot Pattern',
+        shapes: [
+          { type: 'dots-grid', size: 40, color: '#ffffff', opacity: 0.1, rows: 4, columns: 4, spacing: 8, dotSize: 1, posX: 85, posY: 15, zIndex: 0 },
+        ]
+      },
+    ];
+    
+    function ShapeEditorInline({ shapes, onChange, palette }) {
+      const defaultPalette = { primary: '#a855f7', secondary: '#6366f1', accent: '#ec4899' };
+      const p = palette || defaultPalette;
+      const [showPresets, setShowPresets] = useState(false);
+      const presetButtonRef = useRef(null);
+      const presetMenuRef = useRef(null);
+      const [presetMenuStyle, setPresetMenuStyle] = useState({});
+      
+      const addShape = (type = 'ring') => {
+        const newShape = {
+          type,
+          size: 30,
+          color: p.primary,
+          opacity: 0.15,
+          strokeWidth: 2,
+          filled: false,
+          top: '50%',
+          left: '50%',
+          zIndex: 5,
+        };
+        onChange([...(shapes || []), newShape]);
+      };
+      
+      const addPreset = (preset) => {
+        // Add all shapes from preset
+        onChange([...(shapes || []), ...preset.shapes.map(s => ({ ...s }))]);
+        setShowPresets(false);
+      };
+      
+      const updateShape = (index, updates) => {
+        const newShapes = [...(shapes || [])];
+        newShapes[index] = { ...newShapes[index], ...updates };
+        onChange(newShapes);
+      };
+      
+      const removeShape = (index) => {
+        onChange((shapes || []).filter((_, i) => i !== index));
+      };
+      
+      const duplicateShape = (index) => {
+        const newShapes = [...(shapes || [])];
+        const copy = { ...newShapes[index] };
+        // Offset position slightly
+        copy.posX = ((copy.posX ?? 50) + 5) % 100;
+        copy.posY = ((copy.posY ?? 50) + 5) % 100;
+        newShapes.splice(index + 1, 0, copy);
+        onChange(newShapes);
+      };
+
+      const updatePresetMenuPosition = () => {
+        if (!presetButtonRef.current) return;
+
+        const rect = presetButtonRef.current.getBoundingClientRect();
+        const menuWidth = Math.max(rect.width, 260);
+        const horizontalPadding = 8;
+        const verticalGap = 6;
+        const estimatedMenuHeight = Math.min(320, 40 + SHAPE_PRESETS.length * 46);
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const openUp = spaceBelow < estimatedMenuHeight && rect.top > spaceBelow;
+
+        const left = Math.min(
+          Math.max(horizontalPadding, rect.left),
+          window.innerWidth - menuWidth - horizontalPadding
+        );
+
+        setPresetMenuStyle({
+          position: 'fixed',
+          zIndex: 60,
+          left: left + 'px',
+          width: menuWidth + 'px',
+          maxHeight: '320px',
+          ...(openUp
+            ? { bottom: (window.innerHeight - rect.top + verticalGap) + 'px' }
+            : { top: (rect.bottom + verticalGap) + 'px' }),
+        });
+      };
+
+      useEffect(() => {
+        if (!showPresets) return;
+
+        const handleClickOutside = (e) => {
+          if (presetButtonRef.current && presetButtonRef.current.contains(e.target)) return;
+          if (presetMenuRef.current && presetMenuRef.current.contains(e.target)) return;
+          setShowPresets(false);
+        };
+
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            setShowPresets(false);
+          }
+        };
+
+        const handleViewportChange = () => updatePresetMenuPosition();
+
+        updatePresetMenuPosition();
+        window.addEventListener('mousedown', handleClickOutside);
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('resize', handleViewportChange);
+        window.addEventListener('scroll', handleViewportChange, true);
+
+        return () => {
+          window.removeEventListener('mousedown', handleClickOutside);
+          window.removeEventListener('keydown', handleKeyDown);
+          window.removeEventListener('resize', handleViewportChange);
+          window.removeEventListener('scroll', handleViewportChange, true);
+        };
+      }, [showPresets]);
+      
+      // Determine which controls to show based on shape type
+      const getShapeControls = (shape, index) => {
+        const type = shape.type;
+        const isLine = ['curved-line', 's-curve', 'wave-line'].includes(type);
+        const isChevron = ['chevron', 'double-chevron', 'arrow'].includes(type);
+        const isStar = ['star', 'sparkle'].includes(type);
+        const isPattern = ['dots-grid', 'scattered-dots'].includes(type);
+        const isBlob = type === 'blob';
+        const isCrescent = type === 'crescent';
+        const hasStroke = ['ring', 'rectangle', 'pill', 'curved-line', 's-curve', 'wave-line', 'chevron', 'double-chevron', 'arrow', 'triangle', 'diamond', 'hexagon', 'star', 'sparkle', 'cross'].includes(type);
+        const hasFill = !isLine && !isChevron;
+        
+        return html\`
+          <!-- Basic Controls -->
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Color</label>
+              <\${ColorInput}
+                value=\${shape.color || '#ffffff'}
+                onChange=\${(v) => updateShape(index, { color: v })}
+                palette=\${p}
+              />
+            </div>
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Size %</label>
+              <\${NumberInput}
+                value=\${shape.size ?? 30}
+                onChange=\${(v) => updateShape(index, { size: v })}
+                min=\${1}
+                max=\${500}
+                step=\${5}
+              />
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Opacity</label>
+              <input
+                type="range"
+                value=\${(shape.opacity ?? 0.2) * 100}
+                onInput=\${(e) => updateShape(index, { opacity: Number(e.target.value) / 100 })}
+                min="0"
+                max="100"
+                class="w-full"
+              />
+              <div class="text-xs text-zinc-500 text-center">\${Math.round((shape.opacity ?? 0.2) * 100)}%</div>
+            </div>
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Blur</label>
+              <\${NumberInput}
+                value=\${shape.blur ?? 0}
+                onChange=\${(v) => updateShape(index, { blur: v })}
+                min=\${0}
+                max=\${50}
+              />
+            </div>
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Z-Index</label>
+              <select
+                value=\${shape.zIndex ?? 5}
+                onChange=\${(e) => updateShape(index, { zIndex: Number(e.target.value) })}
+                class="w-full h-8 px-2 rounded text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:border-indigo-500"
+              >
+                <option value="0">Behind (0)</option>
+                <option value="5">Default (5)</option>
+                <option value="10">Front (10)</option>
+                <option value="15">Above All (15)</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Position Controls -->
+          <div class="space-y-2">
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">X Position <span class="text-zinc-600">(← 0 | 50 center | 100 →)</span></label>
+              <div class="flex items-center gap-2">
+                <input
+                  type="range"
+                  value=\${shape.posX ?? 50}
+                  onInput=\${(e) => updateShape(index, { posX: Number(e.target.value) })}
+                  min="0"
+                  max="100"
+                  class="flex-1"
+                />
+                <input
+                  type="number"
+                  value=\${shape.posX ?? 50}
+                  onInput=\${(e) => updateShape(index, { posX: Number(e.target.value) })}
+                  min="0"
+                  max="100"
+                  class="w-14 px-1 py-0.5 rounded text-xs text-center"
+                />
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Y Position <span class="text-zinc-600">(↑ 0 | 50 center | 100 ↓)</span></label>
+              <div class="flex items-center gap-2">
+                <input
+                  type="range"
+                  value=\${shape.posY ?? 50}
+                  onInput=\${(e) => updateShape(index, { posY: Number(e.target.value) })}
+                  min="0"
+                  max="100"
+                  class="flex-1"
+                />
+                <input
+                  type="number"
+                  value=\${shape.posY ?? 50}
+                  onInput=\${(e) => updateShape(index, { posY: Number(e.target.value) })}
+                  min="0"
+                  max="100"
+                  class="w-14 px-1 py-0.5 rounded text-xs text-center"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Rotation</label>
+              <div class="flex items-center gap-2">
+                <input
+                  type="range"
+                  value=\${shape.rotation ?? 0}
+                  onInput=\${(e) => updateShape(index, { rotation: Number(e.target.value) })}
+                  min="-180"
+                  max="180"
+                  class="flex-1"
+                />
+                <span class="text-xs text-zinc-400 w-10">\${shape.rotation ?? 0}°</span>
+              </div>
+            </div>
+            \${hasFill ? html\`
+              <div>
+                <label class="text-xs text-zinc-500 block mb-1">Style</label>
+                <div class="flex gap-1">
+                  <button
+                    onClick=\${() => updateShape(index, { filled: false })}
+                    class=\${"flex-1 px-2 py-1 rounded text-xs " + (!shape.filled ? "bg-indigo-600" : "bg-zinc-800")}
+                  >Outline</button>
+                  <button
+                    onClick=\${() => updateShape(index, { filled: true })}
+                    class=\${"flex-1 px-2 py-1 rounded text-xs " + (shape.filled ? "bg-indigo-600" : "bg-zinc-800")}
+                  >Filled</button>
+                </div>
+              </div>
+            \` : ''}
+          </div>
+          
+          \${hasStroke && !shape.filled ? html\`
+            <div>
+              <label class="text-xs text-zinc-500 block mb-1">Stroke Width</label>
+              <input
+                type="range"
+                value=\${shape.strokeWidth ?? 2}
+                onInput=\${(e) => updateShape(index, { strokeWidth: Number(e.target.value) })}
+                min="0.25"
+                max="20"
+                step="0.25"
+                class="w-full"
+              />
+              <div class="text-xs text-zinc-500 text-center">\${shape.strokeWidth ?? 2}px</div>
+            </div>
+          \` : ''}
+          
+          <!-- Line-specific controls -->
+          \${isLine ? html\`
+            <div class="border-t border-zinc-700 pt-2 mt-2">
+              <div class="text-xs text-zinc-400 mb-2">Line Settings</div>
+              
+              <!-- Simplified orientation control -->
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Direction</label>
+                  <select value=\${shape.orientation ?? 'horizontal'}
+                    onChange=\${(e) => updateShape(index, { orientation: e.target.value })}
+                    class="w-full px-2 py-1 rounded text-sm">
+                    <option value="horizontal">← Horizontal →</option>
+                    <option value="vertical">↑ Vertical ↓</option>
+                    <option value="diagonal-down">↘ Diagonal Down</option>
+                    <option value="diagonal-up">↗ Diagonal Up</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Curvature</label>
+                  <input type="range" value=\${shape.curvature ?? 30} min="-100" max="100"
+                    onInput=\${(e) => updateShape(index, { curvature: Number(e.target.value) })}
+                    class="w-full" />
+                  <div class="text-xs text-zinc-500 text-center">\${shape.curvature ?? 30} (\${(shape.curvature ?? 30) > 0 ? '↑' : (shape.curvature ?? 30) < 0 ? '↓' : '—'})</div>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Dash Style</label>
+                  <select value=\${shape.dashStyle ?? 'solid'}
+                    onChange=\${(e) => updateShape(index, { dashStyle: e.target.value })}
+                    class="w-full px-2 py-1 rounded text-sm">
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Line Cap</label>
+                  <select value=\${shape.lineCap ?? 'round'}
+                    onChange=\${(e) => updateShape(index, { lineCap: e.target.value })}
+                    class="w-full px-2 py-1 rounded text-sm">
+                    <option value="round">Round</option>
+                    <option value="square">Square</option>
+                    <option value="butt">Butt</option>
+                  </select>
+                </div>
+              </div>
+              
+              \${type === 'wave-line' ? html\`
+                <div class="mt-2">
+                  <label class="text-xs text-zinc-500 block mb-1">Waves Count</label>
+                  <\${NumberInput}
+                    value=\${shape.count ?? 3}
+                    onChange=\${(v) => updateShape(index, { count: v })}
+                    min=\${1}
+                    max=\${10}
+                  />
+                </div>
+              \` : ''}
+            </div>
+          \` : ''}
+          
+          <!-- Chevron-specific controls -->
+          \${isChevron ? html\`
+            <div class="border-t border-zinc-700 pt-2 mt-2">
+              <div class="text-xs text-zinc-400 mb-2">Chevron Settings</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Direction</label>
+                  <select value=\${shape.direction ?? 'right'}
+                    onChange=\${(e) => updateShape(index, { direction: e.target.value })}
+                    class="w-full px-2 py-1 rounded text-sm">
+                    <option value="right">→ Right</option>
+                    <option value="left">← Left</option>
+                    <option value="up">↑ Up</option>
+                    <option value="down">↓ Down</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Angle</label>
+                  <input type="range" value=\${shape.angle ?? 60} min="30" max="120"
+                    onInput=\${(e) => updateShape(index, { angle: Number(e.target.value) })}
+                    class="w-full" />
+                  <div class="text-xs text-zinc-500 text-center">\${shape.angle ?? 60}°</div>
+                </div>
+              </div>
+              \${type === 'double-chevron' ? html\`
+                <div class="mt-2">
+                  <label class="text-xs text-zinc-500 block mb-1">Gap</label>
+                  <input type="range" value=\${shape.gap ?? 15} min="5" max="40"
+                    onInput=\${(e) => updateShape(index, { gap: Number(e.target.value) })}
+                    class="w-full" />
+                  <div class="text-xs text-zinc-500 text-center">\${shape.gap ?? 15}px</div>
+                </div>
+              \` : ''}
+            </div>
+          \` : ''}
+          
+          <!-- Star/Sparkle controls -->
+          \${isStar ? html\`
+            <div class="border-t border-zinc-700 pt-2 mt-2">
+              <div class="text-xs text-zinc-400 mb-2">Star Settings</div>
+              <div class="grid grid-cols-2 gap-2">
+                \${type === 'star' ? html\`
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Points</label>
+                    <\${NumberInput}
+                      value=\${shape.points ?? 5}
+                      onChange=\${(v) => updateShape(index, { points: v })}
+                      min=\${4}
+                      max=\${8}
+                    />
+                  </div>
+                \` : ''}
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Inner Radius</label>
+                  <input type="range" value=\${(shape.innerRadius ?? 0.4) * 100} min="20" max="80"
+                    onInput=\${(e) => updateShape(index, { innerRadius: Number(e.target.value) / 100 })}
+                    class="w-full" />
+                  <div class="text-xs text-zinc-500 text-center">\${Math.round((shape.innerRadius ?? 0.4) * 100)}%</div>
+                </div>
+              </div>
+            </div>
+          \` : ''}
+          
+          <!-- Pattern controls -->
+          \${isPattern ? html\`
+            <div class="border-t border-zinc-700 pt-2 mt-2">
+              <div class="text-xs text-zinc-400 mb-2">Pattern Settings</div>
+              <div class="grid grid-cols-2 gap-2">
+                \${type === 'dots-grid' ? html\`
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Rows</label>
+                    <\${NumberInput}
+                      value=\${shape.rows ?? 4}
+                      onChange=\${(v) => updateShape(index, { rows: v })}
+                      min=\${1}
+                      max=\${10}
+                    />
+                  </div>
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Columns</label>
+                    <\${NumberInput}
+                      value=\${shape.columns ?? 4}
+                      onChange=\${(v) => updateShape(index, { columns: v })}
+                      min=\${1}
+                      max=\${10}
+                    />
+                  </div>
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Spacing</label>
+                    <\${NumberInput}
+                      value=\${shape.spacing ?? 20}
+                      onChange=\${(v) => updateShape(index, { spacing: v })}
+                      min=\${5}
+                      max=\${50}
+                    />
+                  </div>
+                \` : html\`
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Count</label>
+                    <\${NumberInput}
+                      value=\${shape.count ?? 12}
+                      onChange=\${(v) => updateShape(index, { count: v })}
+                      min=\${1}
+                      max=\${50}
+                    />
+                  </div>
+                  <div>
+                    <label class="text-xs text-zinc-500 block mb-1">Seed</label>
+                    <\${NumberInput}
+                      value=\${shape.seed ?? 1}
+                      onChange=\${(v) => updateShape(index, { seed: v })}
+                      min=\${1}
+                      max=\${100}
+                    />
+                  </div>
+                \`}
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Dot Size</label>
+                  <\${NumberInput}
+                    value=\${shape.dotSize ?? 2}
+                    onChange=\${(v) => updateShape(index, { dotSize: v })}
+                    min=\${1}
+                    max=\${10}
+                  />
+                </div>
+              </div>
+            </div>
+          \` : ''}
+          
+          <!-- Blob controls -->
+          \${isBlob ? html\`
+            <div class="border-t border-zinc-700 pt-2 mt-2">
+              <div class="text-xs text-zinc-400 mb-2">Blob Settings</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Complexity</label>
+                  <\${NumberInput}
+                    value=\${shape.complexity ?? 6}
+                    onChange=\${(v) => updateShape(index, { complexity: v })}
+                    min=\${3}
+                    max=\${8}
+                  />
+                </div>
+                <div>
+                  <label class="text-xs text-zinc-500 block mb-1">Seed</label>
+                  <\${NumberInput}
+                    value=\${shape.seed ?? 1}
+                    onChange=\${(v) => updateShape(index, { seed: v })}
+                    min=\${1}
+                    max=\${100}
+                  />
+                </div>
+              </div>
+            </div>
+          \` : ''}
+          
+          <!-- Crescent controls -->
+          \${isCrescent ? html\`
+            <div class="border-t border-zinc-700 pt-2 mt-2">
+              <div class="text-xs text-zinc-400 mb-2">Crescent Settings</div>
+              <div>
+                <label class="text-xs text-zinc-500 block mb-1">Arc Percentage</label>
+                <input type="range" value=\${shape.arcPercentage ?? 70} min="10" max="90"
+                  onInput=\${(e) => updateShape(index, { arcPercentage: Number(e.target.value) })}
+                  class="w-full" />
+                <div class="text-xs text-zinc-500 text-center">\${shape.arcPercentage ?? 70}%</div>
+              </div>
+            </div>
+          \` : ''}
+        \`;
+      };
+      
+      return html\`
+        <div class="space-y-3">
+          \${(shapes || []).map((shape, i) => html\`
+            <div key=\${i} class="p-3 bg-zinc-800/50 rounded space-y-2">
+              <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                  <i class=\${"fa-solid " + (SHAPE_TYPES.find(t => t.value === shape.type)?.icon || 'fa-shapes') + " text-zinc-400"}></i>
+                  <select
+                    value=\${shape.type}
+                    onChange=\${(e) => updateShape(i, { type: e.target.value })}
+                    class="px-2 py-1 rounded text-xs bg-zinc-700"
+                  >
+                    <optgroup label="Basic">
+                      \${SHAPE_TYPES.slice(0, 4).map(t => html\`<option value=\${t.value}>\${t.label}</option>\`)}
+                    </optgroup>
+                    <optgroup label="Lines & Curves">
+                      \${SHAPE_TYPES.slice(4, 7).map(t => html\`<option value=\${t.value}>\${t.label}</option>\`)}
+                    </optgroup>
+                    <optgroup label="Arrows & Chevrons">
+                      \${SHAPE_TYPES.slice(7, 10).map(t => html\`<option value=\${t.value}>\${t.label}</option>\`)}
+                    </optgroup>
+                    <optgroup label="Geometric">
+                      \${SHAPE_TYPES.slice(10, 16).map(t => html\`<option value=\${t.value}>\${t.label}</option>\`)}
+                    </optgroup>
+                    <optgroup label="Organic">
+                      \${SHAPE_TYPES.slice(16, 18).map(t => html\`<option value=\${t.value}>\${t.label}</option>\`)}
+                    </optgroup>
+                    <optgroup label="Patterns">
+                      \${SHAPE_TYPES.slice(18).map(t => html\`<option value=\${t.value}>\${t.label}</option>\`)}
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="flex gap-1">
+                  <button onClick=\${() => duplicateShape(i)} class="text-zinc-500 hover:text-zinc-300 px-1" title="Duplicate">
+                    <i class="fa-solid fa-copy text-xs"></i>
+                  </button>
+                  <button onClick=\${() => removeShape(i)} class="text-zinc-500 hover:text-red-400 px-1" title="Remove">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+              
+              \${getShapeControls(shape, i)}
+            </div>
+          \`)}
+          
+          <!-- Add Shape Buttons -->
+          <div class="flex gap-2">
+            <button
+              ref=\${presetButtonRef}
+              onClick=\${() => setShowPresets((v) => !v)}
+              class="flex-1 h-8 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 flex items-center justify-center"
+            >
+              <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Add Preset
+              <i class=\${"fa-solid ml-2 text-[10px] " + (showPresets ? 'fa-chevron-up' : 'fa-chevron-down')}></i>
+            </button>
+            <button 
+              onClick=\${() => addShape('ring')}
+              class="flex-1 h-8 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 flex items-center justify-center"
+            >
+              <i class="fa-solid fa-plus mr-1"></i> Add Shape
+            </button>
+          </div>
+
+          \${showPresets && html\`
+            <div
+              ref=\${presetMenuRef}
+              style=\${presetMenuStyle}
+              class="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-y-auto"
+            >
+              <div class="px-3 py-2 text-[11px] uppercase tracking-wide text-zinc-400 border-b border-zinc-700">
+                Shape Presets
+              </div>
+              \${SHAPE_PRESETS.map((preset) => html\`
+                <button
+                  onClick=\${() => addPreset(preset)}
+                  class="w-full px-3 py-2.5 text-left hover:bg-zinc-700 border-b border-zinc-700/60 last:border-b-0"
+                >
+                  <div class="text-xs text-zinc-100">\${preset.name}</div>
+                  <div class="text-[11px] text-zinc-400">\${preset.shapes.length} shape\${preset.shapes.length === 1 ? '' : 's'}</div>
+                </button>
+              \`)}
+            </div>
+          \`}
+        </div>
+      \`;
+    }
+    
     // Glow Editor
     // ========================================
     function GlowEditor({ glows, onChange }) {
@@ -2702,11 +3576,12 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                 </div>
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Size</label>
-                  <input
-                    type="number"
+                  <\${NumberInput}
                     value=\${glow.size}
-                    onInput=\${(e) => updateGlow(i, { size: Number(e.target.value) })}
-                    class="w-full px-2 py-1 rounded text-sm"
+                    onChange=\${(v) => updateGlow(i, { size: v })}
+                    min=\${50}
+                    max=\${1000}
+                    step=\${50}
                   />
                 </div>
               </div>
@@ -2798,29 +3673,29 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               <div class="grid grid-cols-3 gap-3">
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Size (%)</label>
-                  <input
-                    type="number"
+                  <\${NumberInput}
                     value=\${mascot.size ?? 15}
-                    onInput=\${(e) => updateMascot({ size: Number(e.target.value) })}
-                    class="w-full px-3 py-2 rounded text-sm"
+                    onChange=\${(v) => updateMascot({ size: v })}
+                    min=\${5}
+                    max=\${50}
                   />
                 </div>
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Offset (px)</label>
-                  <input
-                    type="number"
+                  <\${NumberInput}
                     value=\${mascot.offset ?? 3}
-                    onInput=\${(e) => updateMascot({ offset: Number(e.target.value) })}
-                    class="w-full px-3 py-2 rounded text-sm"
+                    onChange=\${(v) => updateMascot({ offset: v })}
+                    min=\${0}
+                    max=\${20}
                   />
                 </div>
                 <div>
                   <label class="text-xs text-zinc-500 block mb-1">Radius (%)</label>
-                  <input
-                    type="number"
+                  <\${NumberInput}
                     value=\${mascot.borderRadius ?? 0}
-                    onInput=\${(e) => updateMascot({ borderRadius: Number(e.target.value) })}
-                    class="w-full px-3 py-2 rounded text-sm"
+                    onChange=\${(v) => updateMascot({ borderRadius: v })}
+                    min=\${0}
+                    max=\${50}
                   />
                 </div>
               </div>
@@ -3049,54 +3924,24 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
                 <div class="grid grid-cols-3 gap-4">
                   <div>
                     <label class="text-xs text-zinc-500 block mb-1">Primary</label>
-                    <div class="flex gap-2">
-                      <input
-                        type="color"
-                        value=\${palette.primary}
-                        onInput=\${(e) => updatePalette({ primary: e.target.value })}
-                        class="w-12 h-9 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value=\${palette.primary}
-                        onInput=\${(e) => updatePalette({ primary: e.target.value })}
-                        class="flex-1 px-2 py-1 rounded text-sm font-mono"
-                      />
-                    </div>
+                    <\${ColorInput}
+                      value=\${palette.primary}
+                      onChange=\${(v) => updatePalette({ primary: v })}
+                    />
                   </div>
                   <div>
                     <label class="text-xs text-zinc-500 block mb-1">Secondary</label>
-                    <div class="flex gap-2">
-                      <input
-                        type="color"
-                        value=\${palette.secondary}
-                        onInput=\${(e) => updatePalette({ secondary: e.target.value })}
-                        class="w-12 h-9 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value=\${palette.secondary}
-                        onInput=\${(e) => updatePalette({ secondary: e.target.value })}
-                        class="flex-1 px-2 py-1 rounded text-sm font-mono"
-                      />
-                    </div>
+                    <\${ColorInput}
+                      value=\${palette.secondary}
+                      onChange=\${(v) => updatePalette({ secondary: v })}
+                    />
                   </div>
                   <div>
                     <label class="text-xs text-zinc-500 block mb-1">Accent</label>
-                    <div class="flex gap-2">
-                      <input
-                        type="color"
-                        value=\${palette.accent}
-                        onInput=\${(e) => updatePalette({ accent: e.target.value })}
-                        class="w-12 h-9 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value=\${palette.accent}
-                        onInput=\${(e) => updatePalette({ accent: e.target.value })}
-                        class="flex-1 px-2 py-1 rounded text-sm font-mono"
-                      />
-                    </div>
+                    <\${ColorInput}
+                      value=\${palette.accent}
+                      onChange=\${(v) => updatePalette({ accent: v })}
+                    />
                   </div>
                 </div>
                 
