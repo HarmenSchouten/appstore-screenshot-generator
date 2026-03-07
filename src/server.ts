@@ -803,6 +803,32 @@ app.get('/output/:path{.+}', async (c) => {
   }
 });
 
+/**
+ * Get previously generated images
+ */
+app.get('/api/generated', async (c) => {
+  const outputDir = getProjectOutputDir(currentProjectId);
+  const results: { relativePath: string; status: string }[] = [];
+  
+  async function scanDir(dir: string, prefix: string = '') {
+    try {
+      for await (const entry of Deno.readDir(dir)) {
+        const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+        if (entry.isDirectory) {
+          await scanDir(join(dir, entry.name), relativePath);
+        } else if (entry.isFile && (entry.name.endsWith('.png') || entry.name.endsWith('.jpg'))) {
+          results.push({ relativePath, status: 'success' });
+        }
+      }
+    } catch {
+      // Directory doesn't exist or can't be read
+    }
+  }
+  
+  await scanDir(outputDir);
+  return c.json({ results, outputDir });
+});
+
 // ============================================================
 // Main UI
 // ============================================================
@@ -886,11 +912,12 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     .editor-sidebar { width: 420px; min-width: 420px; }
     .preview-container { background: #1a1a1a; }
     
-    /* Scrollbar styling */
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: #1a1a1a; }
-    ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #444; }
+    /* Scrollbar styling - subtle and thin */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    * { scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.1) transparent; }
     
     /* Preview iframe */
     .preview-iframe {
@@ -1083,6 +1110,28 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
       const [showThemeEditor, setShowThemeEditor] = useState(false);
       const [generateProgress, setGenerateProgress] = useState({ current: 0, total: 0, item: '', results: null, outputDir: '' });
       const [previewVersion, setPreviewVersion] = useState(0); // Increment to force preview refresh
+      const [confirmDeleteScreenshot, setConfirmDeleteScreenshot] = useState(null); // screenshot id to confirm delete
+      const [lastGenerated, setLastGenerated] = useState(null); // Previously generated images
+      
+      // Fetch previously generated images
+      const fetchLastGenerated = async () => {
+        try {
+          const res = await fetch('/api/generated');
+          const data = await res.json();
+          if (data.results && data.results.length > 0) {
+            setLastGenerated(data);
+          } else {
+            setLastGenerated(null);
+          }
+        } catch {
+          setLastGenerated(null);
+        }
+      };
+      
+      // Load last generated on mount
+      useEffect(() => {
+        fetchLastGenerated();
+      }, [currentProject]);
       
       // Update URL when selections change
       useEffect(() => {
@@ -1333,6 +1382,21 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
           setShowGenerateModal(false);
         }
         setGenerating(false);
+        fetchLastGenerated(); // Refresh last generated list
+      };
+      
+      // View previously generated images
+      const viewLastGenerated = () => {
+        if (lastGenerated) {
+          setGenerateProgress({
+            current: lastGenerated.results.length,
+            total: lastGenerated.results.length,
+            item: '',
+            results: lastGenerated.results,
+            outputDir: lastGenerated.outputDir
+          });
+          setShowGenerateModal(true);
+        }
       };
       
       // Open output folder
@@ -1467,23 +1531,43 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
             <div class="flex-1 overflow-y-auto p-3 space-y-2">
               \${getScreenshots().map((s, i) => html\`
                 <div 
-                  onClick=\${() => setSelectedItem({ type: 'screenshot', id: s.id })}
-                  class=\${"p-3 rounded cursor-pointer border " + 
+                  class=\${"p-3 rounded border " + 
                     (selectedItem?.id === s.id 
                       ? "bg-indigo-900/50 border-indigo-500" 
                       : "bg-zinc-800/50 border-transparent hover:bg-zinc-800")}
                 >
-                  <div class="flex justify-between items-start">
-                    <div>
-                      <div class="text-xs text-zinc-500 mb-1">#\${i + 1}</div>
-                      <div class="font-medium text-sm truncate">\${s.headline}</div>
-                      <div class="text-xs text-zinc-400 truncate">\${s.subtitle}</div>
+                  \${confirmDeleteScreenshot === s.id ? html\`
+                    <!-- Delete confirmation -->
+                    <div class="text-center">
+                      <p class="text-sm text-red-400 mb-2">Delete this screenshot?</p>
+                      <div class="flex gap-2 justify-center">
+                        <button 
+                          onClick=\${() => { deleteScreenshot(s.id); setConfirmDeleteScreenshot(null); }}
+                          class="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                        >Delete</button>
+                        <button 
+                          onClick=\${() => setConfirmDeleteScreenshot(null)}
+                          class="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
+                        >Cancel</button>
+                      </div>
                     </div>
-                    <button 
-                      onClick=\${(e) => { e.stopPropagation(); deleteScreenshot(s.id); }}
-                      class="text-zinc-500 hover:text-red-400 text-lg"
-                    ><i class="fa-solid fa-xmark"></i></button>
-                  </div>
+                  \` : html\`
+                    <!-- Normal view -->
+                    <div 
+                      onClick=\${() => setSelectedItem({ type: 'screenshot', id: s.id })}
+                      class="flex justify-between items-start gap-2 cursor-pointer"
+                    >
+                      <div class="min-w-0 flex-1">
+                        <div class="text-xs text-zinc-500 mb-1">#\${i + 1}</div>
+                        <div class="font-medium text-sm truncate">\${s.headline}</div>
+                        <div class="text-xs text-zinc-400 truncate">\${s.subtitle}</div>
+                      </div>
+                      <button 
+                        onClick=\${(e) => { e.stopPropagation(); setConfirmDeleteScreenshot(s.id); }}
+                        class="text-zinc-500 hover:text-red-400 text-lg flex-shrink-0"
+                      ><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                  \`}
                 </div>
               \`)}
               
@@ -1549,7 +1633,7 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
             </div>
             
             <!-- Generate button -->
-            <div class="p-3 border-t border-zinc-800">
+            <div class="p-3 border-t border-zinc-800 space-y-2">
               <button 
                 onClick=\${generateAll}
                 disabled=\${generating}
@@ -1557,6 +1641,15 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               >
                 \${generating ? html\`<i class="fa-solid fa-spinner fa-spin mr-1"></i> Generating...\` : html\`<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate All\`}
               </button>
+              \${lastGenerated && html\`
+                <button 
+                  onClick=\${viewLastGenerated}
+                  class="w-full py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <i class="fa-solid fa-images"></i>
+                  View Last Results (\${lastGenerated.results.length})
+                </button>
+              \`}
             </div>
           </div>
           
