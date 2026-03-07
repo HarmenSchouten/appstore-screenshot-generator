@@ -24,6 +24,7 @@ import {
   loadProject,
   saveProject,
   deleteProject,
+  renameProject,
   duplicateProject,
   getProjectAssetsDir,
   getProjectOutputDir,
@@ -203,6 +204,22 @@ app.delete('/api/projects/:id', async (c) => {
   }
   
   return c.json({ success: true });
+});
+
+/**
+ * Rename a project
+ */
+app.patch('/api/projects/:id', async (c) => {
+  const { id } = c.req.param();
+  const { name } = await c.req.json();
+  const project = await renameProject(id, name);
+  
+  // If renamed current project, reload config
+  if (id === currentProjectId) {
+    currentConfig = null;
+  }
+  
+  return c.json(project);
 });
 
 /**
@@ -1213,6 +1230,37 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
         setShowProjectModal(false);
       };
       
+      // Delete project
+      const deleteProjectHandler = async (projectId) => {
+        const res = await fetch(\`/api/projects/\${projectId}\`, { method: 'DELETE' });
+        if (res.ok) {
+          // Remove from list
+          setProjects(projects.filter(p => p.id !== projectId));
+          // If deleted the current project, switch to default
+          if (currentProject === projectId) {
+            await switchProject('default');
+          }
+        }
+      };
+      
+      // Rename project
+      const renameProjectHandler = async (projectId, newName) => {
+        const res = await fetch(\`/api/projects/\${projectId}\`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName }),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setProjects(projects.map(p => p.id === projectId ? updated : p));
+          // If renamed current project, reload config
+          if (currentProject === projectId) {
+            const configRes = await fetch('/api/config');
+            setConfig(await configRes.json());
+          }
+        }
+      };
+      
       // Add language
       const addLanguage = async (language, copyFrom) => {
         const res = await fetch('/api/config/language', {
@@ -1548,6 +1596,8 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               onClose=\${() => setShowProjectModal(false)}
               onCreate=\${createNewProject}
               onSwitch=\${switchProject}
+              onDelete=\${deleteProjectHandler}
+              onRename=\${renameProjectHandler}
             />
           \`}
           
@@ -3308,8 +3358,29 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
     // ========================================
     // Project Modal
     // ========================================
-    function ProjectModal({ projects, currentProject, onClose, onCreate, onSwitch }) {
+    function ProjectModal({ projects, currentProject, onClose, onCreate, onSwitch, onDelete, onRename }) {
       const [newName, setNewName] = useState('');
+      const [confirmDelete, setConfirmDelete] = useState(null); // projectId to confirm delete
+      const [editingProject, setEditingProject] = useState(null); // projectId being renamed
+      const [editName, setEditName] = useState('');
+      
+      const handleDelete = (projectId) => {
+        onDelete(projectId);
+        setConfirmDelete(null);
+      };
+      
+      const handleRename = (projectId) => {
+        if (editName.trim()) {
+          onRename(projectId, editName.trim());
+          setEditingProject(null);
+          setEditName('');
+        }
+      };
+      
+      const startEditing = (project) => {
+        setEditingProject(project.id);
+        setEditName(project.name);
+      };
       
       return html\`
         <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick=\${onClose}>
@@ -3344,14 +3415,68 @@ function getMainUI(config: ProjectConfig, projects: ProjectInfo[], activeProject
               \${projects.map(p => html\`
                 <div 
                   key=\${p.id}
-                  onClick=\${() => { onSwitch(p.id); onClose(); }}
-                  class=\${"p-3 rounded cursor-pointer border " + 
+                  class=\${"p-3 rounded border " + 
                     (currentProject === p.id 
                       ? "bg-indigo-900/50 border-indigo-500" 
                       : "bg-zinc-800/50 border-transparent hover:bg-zinc-800")}
                 >
-                  <div class="font-medium">\${p.name}</div>
-                  <div class="text-xs text-zinc-500">\${p.id}</div>
+                  \${editingProject === p.id ? html\`
+                    <!-- Rename mode -->
+                    <div class="flex gap-2">
+                      <input
+                        type="text"
+                        value=\${editName}
+                        onInput=\${(e) => setEditName(e.target.value)}
+                        onKeyDown=\${(e) => { if (e.key === 'Enter') handleRename(p.id); if (e.key === 'Escape') setEditingProject(null); }}
+                        class="flex-1 px-2 py-1 rounded text-sm"
+                        autoFocus
+                      />
+                      <button onClick=\${() => handleRename(p.id)} class="px-2 py-1 bg-green-600 hover:bg-green-500 rounded text-sm">
+                        <i class="fa-solid fa-check"></i>
+                      </button>
+                      <button onClick=\${() => setEditingProject(null)} class="px-2 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </div>
+                  \` : confirmDelete === p.id ? html\`
+                    <!-- Delete confirmation -->
+                    <div class="text-center">
+                      <p class="text-sm text-red-400 mb-2">Delete "\${p.name}"?</p>
+                      <p class="text-xs text-zinc-500 mb-3">This will permanently delete all project data.</p>
+                      <div class="flex gap-2 justify-center">
+                        <button onClick=\${() => handleDelete(p.id)} class="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm">
+                          Yes, Delete
+                        </button>
+                        <button onClick=\${() => setConfirmDelete(null)} class="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  \` : html\`
+                    <!-- Normal view -->
+                    <div class="flex items-center justify-between">
+                      <div class="cursor-pointer flex-1" onClick=\${() => { onSwitch(p.id); onClose(); }}>
+                        <div class="font-medium">\${p.name}</div>
+                        <div class="text-xs text-zinc-500">\${p.id}</div>
+                      </div>
+                      <div class="flex gap-1 ml-2">
+                        <button 
+                          onClick=\${(e) => { e.stopPropagation(); startEditing(p); }}
+                          class="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded"
+                          title="Rename"
+                        >
+                          <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button 
+                          onClick=\${(e) => { e.stopPropagation(); setConfirmDelete(p.id); }}
+                          class="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-700 rounded"
+                          title="Delete"
+                        >
+                          <i class="fa-solid fa-trash text-xs"></i>
+                        </button>
+                      </div>
+                    </div>
+                  \`}
                 </div>
               \`)}
             </div>

@@ -358,12 +358,45 @@ export async function saveProject(projectId: string, config: ProjectConfig): Pro
  * Delete a project
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  if (projectId === DEFAULT_PROJECT_ID) {
-    throw new Error('Cannot delete the default project');
-  }
-  
   const projectDir = getProjectDir(projectId);
   await Deno.remove(projectDir, { recursive: true });
+}
+
+/**
+ * Rename a project
+ */
+export async function renameProject(projectId: string, newName: string): Promise<ProjectInfo> {
+  const projectDir = getProjectDir(projectId);
+  const infoPath = join(projectDir, 'project.json');
+  const configPath = getProjectConfigPath(projectId);
+  
+  // Update project info
+  let info: ProjectInfo;
+  try {
+    info = JSON.parse(await Deno.readTextFile(infoPath));
+    info.name = newName;
+    info.updatedAt = new Date().toISOString();
+  } catch {
+    info = {
+      id: projectId,
+      name: newName,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  
+  await Deno.writeTextFile(infoPath, JSON.stringify(info, null, 2));
+  
+  // Update config app name
+  try {
+    const config = JSON.parse(await Deno.readTextFile(configPath));
+    config.app.name = newName;
+    await Deno.writeTextFile(configPath, JSON.stringify(config, null, 2));
+  } catch {
+    // Config might not exist
+  }
+  
+  return info;
 }
 
 /**
