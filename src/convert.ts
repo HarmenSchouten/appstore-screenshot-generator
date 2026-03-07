@@ -214,16 +214,91 @@ const convert = async (config: ScreenshotConfig) => {
   return stats.failed === 0;
 };
 
+// Shared browser instance for server use
+let sharedBrowser: any = null;
+
+/**
+ * Get or create shared browser instance
+ */
+async function getSharedBrowser() {
+  if (!sharedBrowser) {
+    const chromePath = findChromePath();
+    if (!chromePath) {
+      throw new Error('Could not find Chrome/Chromium');
+    }
+    sharedBrowser = await puppeteer.launch({
+      headless: true,
+      executablePath: chromePath,
+    });
+  }
+  return sharedBrowser;
+}
+
+/**
+ * Convert a single HTML file to PNG
+ * Exported for use by server
+ */
+export async function convertHtmlFileToPng(
+  htmlPath: string,
+  outputPath: string,
+  dimensions: { width: number; height: number }
+): Promise<void> {
+  const browser = await getSharedBrowser();
+  const page = await browser.newPage();
+  
+  try {
+    const success = await convertHTMLtoPNG(
+      page,
+      htmlPath,
+      outputPath,
+      dimensions.width,
+      dimensions.height
+    );
+    
+    if (!success) {
+      throw new Error('Conversion failed');
+    }
+  } finally {
+    await page.close();
+  }
+}
+
+/**
+ * Cleanup shared browser
+ */
+export async function closeBrowser(): Promise<void> {
+  if (sharedBrowser) {
+    await sharedBrowser.close();
+    sharedBrowser = null;
+  }
+}
+
 // Export for use as module
 export { convert };
 
+// Load config from JSON or TypeScript
+async function loadConfig(): Promise<ScreenshotConfig> {
+  const jsonConfigPath = join(Deno.cwd(), 'config', 'config.json');
+  
+  // Try JSON config first
+  try {
+    const jsonContent = await Deno.readTextFile(jsonConfigPath);
+    return JSON.parse(jsonContent);
+  } catch {
+    // Fall back to TypeScript config
+  }
+  
+  const configPath = join(Deno.cwd(), 'config', 'config.ts');
+  const configUrl = Deno.build.os === 'windows' ? `file:///${configPath.replace(/\\/g, '/')}` : configPath;
+  const { screenshotConfig } = await import(configUrl);
+  return screenshotConfig;
+}
+
 // Run if executed directly
 if (import.meta.main) {
-  const configPath = join(Deno.cwd(), 'config', 'config.ts');
-  const { screenshotConfig } = await import(configPath);
-
   try {
-    const success = await convert(screenshotConfig);
+    const config = await loadConfig();
+    const success = await convert(config);
     Deno.exit(success ? 0 : 1);
   } catch (error) {
     console.error('❌ Error converting screenshots:', error);

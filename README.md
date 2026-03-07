@@ -5,261 +5,136 @@
 ![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20Android-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Configuration-based screenshot generator for App Store and Google Play. Define your screenshots once in TypeScript config files, then generate localized marketing images for multiple platforms.
+Visual screenshot generator for App Store and Google Play. Create professional marketing screenshots with a real-time preview editor—no code required.
 
 ## Features
 
-- 📱 **Multi-platform** - Generate for iOS App Store and Google Play
-- 🌍 **Multi-language** - Easy localization with separate config files per language
-- 🎨 **Customizable themes** - Gradients, glow effects, phone frames
-- 📐 **Pixel-perfect** - 2x supersampling for crisp output
-- 🖼️ **Phone frames** - Realistic iOS and Android device frames
-- 🎭 **Mascot support** - Optional character/branding elements
-- 📊 **Feature graphics** - Google Play feature graphic generation
-
-## Directory Structure
-
-```
-appstore-screenshots/
-├── config/
-│   ├── config.ts          # Main config (imports language configs)
-│   └── config.en.ts       # English screenshot definitions
-├── src/
-│   ├── types.ts           # TypeScript type definitions
-│   ├── generate.ts        # Config → HTML generation
-│   ├── convert.ts         # HTML → PNG conversion
-│   ├── build.ts           # Combined build script
-│   └── shared.css         # Shared styles for templates
-├── assets/                # Your app screenshots and images
-│   ├── screenshots/       # Device screenshots
-│   ├── icon.png           # App icon
-│   └── mascot.png         # Optional mascot image
-├── output/                # Generated files (gitignored)
-│   ├── html/              # Intermediate HTML files
-│   └── images/            # Final PNG screenshots
-├── deno.json              # Deno tasks and imports
-└── package.json           # npm scripts (wraps deno tasks)
-```
+- 🎨 **Visual Editor** - Design screenshots with live preview, no config files needed
+- 📱 **Multi-platform** - Generate for both iOS App Store and Google Play
+- 🌍 **Multi-language** - Create localized versions for each market
+- 🖼️ **Phone Frames** - Realistic iOS and Android device frames with customizable scale
+- ✨ **Glow Effects** - Dynamic gradient glows for depth and visual interest
+- 🎭 **Mascot Support** - Add character/branding elements with positioning controls
+- 📊 **Feature Graphics** - Google Play feature graphic generation
+- 📁 **Project Management** - Organize multiple apps with separate configurations
+- 🔗 **Shareable URLs** - Deep links to specific screenshots for team collaboration
 
 ## Quick Start
 
 ### Prerequisites
 
 - [Deno](https://deno.land/) 2.0 or higher
-- Google Chrome or Chromium (for PNG conversion)
+- Google Chrome or Chromium (for PNG export)
 
-### Installation
+### Run the Editor
 
 ```bash
-# Clone the repository
+# Clone and start
 git clone https://github.com/yourusername/appstore-screenshots.git
 cd appstore-screenshots
-
-# Install dependencies (optional, for puppeteer)
-npm install
-```
-
-### Generate Screenshots
-
-```bash
-# Generate all screenshots (HTML + PNG)
-deno task build
-
-# Or use npm
-npm run build
-```
-
-### Development Server (Web UI)
-
-```bash
-# Start the development server with web UI
 deno task dev
-
-# Open http://localhost:3000 in your browser
 ```
 
-The web UI allows you to:
-- Preview all configured screenshots
-- Switch between languages and platforms
-- Generate screenshots with one click
-- View build output
+Open **http://localhost:3000** in your browser.
 
-### Generate by Language
+## Using the Editor
 
-```bash
-# English only
-deno task build:en
+### Creating Screenshots
 
-# Or generate HTML and convert separately
-deno task generate:en
-deno task convert:en
+1. **Select or create a project** - Click the project name in the sidebar header
+2. **Choose language and platform** - Use the tabs in the sidebar (EN/NL, Android/iOS)
+3. **Add screenshots** - Click "+ Add Screenshot" or "+ Feature Graphic"
+4. **Edit in real-time** - Use the right panel to customize:
+   - **Content**: Headline and subtitle text
+   - **Typography**: Font sizes, weights, line height, alignment
+   - **Layout**: Title offset from top
+   - **Phone Screenshot**: Select or upload images, single/dual phone modes
+   - **Phone Frame**: Scale, position, rotation (for dual layouts)
+   - **Background Glows**: Add colorful gradient orbs
+   - **Mascot**: Optional character overlay with position controls
+
+### URL Routing
+
+Every screenshot has a stable URL in the format:
+```
+http://localhost:3000/{project}/{language}/{platform}/{screenshot-id}
 ```
 
-## Configuration
+Share these links with your team to reference specific screenshots.
 
-### Main Config (`config/config.ts`)
+### Copy Between Platforms
 
-```typescript
-import type { ScreenshotConfig } from '../src/types.ts';
-import { enConfig } from './config.en.ts';
+Use the **⧉** button next to the platform tabs to copy your Android configuration to iOS (or vice versa). This saves time when creating similar screenshots for both stores.
 
-export const screenshotConfig: ScreenshotConfig = {
-  // App branding
-  app: {
-    name: 'My App',
-    iconPath: 'assets/icon.png',
-    defaultMascotPath: 'assets/mascot.png',
-  },
+## Generating PNG Files
 
-  // Theme configuration
-  theme: {
-    background: {
-      gradient: 'linear-gradient(180deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%)',
-    },
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
-  },
+1. Click **Generate** in the top right
+2. Watch the progress modal as screenshots are rendered
+3. Preview the generated images in the completion modal
+4. Click **Open in Explorer** to access the output folder
 
-  assetsBasePath: 'assets',
-  languages: [enConfig],
-};
+Generated files are saved to `projects/{project-id}/output/{language}/{platform}/`.
+
+## Project Structure
+
 ```
-
-### Language Config (`config/config.en.ts`)
-
-```typescript
-import type { LanguageConfig } from '../src/types.ts';
-
-export const enConfig: LanguageConfig = {
-  language: 'en',
-  platforms: {
-    android: {
-      dimensions: { width: 1242, height: 2688 },
-      screenshots: [
-        {
-          id: 'hero',
-          headline: 'Track your reading',
-          subtitle: 'Your personal library',
-          imagePath: 'screenshots/home.png',
-          glows: [
-            { color: 'purple', size: 600, top: '-200px', right: '-200px' },
-            { color: 'blue', size: 500, bottom: '200px', left: '-150px' },
-          ],
-          phoneFrame: { wide: true },
-          mascot: { position: 'bottom-right' },
-        },
-        // ... more screenshots
-      ],
-      featureGraphic: {
-        headline: 'App Name',
-        subtitle: 'Your tagline here',
-        imagePath: 'screenshots/home.png',
-        glows: [/* ... */],
-      },
-    },
-    ios: {
-      dimensions: { width: 1242, height: 2688 },
-      screenshots: [/* ... */],
-    },
-  },
-};
+appstore-screenshots/
+├── projects/               # Your projects (auto-created)
+│   └── my-app/
+│       ├── config.json     # Project configuration
+│       ├── assets/         # Uploaded images
+│       │   ├── screenshots/
+│       │   └── mascots/
+│       └── output/         # Generated PNGs
+│           ├── en/
+│           │   ├── android/
+│           │   └── ios/
+│           └── nl/
+│               └── ...
+├── src/
+│   ├── server.ts           # Web UI server
+│   ├── renderer.ts         # Screenshot rendering
+│   ├── convert.ts          # HTML → PNG conversion
+│   ├── projects.ts         # Project management
+│   └── types.ts            # TypeScript definitions
+└── deno.json               # Deno tasks
 ```
 
 ## Screenshot Options
 
-### Glow Effects
+### Phone Frame Settings
 
-Available colors: `purple`, `blue`, `pink`, `cyan`, `amber`, `green`, `red`, `orange`
+| Setting | Description | Range |
+|---------|-------------|-------|
+| Scale | Phone size relative to canvas | 50-100% |
+| Bottom Offset | Distance from bottom edge | 0-100% |
+| Rotation | Angle for dual phone layouts | 0-15° |
+| Gap | Space between dual phones | 0-10% |
 
-```typescript
-glows: [
-  {
-    color: 'purple',
-    size: 600,        // Width/height in pixels
-    top: '-200px',    // Position (top, right, bottom, left)
-    right: '-200px',
-  },
-]
-```
+### Typography Settings
 
-### Phone Frames
+| Setting | Description | Range |
+|---------|-------------|-------|
+| Headline Size | Main text size | 3-8% |
+| Subtitle Size | Secondary text size | 1.5-4% |
+| Headline Weight | Font weight (400-900) | Regular to Black |
+| Line Height | Text line spacing | 1.0-1.5 |
+| Text Align | Left, center, or right | - |
+| Padding | Horizontal margin | 2-15% |
 
-```typescript
-phoneFrame: {
-  wide: true,   // Wider frame variant
-  small: true,  // Smaller frame (for dual layouts)
-}
-```
+### Glow Colors
 
-### Dual Phone Layout
+Available colors for background glows:
+- `purple`, `blue`, `pink`, `cyan`
+- `amber`, `green`, `red`, `orange`
 
-Pass an array of image paths to show two phones side-by-side:
+### Mascot Options
 
-```typescript
-{
-  id: 'comparison',
-  headline: 'Before & After',
-  subtitle: 'See the difference',
-  imagePath: ['screenshots/before.png', 'screenshots/after.png'],
-  phoneFrame: { small: true },  // Recommended for dual layouts
-  glows: [/* ... */],
-}
-```
-
-### Mascot
-
-```typescript
-mascot: {
-  position: 'bottom-right',  // bottom-right, bottom-left, top-right, top-left
-  imagePath: 'mascot-alt.png',  // Optional, uses default if omitted
-}
-```
-
-## Adding Languages
-
-1. Copy `config/config.en.ts` to `config/config.nl.ts` (or your language code)
-2. Update the `language` property and translate all text
-3. Import in `config/config.ts`:
-
-```typescript
-import { enConfig } from './config.en.ts';
-import { nlConfig } from './config.nl.ts';
-
-export const screenshotConfig: ScreenshotConfig = {
-  // ...
-  languages: [enConfig, nlConfig],
-};
-```
-
-4. Add tasks to `deno.json`:
-
-```json
-{
-  "tasks": {
-    "generate:nl": "deno run --allow-read --allow-write src/generate.ts --lang nl",
-    "convert:nl": "deno run -A src/convert.ts --lang nl",
-    "build:nl": "deno task generate:nl && deno task convert:nl"
-  }
-}
-```
-
-## Output
-
-Screenshots are generated to `output/images/{language}/{platform}/`:
-
-```
-output/images/
-├── en/
-│   ├── android/
-│   │   ├── 01-hero.png
-│   │   ├── 02-feature-1.png
-│   │   └── feature-graphic.png
-│   └── ios/
-│       ├── 01-hero.png
-│       └── 02-feature-1.png
-└── nl/
-    └── ...
-```
+| Setting | Description |
+|---------|-------------|
+| Position | `top-left`, `top-right`, `bottom-left`, `bottom-right` |
+| Scale | Size relative to canvas (10-100%) |
+| Offset X/Y | Fine-tune position in pixels |
 
 ## Dimensions
 
@@ -274,22 +149,29 @@ Default dimensions follow App Store / Google Play requirements:
 
 ### Chrome not found
 
-The converter automatically searches for Chrome/Chromium. If not found:
+The converter searches for Chrome/Chromium automatically. If not found:
 
 ```bash
-# Set the path manually via environment variable
+# Set the path manually
 export PUPPETEER_EXECUTABLE_PATH="/path/to/chrome"
 ```
 
 ### Fonts not loading
 
-Ensure you have an internet connection for Google Fonts, or use system fonts:
+Ensure you have an internet connection for Google Fonts loading during generation.
 
-```typescript
-theme: {
-  fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-  // Remove googleFontsUrl to use system fonts
-}
+### Preview not matching output
+
+The preview uses an iframe with the same renderer as export—what you see is what you get. If there's a mismatch, try refreshing the browser.
+
+## Development
+
+```bash
+# Type check
+deno check src/server.ts
+
+# Run with file watching
+deno task dev
 ```
 
 ## License
