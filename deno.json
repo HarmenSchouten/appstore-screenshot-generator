@@ -7,11 +7,27 @@
     "convert:en": "deno run -A src/convert.ts --lang en",
     "build": "deno run -A src/build.ts",
     "build:en": "deno task generate:en && deno task convert:en",
-    "dev": "deno run -A --watch src/server.ts"
+    "build:ui": "deno run -A scripts/build-ui.ts",
+    "dev": "deno run -A scripts/dev.ts",
+    "dev:server": "deno run -A --watch=src/server.ts,src/routes/ src/server.ts"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "imports": {
     "@std/path": "jsr:@std/path@^1.0.0",
     "@std/fs": "jsr:@std/fs@^1.0.0",
-    "hono": "npm:hono@4"
+    "hono": "npm:hono@4",
+    "preact": "npm:preact@10.19.2",
+    "preact/hooks": "npm:preact@10.19.2/hooks",
+    "@types": "./src/types/index.ts",
+    "@types/": "./src/types/",
+    "@routes": "./src/routes/index.ts",
+    "@routes/": "./src/routes/",
+    "@ui": "./src/ui/index.ts",
+    "@ui/": "./src/ui/",
+    "@lib": "./src/lib/index.ts",
+    "@lib/": "./src/lib/"
   }
 }
