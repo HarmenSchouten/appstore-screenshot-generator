@@ -271,7 +271,7 @@ function getMainUI(_config: ProjectConfig, _projects: ProjectInfo[], _activeProj
 
 // Start server
 const port = 3000;
-console.log(`\nu{1F3A8} App Store Screenshots Server`);
+console.log(`🎨 App Store Screenshots Server`);
 console.log(`   http://localhost:${port}\n`);
 
 Deno.serve({ port }, app.fetch);
