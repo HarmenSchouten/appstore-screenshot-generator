@@ -98,21 +98,32 @@ appstore-screenshots/
 │       ├── assets/         # Uploaded images
 │       │   ├── screenshots/
 │       │   ├── mascots/
-│       │   └── icons/      # App icons for feature graphics
+│       │   └── icons/
 │       └── output/         # Generated PNGs
-│           ├── en/
-│           │   ├── android/
-│           │   └── ios/
-│           └── nl/
-│               └── ...
+│
 ├── src/
-│   ├── server.ts           # Web UI server
-│   ├── renderer.ts         # Screenshot rendering
+│   ├── server.ts           # Web server (route orchestration)
+│   ├── renderer.ts         # Screenshot HTML rendering
 │   ├── convert.ts          # HTML → PNG conversion
 │   ├── projects.ts         # Project management
-│   └── types.ts            # TypeScript definitions
-└── deno.json               # Deno tasks
+│   │
+│   ├── types/              # TypeScript type definitions
+│   ├── routes/             # API route modules
+│   ├── lib/                # Shared utilities
+│   │
+│   └── ui/                 # Preact TSX frontend
+│       ├── components/     # React-style components
+│       │   ├── editors/    # Screenshot/glow/shape editors
+│       │   ├── inputs/     # Form controls
+│       │   └── modals/     # Dialogs
+│       └── utils/          # API client, routing
+│
+├── dist/                   # Compiled UI bundle
+├── scripts/                # Build scripts
+└── deno.json               # Deno config & tasks
 ```
+
+> See [docs/003-TSX-REFACTOR.md](docs/003-TSX-REFACTOR.md) for detailed architecture documentation.
 
 ## Screenshot Options
 
@@ -215,11 +226,14 @@ The preview uses an iframe with the same renderer as export—what you see is wh
 ## Development
 
 ```bash
+# Build UI bundle (required after UI changes)
+deno task build:ui
+
+# Run with file watching (UI + server)
+deno task dev
+
 # Type check
 deno check src/server.ts
-
-# Run with file watching
-deno task dev
 ```
 
 ## License
