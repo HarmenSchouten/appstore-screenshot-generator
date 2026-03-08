@@ -1,0 +1,147 @@
+/**
+ * App styles
+ * 
+ * Custom styles for the screenshot editor UI.
+ * Used alongside Tailwind CSS.
+ */
+
+body {
+  background: #0f0f0f;
+}
+
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+}
+
+.editor-panel {
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-sidebar {
+  width: 420px;
+  min-width: 420px;
+}
+
+.preview-container {
+  background: #1a1a1a;
+}
+
+/* Scrollbar styling - subtle and thin */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+/* Preview iframe */
+.preview-iframe {
+  background: #000;
+  border: none;
+  transform-origin: top left;
+}
+
+/* Input styling */
+input,
+select,
+textarea {
+  background: #252525 !important;
+  border: 1px solid #333 !important;
+  color: white !important;
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #6366f1 !important;
+  outline: none !important;
+}
+input[type='color'] {
+  padding: 0 !important;
+  height: 32px !important;
+  cursor: pointer;
+}
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  height: 20px;
+}
+input[type='range']::-webkit-slider-runnable-track {
+  background: #3f3f46;
+  height: 6px;
+  border-radius: 3px;
+}
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -5px;
+  background: #6366f1;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  border: 2px solid #818cf8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+input[type='range']::-webkit-slider-thumb:hover {
+  background: #818cf8;
+}
+input[type='range']::-moz-range-track {
+  background: #3f3f46;
+  height: 6px;
+  border-radius: 3px;
+}
+input[type='range']::-moz-range-thumb {
+  background: #6366f1;
+  height: 16px;
+  width: 16px;
+  border-radius: 50%;
+  border: 2px solid #818cf8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+input[type='range']::-moz-range-thumb:hover {
+  background: #818cf8;
+}
+input[type='range']:focus {
+  outline: none;
+}
+input[type='range']:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Collapsible section styling */
+.section-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+}
+.section-header:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+.section-content {
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+
+/* Button styling */
+.btn-primary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #7c7ff2 0%, #6366f1 100%);
+}
