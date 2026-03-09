@@ -145,9 +145,6 @@ Export (Puppeteer) <── HTML <── renderToStaticMarkup(<Screenshot />) ─
 - Phone frame styling moved to inline React styles for proper scaling across sizes
 - Feature graphic now uses shared `PhoneFrame` component with position controls
 
-1. Add crossfade to mask loading latency (2-4 hours)
-2. Optionally add postMessage for slider interactions (1 day)
-
 **Result**:
 - Much better perceived performance
 - No major refactor
