@@ -4,8 +4,8 @@
  * Modal showing generation progress and results with image previews.
  */
 
-import { useMemo } from 'preact/hooks';
-import type { GenerateProgress, GenerateResult } from '../../types.ts';
+import { useMemo } from 'react';
+import type { GenerateProgress, GenerateResult } from '../../types';
 
 interface GenerateModalProps {
   progress: GenerateProgress;
@@ -72,21 +72,21 @@ export function GenerateModal({ progress, generating, onClose }: GenerateModalPr
     if (!data.feature && data.screenshots.length === 0) return null;
 
     return (
-      <div class="mb-4">
-        <div class="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
-          <i class={`fa-brands ${platform === 'android' ? 'fa-android' : 'fa-apple'}`} />
+      <div className="mb-4">
+        <div className="text-sm font-medium text-zinc-300 mb-2 flex items-center gap-2">
+          <i className={`fa-brands ${platform === 'android' ? 'fa-android' : 'fa-apple'}`} />
           {label}
         </div>
 
         {data.feature && (
-          <div class="mb-3">
-            <div class="bg-zinc-800 rounded overflow-hidden">
+          <div className="mb-3">
+            <div className="bg-zinc-800 rounded overflow-hidden">
               <img
                 src={`/output/${data.feature.relativePath}?t=${Date.now()}`}
-                class="w-full aspect-[1024/500] object-contain bg-zinc-700"
+                className="w-full aspect-[1024/500] object-contain bg-zinc-700"
                 loading="lazy"
               />
-              <div class="p-2 text-xs text-zinc-400 truncate" title={data.feature.relativePath}>
+              <div className="p-2 text-xs text-zinc-400 truncate" title={data.feature.relativePath}>
                 Feature Graphic
               </div>
             </div>
@@ -94,15 +94,15 @@ export function GenerateModal({ progress, generating, onClose }: GenerateModalPr
         )}
 
         {data.screenshots.length > 0 && (
-          <div class="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {data.screenshots.map((r) => (
-              <div key={r.relativePath} class="bg-zinc-800 rounded overflow-hidden">
+              <div key={r.relativePath} className="bg-zinc-800 rounded overflow-hidden">
                 <img
                   src={`/output/${r.relativePath}?t=${Date.now()}`}
-                  class="w-full aspect-[1242/2688] object-contain bg-zinc-700"
+                  className="w-full aspect-[1242/2688] object-contain bg-zinc-700"
                   loading="lazy"
                 />
-                <div class="p-1.5 text-xs text-zinc-400 truncate" title={r.relativePath}>
+                <div className="p-1.5 text-xs text-zinc-400 truncate" title={r.relativePath}>
                   {r.relativePath.split('/').pop()}
                 </div>
               </div>
@@ -114,72 +114,72 @@ export function GenerateModal({ progress, generating, onClose }: GenerateModalPr
   };
 
   return (
-    <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div
-        class="bg-zinc-900 rounded-lg p-6 w-[700px] max-h-[85vh] overflow-hidden flex flex-col"
+        className="bg-zinc-900 rounded-lg p-6 w-[700px] max-h-[85vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="font-bold text-lg">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="font-bold text-lg">
             {isDone ? 'Generation Complete' : 'Generating Screenshots...'}
           </h2>
           {isDone && (
-            <button onClick={onClose} class="text-zinc-500 hover:text-white text-xl">
-              <i class="fa-solid fa-xmark" />
+            <button onClick={onClose} className="text-zinc-500 hover:text-white text-xl">
+              <i className="fa-solid fa-xmark" />
             </button>
           )}
         </div>
 
         {!isDone ? (
           // Progress View
-          <div class="space-y-4">
-            <div class="bg-zinc-800 rounded-full h-3 overflow-hidden">
+          <div className="space-y-4">
+            <div className="bg-zinc-800 rounded-full h-3 overflow-hidden">
               <div
-                class="bg-indigo-500 h-full transition-all duration-300"
+                className="bg-indigo-500 h-full transition-all duration-300"
                 style={{ width: `${percent}%` }}
               />
             </div>
-            <div class="flex justify-between text-sm">
-              <span class="text-zinc-400 truncate max-w-[400px]">{item}</span>
-              <span class="text-zinc-500">
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-400 truncate max-w-[400px]">{item}</span>
+              <span className="text-zinc-500">
                 {current} / {total}
               </span>
             </div>
           </div>
         ) : (
           // Results View
-          <div class="flex-1 overflow-hidden flex flex-col min-h-0">
+          <div className="flex-1 overflow-hidden flex flex-col min-h-0">
             {/* Summary */}
-            <div class="flex gap-4 mb-4">
-              <div class="flex-1 bg-green-900/30 border border-green-800 rounded p-3 text-center">
-                <div class="text-2xl font-bold text-green-400">{successCount}</div>
-                <div class="text-xs text-green-500">Successful</div>
+            <div className="flex gap-4 mb-4">
+              <div className="flex-1 bg-green-900/30 border border-green-800 rounded p-3 text-center">
+                <div className="text-2xl font-bold text-green-400">{successCount}</div>
+                <div className="text-xs text-green-500">Successful</div>
               </div>
               {errorCount > 0 && (
-                <div class="flex-1 bg-red-900/30 border border-red-800 rounded p-3 text-center">
-                  <div class="text-2xl font-bold text-red-400">{errorCount}</div>
-                  <div class="text-xs text-red-500">Failed</div>
+                <div className="flex-1 bg-red-900/30 border border-red-800 rounded p-3 text-center">
+                  <div className="text-2xl font-bold text-red-400">{errorCount}</div>
+                  <div className="text-xs text-red-500">Failed</div>
                 </div>
               )}
             </div>
 
             {/* Image Previews by Platform */}
-            <div class="flex-1 overflow-y-auto min-h-0 pr-2">
+            <div className="flex-1 overflow-y-auto min-h-0 pr-2">
               {renderPlatformSection('android', 'Android')}
               {renderPlatformSection('ios', 'iOS')}
             </div>
 
             {/* Actions */}
-            <div class="flex gap-3 mt-4 pt-4 border-t border-zinc-800">
+            <div className="flex gap-3 mt-4 pt-4 border-t border-zinc-800">
               <button
                 onClick={openFolder}
-                class="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm flex items-center justify-center gap-2"
               >
-                <i class="fa-solid fa-folder-open" /> Open in Explorer
+                <i className="fa-solid fa-folder-open" /> Open in Explorer
               </button>
               <button
                 onClick={onClose}
-                class="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm"
+                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm"
               >
                 Done
               </button>

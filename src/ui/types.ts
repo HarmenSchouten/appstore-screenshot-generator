@@ -17,10 +17,10 @@ export type {
   MascotOptions as Mascot,
   PhoneFrameOptions as PhoneFrame,
   ColorPalette as Palette,
-} from '../types/index.ts';
+} from '../types/index';
 
 // Re-export ProjectConfig as Config for component convenience
-export type { ProjectConfig as Config } from '../types/index.ts';
+export type { ProjectConfig as Config } from '../types/index';
 
 /**
  * Glow color presets
@@ -88,4 +88,4 @@ export interface GenerateResult {
 }
 
 // Import Palette type
-import type { ColorPalette as Palette } from '../types/index.ts';
+import type { ColorPalette as Palette } from '../types/index';

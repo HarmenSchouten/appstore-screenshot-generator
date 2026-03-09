@@ -4,9 +4,9 @@
  * Inline editor for managing decorative shapes with presets.
  */
 
-import { useState, useRef, useEffect } from 'preact/hooks';
-import { NumberInput, ColorInput } from '../inputs/index.ts';
-import type { Shape, Palette, ShapeType } from '../../types.ts';
+import { useState, useRef, useEffect } from 'react';
+import { NumberInput, ColorInput } from '../inputs/index';
+import type { Shape, Palette, ShapeType } from '../../types';
 
 interface ShapeEditorInlineProps {
   shapes: Shape[];
@@ -183,9 +183,9 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
     return (
       <>
         {/* Basic Controls */}
-        <div class="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Color</label>
+            <label className="text-xs text-zinc-500 block mb-1">Color</label>
             <ColorInput
               value={shape.color || '#ffffff'}
               onChange={(v) => updateShape(index, { color: v })}
@@ -193,7 +193,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
             />
           </div>
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Size %</label>
+            <label className="text-xs text-zinc-500 block mb-1">Size %</label>
             <NumberInput
               value={shape.size ?? 30}
               onChange={(v) => updateShape(index, { size: v })}
@@ -204,21 +204,21 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Opacity</label>
+            <label className="text-xs text-zinc-500 block mb-1">Opacity</label>
             <input
               type="range"
               value={(shape.opacity ?? 0.2) * 100}
               onInput={(e) => updateShape(index, { opacity: Number((e.target as HTMLInputElement).value) / 100 })}
               min="0"
               max="100"
-              class="w-full"
+              className="w-full"
             />
-            <div class="text-xs text-zinc-500 text-center">{Math.round((shape.opacity ?? 0.2) * 100)}%</div>
+            <div className="text-xs text-zinc-500 text-center">{Math.round((shape.opacity ?? 0.2) * 100)}%</div>
           </div>
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Blur</label>
+            <label className="text-xs text-zinc-500 block mb-1">Blur</label>
             <NumberInput
               value={shape.blur ?? 0}
               onChange={(v) => updateShape(index, { blur: v })}
@@ -227,11 +227,11 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
             />
           </div>
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Z-Index</label>
+            <label className="text-xs text-zinc-500 block mb-1">Z-Index</label>
             <select
               value={shape.zIndex ?? 5}
               onChange={(e) => updateShape(index, { zIndex: Number((e.target as HTMLSelectElement).value) })}
-              class="w-full h-8 px-2 rounded text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:border-indigo-500"
+              className="w-full h-8 px-2 rounded text-sm bg-zinc-800 border border-zinc-700 focus:outline-none focus:border-indigo-500"
             >
               <option value={0}>Behind (0)</option>
               <option value={5}>Default (5)</option>
@@ -242,19 +242,19 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
         </div>
 
         {/* Position Controls */}
-        <div class="space-y-2">
+        <div className="space-y-2">
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">
-              X Position <span class="text-zinc-600">(← 0 | 50 center | 100 →)</span>
+            <label className="text-xs text-zinc-500 block mb-1">
+              X Position <span className="text-zinc-600">(← 0 | 50 center | 100 →)</span>
             </label>
-            <div class="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <input
                 type="range"
                 value={shape.posX ?? 50}
                 onInput={(e) => updateShape(index, { posX: Number((e.target as HTMLInputElement).value) })}
                 min="0"
                 max="100"
-                class="flex-1"
+                className="flex-1"
               />
               <input
                 type="number"
@@ -262,22 +262,22 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 onInput={(e) => updateShape(index, { posX: Number((e.target as HTMLInputElement).value) })}
                 min={0}
                 max={100}
-                class="w-14 px-1 py-0.5 rounded text-xs text-center"
+                className="w-14 px-1 py-0.5 rounded text-xs text-center"
               />
             </div>
           </div>
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">
-              Y Position <span class="text-zinc-600">(↑ 0 | 50 center | 100 ↓)</span>
+            <label className="text-xs text-zinc-500 block mb-1">
+              Y Position <span className="text-zinc-600">(↑ 0 | 50 center | 100 ↓)</span>
             </label>
-            <div class="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <input
                 type="range"
                 value={shape.posY ?? 50}
                 onInput={(e) => updateShape(index, { posY: Number((e.target as HTMLInputElement).value) })}
                 min="0"
                 max="100"
-                class="flex-1"
+                className="flex-1"
               />
               <input
                 type="number"
@@ -285,40 +285,40 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 onInput={(e) => updateShape(index, { posY: Number((e.target as HTMLInputElement).value) })}
                 min={0}
                 max={100}
-                class="w-14 px-1 py-0.5 rounded text-xs text-center"
+                className="w-14 px-1 py-0.5 rounded text-xs text-center"
               />
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Rotation</label>
-            <div class="flex items-center gap-2">
+            <label className="text-xs text-zinc-500 block mb-1">Rotation</label>
+            <div className="flex items-center gap-2">
               <input
                 type="range"
                 value={shape.rotation ?? 0}
                 onInput={(e) => updateShape(index, { rotation: Number((e.target as HTMLInputElement).value) })}
                 min="-180"
                 max="180"
-                class="flex-1"
+                className="flex-1"
               />
-              <span class="text-xs text-zinc-400 w-10">{shape.rotation ?? 0}°</span>
+              <span className="text-xs text-zinc-400 w-10">{shape.rotation ?? 0}°</span>
             </div>
           </div>
           {hasFill && (
             <div>
-              <label class="text-xs text-zinc-500 block mb-1">Style</label>
-              <div class="flex gap-1">
+              <label className="text-xs text-zinc-500 block mb-1">Style</label>
+              <div className="flex gap-1">
                 <button
                   onClick={() => updateShape(index, { filled: false })}
-                  class={`flex-1 px-2 py-1 rounded text-xs ${!shape.filled ? 'bg-indigo-600' : 'bg-zinc-800'}`}
+                  className={`flex-1 px-2 py-1 rounded text-xs ${!shape.filled ? 'bg-indigo-600' : 'bg-zinc-800'}`}
                 >
                   Outline
                 </button>
                 <button
                   onClick={() => updateShape(index, { filled: true })}
-                  class={`flex-1 px-2 py-1 rounded text-xs ${shape.filled ? 'bg-indigo-600' : 'bg-zinc-800'}`}
+                  className={`flex-1 px-2 py-1 rounded text-xs ${shape.filled ? 'bg-indigo-600' : 'bg-zinc-800'}`}
                 >
                   Filled
                 </button>
@@ -329,7 +329,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
 
         {hasStroke && !shape.filled && (
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Stroke Width</label>
+            <label className="text-xs text-zinc-500 block mb-1">Stroke Width</label>
             <input
               type="range"
               value={shape.strokeWidth ?? 2}
@@ -337,23 +337,23 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
               min={0.25}
               max={20}
               step={0.25}
-              class="w-full"
+              className="w-full"
             />
-            <div class="text-xs text-zinc-500 text-center">{shape.strokeWidth ?? 2}px</div>
+            <div className="text-xs text-zinc-500 text-center">{shape.strokeWidth ?? 2}px</div>
           </div>
         )}
 
         {/* Line-specific controls */}
         {isLine && (
-          <div class="border-t border-zinc-700 pt-2 mt-2">
-            <div class="text-xs text-zinc-400 mb-2">Line Settings</div>
-            <div class="grid grid-cols-2 gap-2">
+          <div className="border-t border-zinc-700 pt-2 mt-2">
+            <div className="text-xs text-zinc-400 mb-2">Line Settings</div>
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Direction</label>
+                <label className="text-xs text-zinc-500 block mb-1">Direction</label>
                 <select
                   value={shape.orientation ?? 'horizontal'}
                   onChange={(e) => updateShape(index, { orientation: (e.target as HTMLSelectElement).value as Shape['orientation'] })}
-                  class="w-full px-2 py-1 rounded text-sm"
+                  className="w-full px-2 py-1 rounded text-sm"
                 >
                   <option value="horizontal">← Horizontal →</option>
                   <option value="vertical">↑ Vertical ↓</option>
@@ -362,27 +362,27 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 </select>
               </div>
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Curvature</label>
+                <label className="text-xs text-zinc-500 block mb-1">Curvature</label>
                 <input
                   type="range"
                   value={shape.curvature ?? 30}
                   min={-100}
                   max={100}
                   onInput={(e) => updateShape(index, { curvature: Number((e.target as HTMLInputElement).value) })}
-                  class="w-full"
+                  className="w-full"
                 />
-                <div class="text-xs text-zinc-500 text-center">
+                <div className="text-xs text-zinc-500 text-center">
                   {shape.curvature ?? 30} ({(shape.curvature ?? 30) > 0 ? '↑' : (shape.curvature ?? 30) < 0 ? '↓' : '—'})
                 </div>
               </div>
             </div>
-            <div class="grid grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-2 gap-2 mt-2">
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Dash Style</label>
+                <label className="text-xs text-zinc-500 block mb-1">Dash Style</label>
                 <select
                   value={shape.dashStyle ?? 'solid'}
                   onChange={(e) => updateShape(index, { dashStyle: (e.target as HTMLSelectElement).value as Shape['dashStyle'] })}
-                  class="w-full px-2 py-1 rounded text-sm"
+                  className="w-full px-2 py-1 rounded text-sm"
                 >
                   <option value="solid">Solid</option>
                   <option value="dashed">Dashed</option>
@@ -390,11 +390,11 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 </select>
               </div>
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Line Cap</label>
+                <label className="text-xs text-zinc-500 block mb-1">Line Cap</label>
                 <select
                   value={shape.lineCap ?? 'round'}
                   onChange={(e) => updateShape(index, { lineCap: (e.target as HTMLSelectElement).value as Shape['lineCap'] })}
-                  class="w-full px-2 py-1 rounded text-sm"
+                  className="w-full px-2 py-1 rounded text-sm"
                 >
                   <option value="round">Round</option>
                   <option value="square">Square</option>
@@ -403,8 +403,8 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
               </div>
             </div>
             {type === 'wave-line' && (
-              <div class="mt-2">
-                <label class="text-xs text-zinc-500 block mb-1">Waves Count</label>
+              <div className="mt-2">
+                <label className="text-xs text-zinc-500 block mb-1">Waves Count</label>
                 <NumberInput
                   value={shape.count ?? 3}
                   onChange={(v) => updateShape(index, { count: v })}
@@ -418,15 +418,15 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
 
         {/* Chevron-specific controls */}
         {isChevron && (
-          <div class="border-t border-zinc-700 pt-2 mt-2">
-            <div class="text-xs text-zinc-400 mb-2">Chevron Settings</div>
-            <div class="grid grid-cols-2 gap-2">
+          <div className="border-t border-zinc-700 pt-2 mt-2">
+            <div className="text-xs text-zinc-400 mb-2">Chevron Settings</div>
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Direction</label>
+                <label className="text-xs text-zinc-500 block mb-1">Direction</label>
                 <select
                   value={shape.direction ?? 'right'}
                   onChange={(e) => updateShape(index, { direction: (e.target as HTMLSelectElement).value as Shape['direction'] })}
-                  class="w-full px-2 py-1 rounded text-sm"
+                  className="w-full px-2 py-1 rounded text-sm"
                 >
                   <option value="right">→ Right</option>
                   <option value="left">← Left</option>
@@ -435,30 +435,30 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 </select>
               </div>
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Angle</label>
+                <label className="text-xs text-zinc-500 block mb-1">Angle</label>
                 <input
                   type="range"
                   value={shape.angle ?? 60}
                   min={30}
                   max={120}
                   onInput={(e) => updateShape(index, { angle: Number((e.target as HTMLInputElement).value) })}
-                  class="w-full"
+                  className="w-full"
                 />
-                <div class="text-xs text-zinc-500 text-center">{shape.angle ?? 60}°</div>
+                <div className="text-xs text-zinc-500 text-center">{shape.angle ?? 60}°</div>
               </div>
             </div>
             {type === 'double-chevron' && (
-              <div class="mt-2">
-                <label class="text-xs text-zinc-500 block mb-1">Gap</label>
+              <div className="mt-2">
+                <label className="text-xs text-zinc-500 block mb-1">Gap</label>
                 <input
                   type="range"
                   value={shape.gap ?? 15}
                   min={5}
                   max={40}
                   onInput={(e) => updateShape(index, { gap: Number((e.target as HTMLInputElement).value) })}
-                  class="w-full"
+                  className="w-full"
                 />
-                <div class="text-xs text-zinc-500 text-center">{shape.gap ?? 15}px</div>
+                <div className="text-xs text-zinc-500 text-center">{shape.gap ?? 15}px</div>
               </div>
             )}
           </div>
@@ -466,12 +466,12 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
 
         {/* Star/Sparkle controls */}
         {isStar && (
-          <div class="border-t border-zinc-700 pt-2 mt-2">
-            <div class="text-xs text-zinc-400 mb-2">Star Settings</div>
-            <div class="grid grid-cols-2 gap-2">
+          <div className="border-t border-zinc-700 pt-2 mt-2">
+            <div className="text-xs text-zinc-400 mb-2">Star Settings</div>
+            <div className="grid grid-cols-2 gap-2">
               {type === 'star' && (
                 <div>
-                  <label class="text-xs text-zinc-500 block mb-1">Points</label>
+                  <label className="text-xs text-zinc-500 block mb-1">Points</label>
                   <NumberInput
                     value={shape.points ?? 5}
                     onChange={(v) => updateShape(index, { points: v })}
@@ -481,16 +481,16 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 </div>
               )}
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Inner Radius</label>
+                <label className="text-xs text-zinc-500 block mb-1">Inner Radius</label>
                 <input
                   type="range"
                   value={(shape.innerRadius ?? 0.4) * 100}
                   min={20}
                   max={80}
                   onInput={(e) => updateShape(index, { innerRadius: Number((e.target as HTMLInputElement).value) / 100 })}
-                  class="w-full"
+                  className="w-full"
                 />
-                <div class="text-xs text-zinc-500 text-center">{Math.round((shape.innerRadius ?? 0.4) * 100)}%</div>
+                <div className="text-xs text-zinc-500 text-center">{Math.round((shape.innerRadius ?? 0.4) * 100)}%</div>
               </div>
             </div>
           </div>
@@ -498,13 +498,13 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
 
         {/* Pattern controls */}
         {isPattern && (
-          <div class="border-t border-zinc-700 pt-2 mt-2">
-            <div class="text-xs text-zinc-400 mb-2">Pattern Settings</div>
-            <div class="grid grid-cols-2 gap-2">
+          <div className="border-t border-zinc-700 pt-2 mt-2">
+            <div className="text-xs text-zinc-400 mb-2">Pattern Settings</div>
+            <div className="grid grid-cols-2 gap-2">
               {type === 'dots-grid' ? (
                 <>
                   <div>
-                    <label class="text-xs text-zinc-500 block mb-1">Rows</label>
+                    <label className="text-xs text-zinc-500 block mb-1">Rows</label>
                     <NumberInput
                       value={shape.rows ?? 4}
                       onChange={(v) => updateShape(index, { rows: v })}
@@ -513,7 +513,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                     />
                   </div>
                   <div>
-                    <label class="text-xs text-zinc-500 block mb-1">Columns</label>
+                    <label className="text-xs text-zinc-500 block mb-1">Columns</label>
                     <NumberInput
                       value={shape.columns ?? 4}
                       onChange={(v) => updateShape(index, { columns: v })}
@@ -522,7 +522,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                     />
                   </div>
                   <div>
-                    <label class="text-xs text-zinc-500 block mb-1">Spacing</label>
+                    <label className="text-xs text-zinc-500 block mb-1">Spacing</label>
                     <NumberInput
                       value={shape.spacing ?? 20}
                       onChange={(v) => updateShape(index, { spacing: v })}
@@ -534,7 +534,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
               ) : (
                 <>
                   <div>
-                    <label class="text-xs text-zinc-500 block mb-1">Count</label>
+                    <label className="text-xs text-zinc-500 block mb-1">Count</label>
                     <NumberInput
                       value={shape.count ?? 12}
                       onChange={(v) => updateShape(index, { count: v })}
@@ -543,7 +543,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                     />
                   </div>
                   <div>
-                    <label class="text-xs text-zinc-500 block mb-1">Seed</label>
+                    <label className="text-xs text-zinc-500 block mb-1">Seed</label>
                     <NumberInput
                       value={shape.seed ?? 1}
                       onChange={(v) => updateShape(index, { seed: v })}
@@ -554,7 +554,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 </>
               )}
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Dot Size</label>
+                <label className="text-xs text-zinc-500 block mb-1">Dot Size</label>
                 <NumberInput
                   value={shape.dotSize ?? 2}
                   onChange={(v) => updateShape(index, { dotSize: v })}
@@ -568,11 +568,11 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
 
         {/* Blob controls */}
         {isBlob && (
-          <div class="border-t border-zinc-700 pt-2 mt-2">
-            <div class="text-xs text-zinc-400 mb-2">Blob Settings</div>
-            <div class="grid grid-cols-2 gap-2">
+          <div className="border-t border-zinc-700 pt-2 mt-2">
+            <div className="text-xs text-zinc-400 mb-2">Blob Settings</div>
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Complexity</label>
+                <label className="text-xs text-zinc-500 block mb-1">Complexity</label>
                 <NumberInput
                   value={shape.complexity ?? 6}
                   onChange={(v) => updateShape(index, { complexity: v })}
@@ -581,7 +581,7 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 />
               </div>
               <div>
-                <label class="text-xs text-zinc-500 block mb-1">Seed</label>
+                <label className="text-xs text-zinc-500 block mb-1">Seed</label>
                 <NumberInput
                   value={shape.seed ?? 1}
                   onChange={(v) => updateShape(index, { seed: v })}
@@ -595,19 +595,19 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
 
         {/* Crescent controls */}
         {isCrescent && (
-          <div class="border-t border-zinc-700 pt-2 mt-2">
-            <div class="text-xs text-zinc-400 mb-2">Crescent Settings</div>
+          <div className="border-t border-zinc-700 pt-2 mt-2">
+            <div className="text-xs text-zinc-400 mb-2">Crescent Settings</div>
             <div>
-              <label class="text-xs text-zinc-500 block mb-1">Arc Percentage</label>
+              <label className="text-xs text-zinc-500 block mb-1">Arc Percentage</label>
               <input
                 type="range"
                 value={shape.arcPercentage ?? 70}
                 min={10}
                 max={90}
                 onInput={(e) => updateShape(index, { arcPercentage: Number((e.target as HTMLInputElement).value) })}
-                class="w-full"
+                className="w-full"
               />
-              <div class="text-xs text-zinc-500 text-center">{shape.arcPercentage ?? 70}%</div>
+              <div className="text-xs text-zinc-500 text-center">{shape.arcPercentage ?? 70}%</div>
             </div>
           </div>
         )}
@@ -616,16 +616,16 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
   };
 
   return (
-    <div class="space-y-3">
+    <div className="space-y-3">
       {shapes.map((shape, i) => (
-        <div key={i} class="p-3 bg-zinc-800/50 rounded space-y-2">
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <i class={`fa-solid ${SHAPE_TYPES.find((t) => t.value === shape.type)?.icon || 'fa-shapes'} text-zinc-400`} />
+        <div key={i} className="p-3 bg-zinc-800/50 rounded space-y-2">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <i className={`fa-solid ${SHAPE_TYPES.find((t) => t.value === shape.type)?.icon || 'fa-shapes'} text-zinc-400`} />
               <select
                 value={shape.type}
                 onChange={(e) => updateShape(i, { type: (e.target as HTMLSelectElement).value as ShapeType })}
-                class="px-2 py-1 rounded text-xs bg-zinc-700"
+                className="px-2 py-1 rounded text-xs bg-zinc-700"
               >
                 <optgroup label="Basic">
                   {SHAPE_TYPES.slice(0, 4).map((t) => (
@@ -659,12 +659,12 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
                 </optgroup>
               </select>
             </div>
-            <div class="flex gap-1">
-              <button onClick={() => duplicateShape(i)} class="text-zinc-500 hover:text-zinc-300 px-1" title="Duplicate">
-                <i class="fa-solid fa-copy text-xs" />
+            <div className="flex gap-1">
+              <button onClick={() => duplicateShape(i)} className="text-zinc-500 hover:text-zinc-300 px-1" title="Duplicate">
+                <i className="fa-solid fa-copy text-xs" />
               </button>
-              <button onClick={() => removeShape(i)} class="text-zinc-500 hover:text-red-400 px-1" title="Remove">
-                <i class="fa-solid fa-xmark" />
+              <button onClick={() => removeShape(i)} className="text-zinc-500 hover:text-red-400 px-1" title="Remove">
+                <i className="fa-solid fa-xmark" />
               </button>
             </div>
           </div>
@@ -673,20 +673,20 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
       ))}
 
       {/* Add Shape Buttons */}
-      <div class="flex gap-2">
+      <div className="flex gap-2">
         <button
           ref={presetButtonRef}
           onClick={() => setShowPresets((v) => !v)}
-          class="flex-1 h-8 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 flex items-center justify-center"
+          className="flex-1 h-8 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 flex items-center justify-center"
         >
-          <i class="fa-solid fa-wand-magic-sparkles mr-1" /> Add Preset
-          <i class={`fa-solid ml-2 text-[10px] ${showPresets ? 'fa-chevron-up' : 'fa-chevron-down'}`} />
+          <i className="fa-solid fa-wand-magic-sparkles mr-1" /> Add Preset
+          <i className={`fa-solid ml-2 text-[10px] ${showPresets ? 'fa-chevron-up' : 'fa-chevron-down'}`} />
         </button>
         <button
           onClick={() => addShape('ring')}
-          class="flex-1 h-8 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 flex items-center justify-center"
+          className="flex-1 h-8 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 flex items-center justify-center"
         >
-          <i class="fa-solid fa-plus mr-1" /> Add Shape
+          <i className="fa-solid fa-plus mr-1" /> Add Shape
         </button>
       </div>
 
@@ -694,18 +694,18 @@ export function ShapeEditorInline({ shapes = [], onChange, palette }: ShapeEdito
         <div
           ref={presetMenuRef}
           style={presetMenuStyle}
-          class="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-y-auto"
+          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl overflow-y-auto"
         >
-          <div class="px-3 py-2 text-[11px] uppercase tracking-wide text-zinc-400 border-b border-zinc-700">
+          <div className="px-3 py-2 text-[11px] uppercase tracking-wide text-zinc-400 border-b border-zinc-700">
             Shape Presets
           </div>
           {SHAPE_PRESETS.map((preset) => (
             <button
               onClick={() => addPreset(preset)}
-              class="w-full px-3 py-2.5 text-left hover:bg-zinc-700 border-b border-zinc-700/60 last:border-b-0"
+              className="w-full px-3 py-2.5 text-left hover:bg-zinc-700 border-b border-zinc-700/60 last:border-b-0"
             >
-              <div class="text-xs text-zinc-100">{preset.name}</div>
-              <div class="text-[11px] text-zinc-400">
+              <div className="text-xs text-zinc-100">{preset.name}</div>
+              <div className="text-[11px] text-zinc-400">
                 {preset.shapes.length} shape{preset.shapes.length === 1 ? '' : 's'}
               </div>
             </button>

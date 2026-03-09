@@ -4,8 +4,8 @@
  * Modal for managing media assets (screenshots, mascots, icons).
  */
 
-import { useState, useRef } from 'preact/hooks';
-import type { Assets } from '../../types.ts';
+import { useState, useRef } from 'react';
+import type { Assets } from '../../types';
 
 interface MediaManagerModalProps {
   assets: Assets;
@@ -28,9 +28,8 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
 
   const currentAssets = allAssets[activeTab] || [];
 
-  const handleUpload = async (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    const files = target.files;
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
     if (!files?.length) return;
 
     setUploading(true);
@@ -50,7 +49,7 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
     }
     await onRefresh();
     setUploading(false);
-    target.value = '';
+    e.target.value = '';
   };
 
   const handleRename = async (oldPath: string) => {
@@ -104,39 +103,39 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
   ];
 
   return (
-    <div class="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50" onClick={onClose}>
       <div
-        class="bg-zinc-900 rounded-lg w-[600px] max-h-[80vh] overflow-hidden flex flex-col"
+        className="bg-zinc-900 rounded-lg w-[600px] max-h-[80vh] overflow-hidden flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div class="p-4 border-b border-zinc-800">
-          <div class="flex justify-between items-center">
-            <h2 class="font-bold text-lg">
-              <i class="fa-solid fa-images mr-2" />
+        <div className="p-4 border-b border-zinc-800">
+          <div className="flex justify-between items-center">
+            <h2 className="font-bold text-lg">
+              <i className="fa-solid fa-images mr-2" />
               Media Manager
             </h2>
-            <button onClick={onClose} class="text-zinc-500 hover:text-white text-xl">
-              <i class="fa-solid fa-xmark" />
+            <button onClick={onClose} className="text-zinc-500 hover:text-white text-xl">
+              <i className="fa-solid fa-xmark" />
             </button>
           </div>
         </div>
 
         {/* Tabs */}
-        <div class="flex border-b border-zinc-800">
+        <div className="flex border-b border-zinc-800">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              class={`flex-1 px-4 py-3 text-sm flex items-center justify-center gap-2 border-b-2 transition-colors ${
+              className={`flex-1 px-4 py-3 text-sm flex items-center justify-center gap-2 border-b-2 transition-colors ${
                 activeTab === tab.id
                   ? 'border-indigo-500 text-white bg-zinc-800/50'
                   : 'border-transparent text-zinc-400 hover:text-white hover:bg-zinc-800/30'
               }`}
             >
-              <i class={`fa-solid ${tab.icon}`} />
+              <i className={`fa-solid ${tab.icon}`} />
               {tab.label}
-              <span class="text-xs px-1.5 py-0.5 rounded bg-zinc-700">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-700">
                 {allAssets[tab.id].length}
               </span>
             </button>
@@ -144,48 +143,48 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
         </div>
 
         {/* Content */}
-        <div class="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4">
           {currentAssets.length === 0 ? (
-            <div class="text-center py-12 text-zinc-500">
-              <i class="fa-solid fa-folder-open text-4xl mb-3" />
+            <div className="text-center py-12 text-zinc-500">
+              <i className="fa-solid fa-folder-open text-4xl mb-3" />
               <div>No {activeTab} yet</div>
-              <div class="text-sm mt-1">Upload some files to get started</div>
+              <div className="text-sm mt-1">Upload some files to get started</div>
             </div>
           ) : (
-            <div class="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {currentAssets.map((path) => {
                 const filename = path.split('/').pop() || '';
                 const isEditing = editingItem === path;
 
                 return (
-                  <div key={path} class="bg-zinc-800 rounded overflow-hidden group">
-                    <div class="aspect-square bg-zinc-700 relative">
+                  <div key={path} className="bg-zinc-800 rounded overflow-hidden group">
+                    <div className="aspect-square bg-zinc-700 relative">
                       <img
                         src={'/assets/' + path.replace('assets/', '')}
-                        class="w-full h-full object-contain"
+                        className="w-full h-full object-contain"
                         loading="lazy"
                       />
                       {/* Overlay actions */}
-                      <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <button
                           onClick={() => startEditing(path)}
-                          class="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
+                          className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
                           title="Rename"
                         >
-                          <i class="fa-solid fa-pen" />
+                          <i className="fa-solid fa-pen" />
                         </button>
                         <button
                           onClick={() => handleDelete(path)}
-                          class="p-2 bg-red-900/80 hover:bg-red-800 rounded"
+                          className="p-2 bg-red-900/80 hover:bg-red-800 rounded"
                           title="Delete"
                         >
-                          <i class="fa-solid fa-trash" />
+                          <i className="fa-solid fa-trash" />
                         </button>
                       </div>
                     </div>
 
                     {isEditing ? (
-                      <div class="p-2">
+                      <div className="p-2">
                         <input
                           type="text"
                           value={newName}
@@ -197,13 +196,13 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
                               setNewName('');
                             }
                           }}
-                          class="w-full px-2 py-1 text-xs rounded bg-zinc-700 border border-zinc-600"
+                          className="w-full px-2 py-1 text-xs rounded bg-zinc-700 border border-zinc-600"
                           autoFocus
                         />
-                        <div class="flex gap-1 mt-1">
+                        <div className="flex gap-1 mt-1">
                           <button
                             onClick={() => handleRename(path)}
-                            class="flex-1 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded"
+                            className="flex-1 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded"
                           >
                             Save
                           </button>
@@ -212,14 +211,14 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
                               setEditingItem(null);
                               setNewName('');
                             }}
-                            class="flex-1 px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 rounded"
+                            className="flex-1 px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 rounded"
                           >
                             Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <div class="p-2 text-xs text-zinc-400 truncate" title={filename}>
+                      <div className="p-2 text-xs text-zinc-400 truncate" title={filename}>
                         {filename}
                       </div>
                     )}
@@ -231,19 +230,19 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
         </div>
 
         {/* Footer with upload */}
-        <div class="p-4 border-t border-zinc-800">
+        <div className="p-4 border-t border-zinc-800">
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
             multiple
             onChange={handleUpload}
-            class="hidden"
+            className="hidden"
           />
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
-            class={`w-full py-2 rounded text-sm flex items-center justify-center gap-2 ${
+            className={`w-full py-2 rounded text-sm flex items-center justify-center gap-2 ${
               uploading
                 ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
                 : 'bg-indigo-600 hover:bg-indigo-500'
@@ -251,12 +250,12 @@ export function MediaManagerModal({ assets, onClose, onRefresh }: MediaManagerMo
           >
             {uploading ? (
               <>
-                <i class="fa-solid fa-spinner fa-spin" />
+                <i className="fa-solid fa-spinner fa-spin" />
                 Uploading...
               </>
             ) : (
               <>
-                <i class="fa-solid fa-upload" />
+                <i className="fa-solid fa-upload" />
                 Upload Files
               </>
             )}

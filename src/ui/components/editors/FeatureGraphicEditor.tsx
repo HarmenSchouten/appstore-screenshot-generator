@@ -5,12 +5,12 @@
  * content, icon, phone screenshot, glows, shapes, and mascot.
  */
 
-import { Slider, LabeledColorInput, ImageSelect } from '../inputs/index.ts';
-import { CollapsibleSection } from '../CollapsibleSection.tsx';
-import { GlowEditorInline } from './GlowEditorInline.tsx';
-import { ShapeEditorInline } from './ShapeEditorInline.tsx';
-import { MascotEditorInline } from './MascotEditorInline.tsx';
-import type { FeatureGraphic, Assets, Config } from '../../types.ts';
+import { Slider, LabeledColorInput, ImageSelect } from '../inputs/index';
+import { CollapsibleSection } from '../CollapsibleSection';
+import { GlowEditorInline } from './GlowEditorInline';
+import { ShapeEditorInline } from './ShapeEditorInline';
+import { MascotEditorInline } from './MascotEditorInline';
+import type { FeatureGraphic, Assets, Config } from '../../types';
 
 interface FeatureGraphicEditorProps {
   featureGraphic: FeatureGraphic;
@@ -32,48 +32,48 @@ export function FeatureGraphicEditor({
   const fg = featureGraphic || ({} as FeatureGraphic);
 
   return (
-    <div class="editor-sidebar bg-zinc-900 border-l border-zinc-800 overflow-y-auto">
-      <div class="p-4 space-y-3">
-        <h2 class="font-bold text-lg mb-4">Feature Graphic</h2>
+    <div className="editor-sidebar bg-zinc-900 border-l border-zinc-800 overflow-y-auto">
+      <div className="p-4 space-y-3">
+        <h2 className="font-bold text-lg mb-4">Feature Graphic</h2>
 
         {/* Content Section */}
         <CollapsibleSection title="Content" defaultOpen={true}>
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Headline</label>
+            <label className="text-xs text-zinc-500 block mb-1">Headline</label>
             <input
               type="text"
               value={fg.headline || ''}
               onInput={(e) => onUpdate({ headline: (e.target as HTMLInputElement).value })}
-              class="w-full px-3 py-2 rounded text-sm"
+              className="w-full px-3 py-2 rounded text-sm"
               placeholder="Your headline here..."
             />
           </div>
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Subtitle</label>
+            <label className="text-xs text-zinc-500 block mb-1">Subtitle</label>
             <input
               type="text"
               value={fg.subtitle || ''}
               onInput={(e) => onUpdate({ subtitle: (e.target as HTMLInputElement).value })}
-              class="w-full px-3 py-2 rounded text-sm"
+              className="w-full px-3 py-2 rounded text-sm"
               placeholder="A compelling subtitle..."
             />
           </div>
-          <div class="flex gap-4 pt-2">
-            <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <div className="flex gap-4 pt-2">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"
                 checked={fg.showIcon !== false}
                 onChange={(e) => onUpdate({ showIcon: (e.target as HTMLInputElement).checked })}
-                class="rounded"
+                className="rounded"
               />
               Show App Icon
             </label>
-            <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"
                 checked={fg.showAppName !== false}
                 onChange={(e) => onUpdate({ showAppName: (e.target as HTMLInputElement).checked })}
-                class="rounded"
+                className="rounded"
               />
               Show App Name
             </label>
@@ -89,8 +89,8 @@ export function FeatureGraphicEditor({
                 category="icons"
                 onAssetsRefresh={onAssetsRefresh}
               />
-              <div class="text-xs text-zinc-400 mt-3 mb-1">Icon Box</div>
-              <div class="grid grid-cols-2 gap-3">
+              <div className="text-xs text-zinc-400 mt-3 mb-1">Icon Box</div>
+              <div className="grid grid-cols-2 gap-3">
                 <Slider
                   label="Size"
                   value={fg.iconBoxScale ?? 100}
@@ -116,8 +116,8 @@ export function FeatureGraphicEditor({
                 onChange={(v) => onUpdate({ iconBoxColor: v })}
                 placeholder="rgba(255,255,255,0.15)"
               />
-              <div class="text-xs text-zinc-400 mt-3 mb-1">Icon Image</div>
-              <div class="grid grid-cols-2 gap-3">
+              <div className="text-xs text-zinc-400 mt-3 mb-1">Icon Image</div>
+              <div className="grid grid-cols-2 gap-3">
                 <Slider
                   label="Scale"
                   value={fg.iconScale ?? 100}
@@ -169,7 +169,7 @@ export function FeatureGraphicEditor({
             category="screenshots"
             onAssetsRefresh={onAssetsRefresh}
           />
-          <div class="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Slider
               label="Rotation"
               value={fg.phoneRotation ?? 5}
@@ -186,6 +186,24 @@ export function FeatureGraphicEditor({
               min={50}
               max={150}
               step={5}
+              unit="%"
+            />
+            <Slider
+              label="Position X"
+              value={fg.phoneX ?? 0}
+              onChange={(v) => onUpdate({ phoneX: v })}
+              min={-50}
+              max={50}
+              step={1}
+              unit="%"
+            />
+            <Slider
+              label="Position Y"
+              value={fg.phoneY ?? 0}
+              onChange={(v) => onUpdate({ phoneY: v })}
+              min={-50}
+              max={50}
+              step={1}
               unit="%"
             />
           </div>

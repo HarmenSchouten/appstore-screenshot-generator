@@ -20,17 +20,17 @@ export function LabeledColorInput({
 }: LabeledColorInputProps) {
   return (
     <div>
-      <label class="text-xs text-zinc-500 block mb-1">{label}</label>
-      <div class="flex gap-2">
+      <label className="text-xs text-zinc-500 block mb-1">{label}</label>
+      <div className="flex gap-2">
         <div
-          class="w-9 h-9 rounded border border-zinc-700 flex-shrink-0"
+          className="w-9 h-9 rounded border border-zinc-700 flex-shrink-0"
           style={{ background: value || placeholder }}
         />
         <input
           type="text"
           value={value || ''}
           onInput={(e) => onChange((e.target as HTMLInputElement).value)}
-          class="flex-1 px-3 py-2 rounded text-sm font-mono"
+          className="flex-1 px-3 py-2 rounded text-sm font-mono"
           placeholder={placeholder}
         />
       </div>

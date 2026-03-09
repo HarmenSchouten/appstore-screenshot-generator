@@ -4,8 +4,8 @@
  * Color picker with swatch, hex input, and palette presets.
  */
 
-import { useState, useEffect, useRef } from 'preact/hooks';
-import type { Palette } from '../../types.ts';
+import { useState, useEffect, useRef } from 'react';
+import type { Palette } from '../../types';
 
 interface ColorInputProps {
   value: string;
@@ -52,8 +52,8 @@ export function ColorInput({
     }
   }, [isOpen]);
 
-  const handleHexChange = (e: Event) => {
-    const newValue = (e.target as HTMLInputElement).value;
+  const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
     setHexInput(newValue);
     // Only update if valid hex
     if (/^#[0-9A-Fa-f]{6}$/.test(newValue)) {
@@ -75,12 +75,12 @@ export function ColorInput({
   };
 
   return (
-    <div ref={containerRef} class={`relative ${className}`}>
-      <div class="flex items-stretch h-8 min-w-0">
+    <div ref={containerRef} className={`relative ${className}`}>
+      <div className="flex items-stretch h-8 min-w-0">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          class="w-10 rounded-l border border-zinc-700 hover:border-zinc-500 transition-colors flex-shrink-0"
+          className="w-10 rounded-l border border-zinc-700 hover:border-zinc-500 transition-colors flex-shrink-0"
           style={{ backgroundColor: value || '#ffffff' }}
           title="Click to open color picker"
         />
@@ -90,35 +90,35 @@ export function ColorInput({
           onInput={handleHexChange}
           onBlur={handleHexBlur}
           maxLength={7}
-          class="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 rounded-r focus:outline-none focus:border-indigo-500 font-mono uppercase"
+          className="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 rounded-r focus:outline-none focus:border-indigo-500 font-mono uppercase"
           placeholder="#ffffff"
         />
       </div>
 
       {isOpen && (
-        <div class="absolute z-50 mt-1 p-3 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl w-64 left-0">
+        <div className="absolute z-50 mt-1 p-3 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl w-64 left-0">
           {palette && (
-            <div class="mb-3">
-              <div class="text-xs text-zinc-500 mb-1.5">Palette</div>
-              <div class="flex gap-1.5">
+            <div className="mb-3">
+              <div className="text-xs text-zinc-500 mb-1.5">Palette</div>
+              <div className="flex gap-1.5">
                 <button
                   type="button"
                   onClick={() => selectColor(palette.primary)}
-                  class="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
+                  className="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
                   style={{ backgroundColor: palette.primary }}
                   title="Primary"
                 />
                 <button
                   type="button"
                   onClick={() => selectColor(palette.secondary)}
-                  class="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
+                  className="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
                   style={{ backgroundColor: palette.secondary }}
                   title="Secondary"
                 />
                 <button
                   type="button"
                   onClick={() => selectColor(palette.accent)}
-                  class="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
+                  className="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
                   style={{ backgroundColor: palette.accent }}
                   title="Accent"
                 />
@@ -127,13 +127,13 @@ export function ColorInput({
           )}
 
           <div>
-            <div class="text-xs text-zinc-500 mb-1.5">Colors</div>
-            <div class="grid grid-cols-8 gap-1">
+            <div className="text-xs text-zinc-500 mb-1.5">Colors</div>
+            <div className="grid grid-cols-8 gap-1">
               {COMMON_COLORS.map((color) => (
                 <button
                   type="button"
                   onClick={() => selectColor(color)}
-                  class={`w-6 h-6 rounded border transition-colors ${
+                  className={`w-6 h-6 rounded border transition-colors ${
                     color === value
                       ? 'border-white ring-1 ring-white'
                       : 'border-zinc-600 hover:border-zinc-400'

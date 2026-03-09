@@ -4,8 +4,8 @@
  * Inline editor for managing mascot images on screenshots.
  */
 
-import { Slider, ImageSelect } from '../inputs/index.ts';
-import type { Mascot, Assets, Config } from '../../types.ts';
+import { Slider, ImageSelect } from '../inputs/index';
+import type { Mascot, Assets, Config } from '../../types';
 
 interface MascotEditorInlineProps {
   mascot: Mascot | null;
@@ -52,18 +52,18 @@ export function MascotEditorInline({
   };
 
   return (
-    <div class="space-y-3">
-      <div class="flex justify-end">
+    <div className="space-y-3">
+      <div className="flex justify-end">
         <button
           onClick={toggleMascot}
-          class={`text-xs px-3 py-1.5 rounded ${enabled ? 'bg-indigo-600' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+          className={`text-xs px-3 py-1.5 rounded ${enabled ? 'bg-indigo-600' : 'bg-zinc-800 hover:bg-zinc-700'}`}
         >
           {enabled ? 'Enabled' : 'Add Mascot'}
         </button>
       </div>
 
       {enabled && mascot && (
-        <div class="space-y-3">
+        <div className="space-y-3">
           <ImageSelect
             label="Image"
             value={mascot.imagePath || config.app?.defaultMascotPath || ''}
@@ -75,19 +75,19 @@ export function MascotEditorInline({
           />
 
           <div>
-            <label class="text-xs text-zinc-500 block mb-1">Position</label>
-            <div class="grid grid-cols-2 gap-2">
+            <label className="text-xs text-zinc-500 block mb-1">Position</label>
+            <div className="grid grid-cols-2 gap-2">
               {POSITIONS.map((pos) => (
                 <button
                   onClick={() => updateMascot({ position: pos.value })}
-                  class={`px-2 py-1.5 rounded text-xs flex items-center gap-1.5 ${
+                  className={`px-2 py-1.5 rounded text-xs flex items-center gap-1.5 ${
                     (mascot.position || 'bottom-right') === pos.value
                       ? 'bg-indigo-600'
                       : 'bg-zinc-800 hover:bg-zinc-700'
                   }`}
                 >
                   <i
-                    class="fa-solid fa-arrow-up"
+                    className="fa-solid fa-arrow-up"
                     style={{ transform: `rotate(${pos.rotation}deg)` }}
                   />
                   {pos.label}
@@ -96,7 +96,7 @@ export function MascotEditorInline({
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <Slider
               label="Size"
               value={mascot.size ?? 15}

@@ -5,6 +5,10 @@
  * Used alongside Tailwind CSS.
  */
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   background: #0f0f0f;
 }
