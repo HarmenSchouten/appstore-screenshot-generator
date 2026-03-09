@@ -1,119 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Screenshot Editor</title>
-  
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  
-  <style>
-    * {
-      font-family: 'Inter', sans-serif;
-    }
-    
-    /* Custom scrollbar - thin and minimal */
-    *::-webkit-scrollbar {
-      width: 4px !important;
-      height: 4px !important;
-    }
-    *::-webkit-scrollbar-track {
-      background: transparent !important;
-    }
-    *::-webkit-scrollbar-thumb {
-      background: #3f3f46 !important;
-      border-radius: 2px !important;
-    }
-    *::-webkit-scrollbar-thumb:hover {
-      background: #52525b !important;
-    }
-    
-    /* Firefox scrollbar */
-    html {
-      scrollbar-width: thin;
-      scrollbar-color: #3f3f46 transparent;
-    }
-    
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: #3f3f46 transparent;
-    }
-    
-    /* Form element styling */
-    input[type="text"],
-    input[type="number"],
-    select,
-    textarea {
-      background: #27272a;
-      border: 1px solid #3f3f46;
-      color: white;
-    }
-    
-    input[type="text"]:focus,
-    input[type="number"]:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #6366f1;
-    }
-    
-    input[type="checkbox"] {
-      accent-color: #6366f1;
-    }
-    
-    /* Editor sidebar */
-    .editor-sidebar {
-      width: 360px;
-      min-width: 360px;
-    }
-    
-    /* Collapsible sections */
-    .collapsible-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out;
-    }
-    
-    .collapsible-content.open {
-      max-height: 2000px;
-    }
-    
-    /* Color input wrapper */
-    .color-input-wrapper {
-      position: relative;
-    }
-    
-    .color-input-wrapper input[type="color"] {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body class="bg-zinc-950 text-white">
-  <div id="app"></div>
-  
-  <!-- App data will be injected by server -->
-  <script>
-    window.__APP_DATA__ = {/* INJECT_APP_DATA */};
-    window.GRADIENT_TEMPLATES = {};
-    window.DEFAULT_PALETTES = {};
-  </script>
-  
-  <!-- App bundle -->
-  <script type="module" src="/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>App Store Screenshot Generator</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script type="module" crossorigin src="/assets/index-CXJkeUSp.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DYAS38z-.css">
+  </head>
+  <body class="bg-zinc-900 text-white">
+    <div id="root"></div>
+  </body>
 </html>
