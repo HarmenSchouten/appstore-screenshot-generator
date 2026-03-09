@@ -24,14 +24,21 @@
           "screenshots": [
             {
               "id": "screenshot-1772901360697",
-              "headline": "New Screenshot",
-              "subtitle": "Add a subtitle",
+              "headline": "Great title",
+              "subtitle": "Compelling subtitle",
               "imagePath": "",
               "glows": [],
               "phoneFrame": {
                 "scale": 70,
                 "bottomOffset": 6
-              }
+              },
+              "typography": {
+                "headlineFontSize": 8,
+                "subtitleFontSize": 4,
+                "headlineLineHeight": 1.5,
+                "horizontalPadding": 15
+              },
+              "headlineOffset": 4
             }
           ],
           "featureGraphic": {
