@@ -7,22 +7,8 @@
 
 import type { ColorPalette, GradientTemplate } from '../types/index.ts';
 
-// ============================================================
-// Glow Colors
-// ============================================================
-
-/** Glow color name to hex color mapping */
-export const GLOW_COLORS: Record<string, string> = {
-  purple: '#a855f7',
-  blue: '#3b82f6',
-  pink: '#ec4899',
-  cyan: '#06b6d4',
-  amber: '#f59e0b',
-  green: '#22c55e',
-  red: '#ef4444',
-  orange: '#f97316',
-  white: '#ffffff',
-};
+// Re-export GLOW_COLORS from renderer-components (single source of truth)
+export { GLOW_COLORS } from '../renderer-components/constants.ts';
 
 // ============================================================
 // Gradient Templates

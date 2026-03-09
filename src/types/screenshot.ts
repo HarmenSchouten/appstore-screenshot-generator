@@ -53,6 +53,10 @@ export interface FeatureGraphic {
   phoneRotation?: number;
   /** Phone scale (percentage) */
   phoneScale?: number;
+  /** Phone X position offset (percentage) */
+  phoneX?: number;
+  /** Phone Y position offset (percentage) */
+  phoneY?: number;
   /** Mascot configuration */
   mascot?: MascotOptions | null;
   /** Decorative shapes */

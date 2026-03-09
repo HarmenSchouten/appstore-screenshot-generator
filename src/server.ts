@@ -6,15 +6,17 @@
  */
 
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { join } from '@std/path';
-import { GLOW_COLORS } from './renderer.ts';
+import { GLOW_COLORS } from './renderer-components/constants.ts';
+import { GRADIENT_TEMPLATES, DEFAULT_PALETTES } from './lib/index.ts';
 import {
   initializeProjects,
   listProjects,
   loadProject,
   getProjectOutputDir,
 } from './projects.ts';
-import type { ProjectConfig, ProjectInfo } from '@types';
+import type { ProjectConfig } from '@types';
 
 // Import route modules
 import {
@@ -28,6 +30,13 @@ import {
 } from '@routes';
 
 const app = new Hono();
+
+// Enable CORS for Vite dev server
+app.use('*', cors({
+  origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type'],
+}));
 
 // Current active project
 let currentProjectId: string = 'default';
@@ -70,6 +79,34 @@ const setProjectState = (updates: Partial<{ currentProjectId: string; currentCon
 };
 
 const getCurrentProjectId = () => currentProjectId;
+
+// ============================================================
+// Init API for Vite frontend
+// ============================================================
+app.get('/api/init', async (c) => {
+  const config = await getConfig();
+  const projects = await listProjects();
+  
+  // Convert templates and palettes to simple objects
+  const gradientTemplatesObj: Record<string, string> = {};
+  for (const t of GRADIENT_TEMPLATES) {
+    gradientTemplatesObj[t.id] = t.template;
+  }
+
+  const palettesObj: Record<string, { primary: string; secondary: string; accent: string }> = {};
+  for (const p of DEFAULT_PALETTES) {
+    palettesObj[p.name] = p.palette;
+  }
+
+  return c.json({
+    config,
+    projects,
+    projectId: currentProjectId,
+    glowColors: GLOW_COLORS,
+    gradientTemplates: gradientTemplatesObj,
+    palettes: palettesObj,
+  });
+});
 
 // ============================================================
 // Mount Route Modules
@@ -146,14 +183,14 @@ app.get('/api/generated', async (c) => {
 
 
 // ============================================================
-// Main UI (Static TSX version if USE_STATIC_UI=1 or dist exists)
+// Main UI (Static build from dist/ if available)
 // ============================================================
-const useStaticUI = Deno.env.get('USE_STATIC_UI') === '1' || await hasStaticUIBuild();
+const useStaticUI = await hasStaticUIBuild();
 
 async function hasStaticUIBuild(): Promise<boolean> {
   try {
-    await Deno.stat('./dist/app.js');
     await Deno.stat('./dist/index.html');
+    await Deno.stat('./dist/assets');
     return true;
   } catch {
     return false;
@@ -161,7 +198,7 @@ async function hasStaticUIBuild(): Promise<boolean> {
 }
 
 if (useStaticUI) {
-  console.log('📦 Using static UI build from dist/');
+  console.log('📦 Serving UI from dist/');
   const staticUI = createStaticUIRoutes(
     getConfig,
     listProjects,
@@ -174,96 +211,46 @@ if (useStaticUI) {
   );
   app.route('/', staticUI);
 } else {
-  console.log('📝 Using inline UI (legacy)');
-  // Legacy inline UI routes
-  app.get('/', async (c) => {
-    const config = await getConfig();
-    const projects = await listProjects();
-    
-    return c.html(getMainUI(config, projects, currentProjectId));
-  });
-
-  // Handle client-side routing paths (project/lang/platform/screenshot)
-  app.get('/:project', async (c) => {
-    const { project } = c.req.param();
-    // Skip if this looks like an API or asset path
-    if (project.startsWith('api') || project.startsWith('preview') || project.startsWith('assets') || project.startsWith('output')) {
-      return c.notFound();
-    }
-    // Switch to the requested project if it exists
-    const projects = await listProjects();
-    if (projects.find(p => p.id === project)) {
-      currentProjectId = project;
-      currentConfig = await loadProject(project);
-    }
-    const config = await getConfig();
-    return c.html(getMainUI(config, projects, currentProjectId));
-  });
-
-  app.get('/:project/:lang', async (c) => {
-    const { project } = c.req.param();
-    const projects = await listProjects();
-    if (projects.find(p => p.id === project)) {
-      currentProjectId = project;
-      currentConfig = await loadProject(project);
-    }
-    const config = await getConfig();
-    return c.html(getMainUI(config, projects, currentProjectId));
-  });
-
-  app.get('/:project/:lang/:platform', async (c) => {
-    const { project } = c.req.param();
-    const projects = await listProjects();
-    if (projects.find(p => p.id === project)) {
-      currentProjectId = project;
-      currentConfig = await loadProject(project);
-    }
-    const config = await getConfig();
-    return c.html(getMainUI(config, projects, currentProjectId));
-  });
-
-  app.get('/:project/:lang/:platform/:screenshot', async (c) => {
-    const { project } = c.req.param();
-    const projects = await listProjects();
-    if (projects.find(p => p.id === project)) {
-      currentProjectId = project;
-      currentConfig = await loadProject(project);
-    }
-    const config = await getConfig();
-    return c.html(getMainUI(config, projects, currentProjectId));
+  // In dev mode, Vite serves the UI on port 5173
+  // This fallback just tells users how to access it
+  app.get('/', (c) => {
+    return c.html(getDevModeHTML());
   });
 }
 
 /**
- * Generate the main UI HTML (Fallback)
- * 
- * This is only used when dist/index.html doesn't exist.
- * Run 'deno task build:ui' to build the static UI.
+ * Dev mode fallback page
+ * Shown when accessing :3000 directly without a static build
  */
-function getMainUI(_config: ProjectConfig, _projects: ProjectInfo[], _activeProject: string): string {
+function getDevModeHTML(): string {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>App Store Screenshots - Setup Required</title>
+  <title>App Store Screenshots - API Server</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>body { background: #0f0f0f; }</style>
 </head>
 <body class="min-h-screen flex items-center justify-center text-white">
-  <div class="text-center p-8 max-w-md">
-    <i class="fa-solid fa-hammer text-6xl text-amber-500 mb-6"></i>
-    <h1 class="text-2xl font-bold mb-4">UI Build Required</h1>
+  <div class="text-center p-8 max-w-lg">
+    <i class="fa-solid fa-server text-6xl text-indigo-500 mb-6"></i>
+    <h1 class="text-2xl font-bold mb-4">API Server Running</h1>
     <p class="text-zinc-400 mb-6">
-      The static UI bundle is not yet built. Run the following command to build it:
+      This is the API server. The UI is served separately.
     </p>
-    <code class="block bg-zinc-800 rounded px-4 py-3 font-mono text-sm text-indigo-400 mb-6">
-      deno task build:ui
-    </code>
-    <p class="text-zinc-500 text-sm">
-      Then refresh this page to see the full editor UI.
-    </p>
+    <div class="space-y-4">
+      <div class="bg-zinc-800 rounded p-4">
+        <p class="text-zinc-500 text-sm mb-2">Development mode:</p>
+        <code class="text-indigo-400">http://localhost:5173</code>
+      </div>
+      <div class="bg-zinc-800 rounded p-4">
+        <p class="text-zinc-500 text-sm mb-2">Production build:</p>
+        <code class="text-sm text-zinc-400">npm run build</code>
+        <p class="text-zinc-500 text-xs mt-2">Then restart this server</p>
+      </div>
+    </div>
   </div>
 </body>
 </html>`;
@@ -271,7 +258,11 @@ function getMainUI(_config: ProjectConfig, _projects: ProjectInfo[], _activeProj
 
 // Start server
 const port = 3000;
-console.log(`🎨 App Store Screenshots Server`);
-console.log(`   http://localhost:${port}\n`);
+if (useStaticUI) {
+  console.log(`\n🎨 App Store Screenshots`);
+  console.log(`   http://localhost:${port}\n`);
+} else {
+  console.log(`\n🔌 API server ready on port ${port}\n`);
+}
 
 Deno.serve({ port }, app.fetch);
