@@ -1,350 +1,149 @@
-# Vite/React Migration Analysis
+# ADR-004: Migrate to Vite + React with Isomorphic Renderer
 
-This document analyzes whether to migrate from the current Preact/esbuild/iframe-based architecture to a proper Vite + React + Deno setup, specifically to address the preview flickering issue.
+> **Status**: Accepted & Implemented  
+> **Date**: 2026-03-09  
+> **Deciders**: Development Team
 
-## Current Architecture Summary
+## Context
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  Browser                                                     │
-│  ┌─────────────────────────────────────────────────────────┐│
-│  │ Preact UI (bundled by esbuild)                          ││
-│  │ ┌──────────────┐  ┌────────────────────────────────────┐││
-│  │ │   Sidebar    │  │           Preview                  │││
-│  │ │   + Editor   │  │  ┌──────────────────────────────┐  │││
-│  │ │              │  │  │  iframe                      │  │││
-│  │ │  [options]──────────> /preview/screenshot/:id     │  │││
-│  │ │              │  │  │  (full HTTP request)         │  │││
-│  │ │              │  │  └──────────────────────────────┘  │││
-│  │ └──────────────┘  └────────────────────────────────────┘││
-│  └─────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│  Deno Server (Hono)                                          │
-│  ├── /preview/*      → renderScreenshot() → HTML doc         │
-│  ├── /api/config/*   → CRUD config                           │
-│  ├── /api/generate/* → renderScreenshot() → HTML → Puppeteer │
-│  └── /assets/*       → Static file serving                   │
-└─────────────────────────────────────────────────────────────┘
-```
+The screenshot generator was experiencing **preview flickering** when users edited screenshot settings. Each edit triggered an HTTP request to re-render HTML server-side, which was then loaded into an iframe. This caused:
 
-### Why It Flickers
+1. Visible white flash between updates
+2. Lag between user input and visual feedback  
+3. Possible WYSIWYG inconsistencies between preview and export
 
-1. User changes option (e.g., phone scale slider)
-2. `saveConfig()` is called (debounced 50ms)
-3. Config persisted to server via API call
-4. `previewVersion` increments
-5. `Preview.tsx` sets new iframe `src` with cache-buster
-6. Browser initiates **full HTTP request** to `/preview/...`
-7. Server runs `renderScreenshot()` and returns HTML
-8. Browser **destroys old iframe content and renders new**
+The existing architecture was:
+- **UI Framework**: Preact (lightweight React alternative)
+- **Bundler**: Custom esbuild script
+- **Preview**: iframe loading server-rendered HTML via `/api/preview`
+- **Export**: Server-side HTML string templates
 
+## Decision
 
+Migrate to **Vite + React with an isomorphic renderer** - a complete architecture overhaul that renders screenshots using the same React components on both client (preview) and server (export).
 
-**Total latency**: ~100-300ms per change (API save + HTTP + HTML parse + render)
+## Options Considered
 
-### Current Value of Unified Flow
+### Option 1: CSS Crossfade Transition
+Add a crossfade animation to hide the iframe reload flash.
 
-The same `renderScreenshot()` function is used for:
-- **Preview**: Server returns HTML → loaded in iframe
-- **Generation**: Server writes HTML to disk → Puppeteer screenshots it
+**Pros:**
+- Quick to implement (< 1 hour)
+- No architecture changes
 
-This ensures **WYSIWYG consistency** - what you see is exactly what gets exported.
+**Cons:**
+- Only masks the symptom, doesn't fix the delay
+- Still has network latency on each update
+- Doesn't guarantee WYSIWYG
+
+**Estimated effort**: 1 hour
 
 ---
 
-## The Core Problem
+### Option 2: PostMessage Communication
+Pre-initialize iframe and send JSON updates via postMessage instead of reloading.
 
-The flickering isn't just a cosmetic issue - it makes real-time editing feel sluggish. When dragging a slider to adjust phone position, you want to see smooth updates, not a flash-reload-flash pattern.
+**Pros:**
+- Eliminates reload, faster updates
+- Minimal server changes
 
----
+**Cons:**
+- Still requires server roundtrip for initial render
+- Two separate rendering codebases (client script + server template)
+- Complex state synchronization
 
-## Solution Analysis
-
-### Solution 1: Keep Architecture, Mitigate Flickering
-
-**Approach**: Keep the iframe-based system but add visual smoothing.
-
-**Implementation**:
-- Add a CSS transition/fade between iframe reloads
-- Keep previous frame visible while new one loads (opacity crossfade)
-- Use `iframe.onload` to swap visibility only when content is ready
-
-```typescript
-// Preview.tsx with crossfade
-const [activeSrc, setActiveSrc] = useState(url);
-const [pendingSrc, setPendingSrc] = useState<string | null>(null);
-
-useEffect(() => {
-  if (url !== activeSrc) {
-    setPendingSrc(url); // Start loading in hidden iframe
-  }
-}, [url]);
-
-return (
-  <div class="relative">
-    <iframe src={activeSrc} class="transition-opacity" style={{ opacity: pendingSrc ? 0.5 : 1 }} />
-    {pendingSrc && (
-      <iframe
-        src={pendingSrc}
-        onLoad={() => { setActiveSrc(pendingSrc); setPendingSrc(null); }}
-        class="absolute inset-0 opacity-0"
-      />
-    )}
-  </div>
-);
-```
-
-**Pros**:
-- Minimal code changes (~50 lines)
-- No architectural disruption
-- Keeps unified generation flow
-- No new dependencies
-
-**Cons**:
-- Still has inherent latency - just hides it better
-- Double iframe memory usage during transitions
-- Doesn't fix the fundamental "full reload" problem
-- Slider dragging still feels delayed
-
-**Effort**: 2-4 hours
-**Flicker fix quality**: ⭐⭐ (masked, not eliminated)
+**Estimated effort**: 4-6 hours
 
 ---
 
-### Solution 2: Client-Side Rendering with React DOM
+### Option 3: Canvas/SVG Preview
+Render preview using Canvas or SVG instead of HTML/CSS.
 
-**Approach**: Render the screenshot preview directly in React, eliminating the iframe entirely.
+**Pros:**
+- Fast rendering
+- No iframe needed
 
-**Implementation**:
-- Port `renderScreenshot()` to return a React component instead of HTML string
-- Render preview content inline in the main React tree
-- Use CSS `transform: scale()` for the "scaled preview" effect
-- Keep server-side HTML rendering only for generation
+**Cons:**
+- Completely different rendering engine
+- WYSIWYG not guaranteed
+- Would need to maintain two renderers
+- Text rendering differs from HTML
 
-```tsx
-// PreviewInline.tsx
-function PreviewInline({ screenshot, theme, app, dimensions }) {
-  return (
-    <div 
-      className="screenshot" 
-      style={{ 
-        width: dimensions.width, 
-        height: dimensions.height,
-        background: theme.background.gradient,
-        transform: `scale(${scale})`,
-        transformOrigin: 'top left'
-      }}
-    >
-      {screenshot.glows.map(glow => <Glow key={glow.id} {...glow} />)}
-      <HeadlineArea headline={screenshot.headline} subtitle={screenshot.subtitle} />
-      <PhoneDisplay images={screenshot.imagePath} frame={screenshot.phoneFrame} />
-      {screenshot.mascot && <Mascot {...screenshot.mascot} />}
-    </div>
-  );
-}
-```
-
-**Pros**:
-- **Instant updates** - no HTTP roundtrip, no reload
-- React's diffing only updates what changed
-- Smooth slider interactions
-- Lower memory usage (no iframe)
-
-**Cons**:
-- **Two renderers to maintain**: React components for preview, string templates for generation
-- Risk of preview/export divergence (WYSIWYG broken)
-- Complex shapes/SVGs need to work in both systems
-- CSS may behave differently (isolation vs inherited styles)
-
-**Effort**: 2-3 days (porting all render logic to React components)
-**Flicker fix quality**: ⭐⭐⭐⭐⭐ (eliminated)
-**WYSIWYG risk**: 🔴 High - two separate implementations
+**Estimated effort**: 2-3 days
 
 ---
 
-### Solution 3: Shared Renderer (Isomorphic)
+### Option 4: Isomorphic React Components (Chosen)
+Create React components that render both client-side (instant preview) and server-side (HTML export via `renderToStaticMarkup`).
 
-**Approach**: Create a renderer that works identically on both client and server.
+**Pros:**
+- **Zero flicker** - renders instantly in-place
+- **Guaranteed WYSIWYG** - same components for preview and export
+- **Modern tooling** - Vite HMR, React DevTools
+- **Better DX** - faster builds, hot reloading
+- **Future-proof** - industry standard stack
 
-**Implementation**:
-- Refactor `renderScreenshot()` to output virtual DOM or JSX
-- On client: hydrate/render as React component
-- On server: render to HTML string
+**Cons:**
+- Significant migration effort
+- Requires Preact → React conversion
+- New build tooling to learn
 
-```typescript
-// Isomorphic renderer
-function ScreenshotVDOM(props: RenderOptions) {
-  return (
-    <div class="screenshot" style={{ background: props.theme.background.gradient }}>
-      {props.screenshot.glows.map(g => <Glow {...g} />)}
-      {/* ... */}
-    </div>
-  );
-}
+**Estimated effort**: 1-2 days
 
-// Client
-ReactDOM.render(<ScreenshotVDOM {...options} />, container);
+## Consequences
 
-// Server (generation)
-import { renderToString } from 'preact-render-to-string';
-const html = renderToString(<ScreenshotVDOM {...options} />);
-```
+### Positive
+- Preview updates are instant (no network latency)
+- Perfect WYSIWYG - preview and export use identical code
+- Vite provides fast HMR and better build times
+- React ecosystem access (DevTools, libraries)
+- Simplified codebase - one renderer instead of two
 
-**Pros**:
-- **Single source of truth** - same code for preview and export
-- Instant client-side updates
-- Maintains WYSIWYG guarantee
-- Can use React for both editor UI and preview content
+### Negative
+- Bundle size slightly larger (React vs Preact)
+- Required learning curve for Vite configuration
+- One-time migration effort across 26 UI components
 
-**Cons**:
-- Significant refactor of renderer.ts (~1000 lines)
-- Need to handle asset URLs differently (relative vs file://)
-- Some CSS-in-JS complexity
-- Shape rendering (SVGs) needs careful handling
+### Neutral
+- Deno server unchanged (still serves API + static files)
+- Project structure reorganized with `src/renderer-components/`
 
-**Effort**: 3-5 days
-**Flicker fix quality**: ⭐⭐⭐⭐⭐ (eliminated)
-**WYSIWYG risk**: 🟢 Low - same code path
+## Implementation Summary
 
----
+The migration was completed in 6 phases:
 
-### Solution 4: PostMessage-Based Live Update
+1. **Foundation** - Set up Vite, React, Tailwind, API proxy
+2. **UI Migration** - Converted 26 Preact components to React
+3. **Isomorphic Renderer** - Created `renderer-components/` with shared React components
+4. **Generation Pipeline** - Integrated `renderToStaticMarkup()` for HTML export
+5. **Preview Rewrite** - Replaced iframe with inline `<ScreenshotContent>` rendering
+6. **Cleanup** - Removed old esbuild scripts and string-template renderer
 
-**Approach**: Keep iframe but make it a mini-SPA that receives updates via `postMessage`.
-
-**Implementation**:
-```typescript
-// Preview iframe content (loaded once)
-window.addEventListener('message', (e) => {
-  if (e.data.type === 'UPDATE_OPTIONS') {
-    updateScreenshot(e.data.options);
-  }
-});
-
-// Parent app (no reload needed)
-iframeRef.current.contentWindow.postMessage({
-  type: 'UPDATE_OPTIONS',
-  options: screenshot
-}, '*');
-```
-
-**Diagram**:
-```
-┌──────────────────┐    postMessage     ┌──────────────────┐
-│     Editor       │ ────────────────►  │    iframe SPA    │
-│  (main window)   │                    │  (loaded once)   │
-│                  │                    │                  │
-│  config change   │                    │  DOM update      │
-│       ├─────── postMessage ────────► │  (no reload)     │
-└──────────────────┘                    └──────────────────┘
-```
-
-**Pros**:
-- Keeps iframe isolation (CSS doesn't leak)
-- Single initial load, then instant updates
-- Relatively small changes to current architecture
-- Preview iframe can still use the exact HTML structure
-
-**Cons**:
-- Need to bundle update logic into iframe content
-- Two-way sync complexity (what if iframe needs to signal readiness?)
-- Still need separate "generation" HTML that doesn't have the postMessage listener
-- Slightly more complex than needed
-
-**Effort**: 1-2 days
-**Flicker fix quality**: ⭐⭐⭐⭐ (eliminated after initial load)
-**WYSIWYG risk**: 🟡 Medium - update logic could diverge from static render
-
----
-
-### Solution 5: Full Vite + React + Deno Setup
-
-**Approach**: Complete tooling modernization with Vite for development.
-
-**Implementation**:
-- Replace esbuild with Vite
-- Migrate from Preact to React
-- Use Vite's HMR for instant development feedback
-- Still use Deno for the server (Vite just for frontend build)
+### Architecture After Migration
 
 ```
-// vite.config.ts
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: 'dist',
-    rollupOptions: {
-      input: 'src/ui/main.tsx'
-    }
-  }
-});
+Editor UI (React) ─────> <ScreenshotContent /> ─────> React components (instant)
+                                                            │
+Export (Puppeteer) <── HTML <── renderToStaticMarkup(<Screenshot />) ──┘
 ```
 
-**What this solves**:
-- Better development experience (HMR, fast refresh)
-- Larger ecosystem (React vs Preact)
-- Modern tooling
+### Key Files Created
+- `vite.config.ts` - Vite configuration with API proxy
+- `src/renderer-components/` - Isomorphic React components
+  - `Screenshot.tsx`, `FeatureGraphic.tsx` - Main components
+  - `PhoneFrame.tsx`, `Glow.tsx`, `Shape.tsx`, `Mascot.tsx` - Sub-components
+  - `BaseStyles.tsx` - CSS generation
+  - `server.ts` - Deno SSR helpers
 
-**What this doesn't solve by itself**:
-- The iframe flickering (still need one of the above solutions)
+### Key Files Removed
+- `src/renderer.ts` - Old string-template renderer
+- `scripts/build-ui.ts` - Old esbuild bundler
+- `scripts/dev.ts` - Old dev runner
+- `src/ui/shell.ts`, `src/ui/index.ts` - Old entry points
 
-**Pros**:
-- Industry-standard tooling
-- Better debugging with React DevTools
-- Larger community, more libraries
-- Foundation for future enhancements
-
-**Cons**:
-- Vite adds complexity (but also provides value)
-- React is larger than Preact (~40KB vs ~3KB gzipped)
-- Migration effort
-- **Does not inherently solve the flicker problem**
-
-**Effort**: 1-2 days (tooling only)
-**Flicker fix quality**: ⭐ (doesn't address it)
-
----
-
-## Recommendation Matrix
-
-| Solution | Flicker Fix | WYSIWYG Safe | Effort | Recommended? |
-|----------|-------------|--------------|--------|--------------|
-| 1. Crossfade mitigation | ⭐⭐ | ✅ | Low | For quick win |
-| 2. Client-side React render | ⭐⭐⭐⭐⭐ | ❌ | Medium | No |
-| 3. Isomorphic renderer | ⭐⭐⭐⭐⭐ | ✅ | High | **Best long-term** |
-| 4. PostMessage updates | ⭐⭐⭐⭐ | 🟡 | Medium | Good middle ground |
-| 5. Vite migration only | ⭐ | ✅ | Medium | As foundation |
-
----
-
-## Verdict
-
-### If you want the best architecture (recommended):
-
-**Combine Solution 5 + Solution 3: Vite + Isomorphic Renderer**
-
-1. **Migrate to Vite + React** (1-2 days)
-   - Better DX, HMR, modern tooling
-   - This is a one-time investment that pays dividends
-
-2. **Refactor renderer to JSX components** (3-5 days)
-   - Single `<Screenshot>` component that works everywhere
-   - Use `renderToString()` for generation
-   - Use direct render for preview
-   - Same code = guaranteed WYSIWYG
-
-**Result**:
-- Zero flicker (instant updates)
-- Guaranteed WYSIWYG (same code path)
-- Modern tooling (Vite, React)
-- Better developer experience
-
-### If you want a quick fix:
-
-**Solution 1: Crossfade + Solution 4: PostMessage**
+## Related Decisions
+- Phone frame styling moved to inline React styles for proper scaling across sizes
+- Feature graphic now uses shared `PhoneFrame` component with position controls
 
 1. Add crossfade to mask loading latency (2-4 hours)
 2. Optionally add postMessage for slider interactions (1 day)
