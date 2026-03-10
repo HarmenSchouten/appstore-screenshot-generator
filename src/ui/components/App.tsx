@@ -172,6 +172,29 @@ export function App() {
     }
   };
 
+  const addFeatureGraphic = () => {
+    const newConfig = { ...config };
+    const langConfig = newConfig.languages?.find(l => l.language === selectedLang);
+    const androidConfig = langConfig?.platforms?.android;
+    if (!androidConfig) return;
+
+    androidConfig.featureGraphic = {
+      headline: 'Feature Graphic Headline',
+      subtitle: 'Add a compelling subtitle',
+      imagePath: '',
+      glows: [],
+      showIcon: true,
+      showAppName: true,
+      phoneRotation: 5,
+      phoneScale: 100,
+      phoneX: 0,
+      phoneY: 0,
+    };
+
+    saveConfig(newConfig);
+    setSelectedItem({ type: 'feature-graphic' });
+  };
+
   const addScreenshot = () => {
     const id = 'screenshot-' + Date.now();
     const newScreenshot: Screenshot = {
@@ -369,9 +392,19 @@ export function App() {
   const featureGraphic = getFeatureGraphic();
   const dimensions = getDimensions();
 
+  // A missing feature-graphic should not stay selected.
+  useEffect(() => {
+    if (selectedItem?.type === 'feature-graphic' && !featureGraphic) {
+      setSelectedItem(null);
+    }
+  }, [selectedItem, featureGraphic]);
+
   // Check if we have content to preview
-  const hasPreviewContent = selectedItem?.type === 'screenshot' ? !!selectedScreenshot : 
-                           selectedItem?.type === 'feature-graphic' ? !!featureGraphic : false;
+  const hasPreviewContent = selectedItem?.type === 'screenshot' 
+    ? !!selectedScreenshot 
+    : selectedItem?.type === 'feature-graphic' 
+      ? !!featureGraphic 
+      : false;
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
@@ -390,6 +423,7 @@ export function App() {
         onSelectPlatform={setSelectedPlatform}
         onSelectItem={setSelectedItem}
         onAddScreenshot={addScreenshot}
+        onAddFeatureGraphic={addFeatureGraphic}
         onDeleteScreenshot={deleteScreenshot}
         onSwitchProject={switchProject}
         onShowProjectModal={() => setShowProjectModal(true)}

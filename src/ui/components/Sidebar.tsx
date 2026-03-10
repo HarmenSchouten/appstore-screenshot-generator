@@ -21,6 +21,7 @@ interface SidebarProps {
   onSelectPlatform: (platform: 'android' | 'ios') => void;
   onSelectItem: (item: SelectedItem) => void;
   onAddScreenshot: () => void;
+  onAddFeatureGraphic: () => void;
   onDeleteScreenshot: (id: string) => void;
   onSwitchProject: (projectId: string) => void;
   onShowProjectModal: () => void;
@@ -48,6 +49,7 @@ export function Sidebar({
   onSelectPlatform,
   onSelectItem,
   onAddScreenshot,
+  onAddFeatureGraphic,
   onDeleteScreenshot,
   onSwitchProject,
   onShowProjectModal,
@@ -234,19 +236,28 @@ export function Sidebar({
         {selectedPlatform === 'android' && (
           <>
             <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-2">Feature Graphic</div>
-            <div
-              onClick={() => onSelectItem({ type: 'feature-graphic' })}
-              className={`p-3 rounded cursor-pointer ${
-                selectedItem?.type === 'feature-graphic'
-                  ? 'bg-indigo-600/20 border border-indigo-500/50'
-                  : 'bg-zinc-800/50 hover:bg-zinc-800 border border-transparent'
-              }`}
-            >
-              <div className="text-sm font-medium">{featureGraphic?.headline || 'Feature Graphic'}</div>
-              {featureGraphic?.subtitle && (
-                <div className="text-xs text-zinc-500 truncate">{featureGraphic.subtitle}</div>
-              )}
-            </div>
+            {featureGraphic ? (
+              <div
+                onClick={() => onSelectItem({ type: 'feature-graphic' })}
+                className={`p-3 rounded cursor-pointer ${
+                  selectedItem?.type === 'feature-graphic'
+                    ? 'bg-indigo-600/20 border border-indigo-500/50'
+                    : 'bg-zinc-800/50 hover:bg-zinc-800 border border-transparent'
+                }`}
+              >
+                <div className="text-sm font-medium">{featureGraphic.headline || 'Feature Graphic'}</div>
+                {featureGraphic.subtitle && (
+                  <div className="text-xs text-zinc-500 truncate">{featureGraphic.subtitle}</div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={onAddFeatureGraphic}
+                className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600"
+              >
+                <i className="fa-solid fa-plus mr-1" /> Add Feature Graphic
+              </button>
+            )}
           </>
         )}
       </div>
