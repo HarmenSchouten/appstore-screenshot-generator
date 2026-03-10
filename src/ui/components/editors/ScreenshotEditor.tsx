@@ -73,7 +73,7 @@ export function ScreenshotEditor({
               value={typo.headlineFontSize ?? 5.2}
               onChange={(v) => updateTypography({ headlineFontSize: v })}
               min={3}
-              max={8}
+              max={12}
               step={0.1}
               unit="%"
             />
@@ -82,7 +82,7 @@ export function ScreenshotEditor({
               value={typo.subtitleFontSize ?? 2.4}
               onChange={(v) => updateTypography({ subtitleFontSize: v })}
               min={1.5}
-              max={4}
+              max={8}
               step={0.1}
               unit="%"
             />
@@ -121,7 +121,7 @@ export function ScreenshotEditor({
               value={typo.headlineLineHeight ?? 1.15}
               onChange={(v) => updateTypography({ headlineLineHeight: v })}
               min={1}
-              max={1.5}
+              max={2}
               step={0.05}
             />
             <div>
@@ -153,7 +153,7 @@ export function ScreenshotEditor({
               value={typo.horizontalPadding ?? 6}
               onChange={(v) => updateTypography({ horizontalPadding: v })}
               min={2}
-              max={15}
+              max={25}
               step={1}
               unit="%"
             />
@@ -167,7 +167,7 @@ export function ScreenshotEditor({
             value={screenshot.headlineOffset ?? 0}
             onChange={(v) => onUpdate({ headlineOffset: v })}
             min={0}
-            max={30}
+            max={100}
             step={1}
             unit="%"
           />
