@@ -26,12 +26,12 @@ declare global {
 
 export function App() {
   const appData = window.__APP_DATA__;
-  
+
   // Parse URL for initial state
   const urlParams = parseUrlParams();
   const validProject = appData.projects.find(p => p.id === urlParams.project);
   const initialProject = validProject ? urlParams.project : appData.projectId;
-  
+
   // State
   const [config, setConfig] = useState<Config>(appData.config);
   const [projects, setProjects] = useState(appData.projects);
@@ -204,7 +204,9 @@ export function App() {
       imagePath: '',
       glows: [],
       phoneFrame: { scale: 70, bottomOffset: 6 },
-      
+      typography: {
+        headlineFontSize: 8
+      }
     };
 
     const newConfig = { ...config };
@@ -401,10 +403,10 @@ export function App() {
   }, [selectedItem, featureGraphic]);
 
   // Check if we have content to preview
-  const hasPreviewContent = selectedItem?.type === 'screenshot' 
-    ? !!selectedScreenshot 
-    : selectedItem?.type === 'feature-graphic' 
-      ? !!featureGraphic 
+  const hasPreviewContent = selectedItem?.type === 'screenshot'
+    ? !!selectedScreenshot
+    : selectedItem?.type === 'feature-graphic'
+      ? !!featureGraphic
       : false;
 
   return (
