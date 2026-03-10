@@ -248,7 +248,7 @@ function getDevModeHTML(): string {
     <div class="space-y-4">
       <div class="bg-zinc-800 rounded p-4">
         <p class="text-zinc-500 text-sm mb-2">Development mode:</p>
-        <code class="text-indigo-400">http://localhost:5173</code>
+        <code class="text-indigo-400"><a href="http://localhost:5173">http://localhost:5173</a></code>
       </div>
       <div class="bg-zinc-800 rounded p-4">
         <p class="text-zinc-500 text-sm mb-2">Production build:</p>
