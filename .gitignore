@@ -1,5 +1,6 @@
 # Output directories
 output/
+dist/
 
 # Projects (exclude all except default)
 projects/*
