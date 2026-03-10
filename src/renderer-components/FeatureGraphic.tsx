@@ -23,12 +23,15 @@ function FeatureGlow({ glow }: { glow: GlowEffect }): React.ReactElement {
   const color = glow.color.startsWith('#') 
     ? glow.color 
     : (GLOW_COLORS[glow.color] || GLOW_COLORS.purple);
+
+  // Keep glow sizing proportional to the 1024px feature-graphic width.
+  const sizePercent = (glow.size / 1024) * 100;
   
   const style: React.CSSProperties = {
     position: 'absolute',
     borderRadius: '50%',
-    width: glow.size,
-    height: glow.size,
+    width: `${sizePercent}%`,
+    height: `${sizePercent}%`,
     background: color,
     filter: 'blur(60px)',
     opacity: 0.5,

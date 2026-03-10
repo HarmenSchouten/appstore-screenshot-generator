@@ -60,7 +60,10 @@ export function Preview({ type, screenshot, featureGraphic, theme, app, dimensio
   }, [type, dimensions]);
 
   // Generate CSS for the preview
-  const baseCSS = useMemo(() => getBaseStylesCSS(theme), [theme]);
+  const baseCSS = useMemo(
+    () => getBaseStylesCSS(theme, { scopeSelector: '.screenshot-preview' }),
+    [theme]
+  );
   
   // Typography CSS for screenshot
   const typographyCSS = useMemo(() => {

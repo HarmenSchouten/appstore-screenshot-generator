@@ -8,34 +8,53 @@
 import React from 'react';
 import type { ThemeConfig } from './types.ts';
 
+interface BaseStyleOptions {
+  /**
+   * Scope all selectors to a specific root for embedded previews.
+   * When set, document-level selectors (html/body) are omitted.
+   */
+  scopeSelector?: string;
+}
+
 /**
  * Generate base CSS styles for screenshot rendering
  */
-export function getBaseStylesCSS(theme: ThemeConfig): string {
+export function getBaseStylesCSS(theme: ThemeConfig, options: BaseStyleOptions = {}): string {
   const fontUrl = theme.googleFontsUrl 
     ? `@import url('${theme.googleFontsUrl}');` 
     : '';
-    
-  return `
-    ${fontUrl}
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
+
+  const { scopeSelector } = options;
+  const isScoped = Boolean(scopeSelector);
+  const selectorPrefix = scopeSelector ? `${scopeSelector} ` : '';
+  const resetSelector = scopeSelector ? `${scopeSelector}, ${scopeSelector} *` : '*';
+  const fontFamilySelector = scopeSelector ?? 'body';
+  const documentRules = isScoped
+    ? ''
+    : `
     html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
     }
+    `;
     
-    body {
+  return `
+    ${fontUrl}
+    
+    ${resetSelector} {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    ${documentRules}
+    
+    ${fontFamilySelector} {
       font-family: ${theme.fontFamily};
     }
     
-    .screenshot {
+    ${selectorPrefix}.screenshot {
       width: 100%;
       height: 100%;
       position: relative;
@@ -43,7 +62,7 @@ export function getBaseStylesCSS(theme: ThemeConfig): string {
       background: ${theme.background.gradient};
     }
     
-    .headline-area {
+    ${selectorPrefix}.headline-area {
       position: absolute;
       top: 0;
       left: 0;
@@ -54,7 +73,7 @@ export function getBaseStylesCSS(theme: ThemeConfig): string {
       z-index: 10;
     }
     
-    .headline-area h1 {
+    ${selectorPrefix}.headline-area h1 {
       font-size: 5%;
       font-weight: 800;
       line-height: 1.15;
@@ -63,14 +82,14 @@ export function getBaseStylesCSS(theme: ThemeConfig): string {
       text-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
     
-    .headline-area p {
+    ${selectorPrefix}.headline-area p {
       font-size: 2.2%;
       font-weight: 500;
       opacity: 0.9;
       text-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
     
-    .phone-area {
+    ${selectorPrefix}.phone-area {
       position: absolute;
       inset: 0;
       display: flex;
@@ -78,12 +97,12 @@ export function getBaseStylesCSS(theme: ThemeConfig): string {
       align-items: flex-end;
     }
     
-    .mascot {
+    ${selectorPrefix}.mascot {
       position: absolute;
       z-index: 20;
     }
     
-    .mascot img {
+    ${selectorPrefix}.mascot img {
       width: 100%;
       height: 100%;
       object-fit: contain;
