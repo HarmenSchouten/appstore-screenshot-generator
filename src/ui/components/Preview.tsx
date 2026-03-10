@@ -5,7 +5,7 @@
  * Uses the same isomorphic components as HTML export for WYSIWYG consistency.
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useLayoutEffect, useRef, useMemo } from 'react';
 import { ScreenshotContent } from '../../renderer-components/Screenshot';
 import { FeatureGraphicContent } from '../../renderer-components/FeatureGraphic';
 import { getBaseStylesCSS } from '../../renderer-components/BaseStyles';
@@ -22,42 +22,40 @@ interface PreviewProps {
 
 export function Preview({ type, screenshot, featureGraphic, theme, app, dimensions }: PreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.3);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [contentOpacity, setContentOpacity] = useState(1);
 
-  // Calculate scale to fit container
-  useEffect(() => {
+  const frameResizeTransition = 'width 120ms cubic-bezier(0.2, 0, 0, 1), height 120ms cubic-bezier(0.2, 0, 0, 1)';
+  const contentSettleTransition = 'transform 100ms cubic-bezier(0.2, 0, 0, 1), opacity 80ms linear';
+
+  // Tiny settle effect when switching between screenshot and feature graphic.
+  useLayoutEffect(() => {
+    setContentOpacity(0.96);
+    const timeout = setTimeout(() => setContentOpacity(1), 16);
+    return () => clearTimeout(timeout);
+  }, [type]);
+
+  // Track container size for scale calculation.
+  useLayoutEffect(() => {
     if (!containerRef.current) return;
 
-    const calculateScale = () => {
+    const updateContainerSize = () => {
       const container = containerRef.current;
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
-      const containerWidth = rect.width - 40;
-      const containerHeight = rect.height - 40;
-
-      if (containerWidth <= 0 || containerHeight <= 0) return;
-
-      const contentWidth = type === 'feature-graphic' ? 1024 : dimensions.width;
-      const contentHeight = type === 'feature-graphic' ? 500 : dimensions.height;
-
-      const scaleX = containerWidth / contentWidth;
-      const scaleY = containerHeight / contentHeight;
-      const newScale = Math.min(scaleX, scaleY);
-      setScale(Math.max(0.1, newScale));
+      setContainerSize({ width: rect.width, height: rect.height });
     };
 
-    calculateScale();
-    const timeout = setTimeout(calculateScale, 100);
+    updateContainerSize();
 
-    const observer = new ResizeObserver(calculateScale);
+    const observer = new ResizeObserver(updateContainerSize);
     observer.observe(containerRef.current);
 
     return () => {
-      clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [type, dimensions]);
+  }, []);
 
   // Generate CSS for the preview
   const baseCSS = useMemo(
@@ -199,6 +197,19 @@ export function Preview({ type, screenshot, featureGraphic, theme, app, dimensio
   const width = type === 'feature-graphic' ? 1024 : dimensions.width;
   const height = type === 'feature-graphic' ? 500 : dimensions.height;
 
+  const scale = useMemo(() => {
+    const availableWidth = containerSize.width - 40;
+    const availableHeight = containerSize.height - 40;
+
+    if (availableWidth <= 0 || availableHeight <= 0) {
+      return 0.3;
+    }
+
+    const scaleX = availableWidth / width;
+    const scaleY = availableHeight / height;
+    return Math.max(0.1, Math.min(scaleX, scaleY));
+  }, [containerSize, width, height]);
+
   const hasContent = type === 'screenshot' ? !!screenshot : !!featureGraphic;
 
   if (!hasContent) {
@@ -219,6 +230,7 @@ export function Preview({ type, screenshot, featureGraphic, theme, app, dimensio
         style={{
           width: width * scale + 'px',
           height: height * scale + 'px',
+          transition: frameResizeTransition,
         }}
       >
         {/* Isolated preview container */}
@@ -232,6 +244,8 @@ export function Preview({ type, screenshot, featureGraphic, theme, app, dimensio
             position: 'absolute',
             top: 0,
             left: 0,
+            opacity: contentOpacity,
+            transition: contentSettleTransition,
             // Reset inherited styles
             fontFamily: theme.fontFamily,
           }}

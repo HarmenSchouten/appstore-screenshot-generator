@@ -202,8 +202,9 @@ export function App() {
       headline: 'New Screenshot',
       subtitle: 'Add a subtitle',
       imagePath: '',
-      glows: [{ color: 'purple', size: 400, top: '10%', left: '20%' }],
+      glows: [],
       phoneFrame: { scale: 70, bottomOffset: 6 },
+      
     };
 
     const newConfig = { ...config };
