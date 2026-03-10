@@ -2,7 +2,7 @@
  * API Client Utilities
  */
 
-import type { ProjectConfig, ProjectInfo, Assets } from '../types.ts';
+import type { ProjectConfig, ProjectInfo, Assets } from '../types';
 
 /**
  * Save config to server

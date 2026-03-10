@@ -1,214 +1,282 @@
 /**
  * Preview Component
  * 
- * Responsive iframe preview of screenshots and feature graphics.
- * Uses a dissolve technique to eliminate flickering on updates:
- * - Old frame stays fully visible (no fade out)
- * - New frame fades in on top
- * - Creates a smooth layered dissolve effect
+ * Instant, flicker-free preview using inline React rendering.
+ * Uses the same isomorphic components as HTML export for WYSIWYG consistency.
  */
 
-import { useState, useEffect, useRef, useCallback } from 'preact/hooks';
+import { useState, useLayoutEffect, useRef, useMemo } from 'react';
+import { ScreenshotContent } from '../../renderer-components/Screenshot';
+import { FeatureGraphicContent } from '../../renderer-components/FeatureGraphic';
+import { getBaseStylesCSS } from '../../renderer-components/BaseStyles';
+import type { Screenshot, FeatureGraphic, ThemeConfig, AppConfig } from '../../renderer-components/types';
 
 interface PreviewProps {
-  url: string | null;
   type: 'screenshot' | 'feature-graphic';
-  version: number;
+  screenshot?: Screenshot;
+  featureGraphic?: FeatureGraphic;
+  theme: ThemeConfig;
+  app: AppConfig;
+  dimensions: { width: number; height: number };
 }
 
-// Smooth easing curve for natural feel
-const TRANSITION = 'opacity 280ms cubic-bezier(0.4, 0, 0.2, 1)';
-
-export function Preview({ url, type = 'screenshot', version }: PreviewProps) {
+export function Preview({ type, screenshot, featureGraphic, theme, app, dimensions }: PreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.3);
-  
-  // Dissolve state: track which iframe (A or B) is on top
-  const [activeFrame, setActiveFrame] = useState<'A' | 'B'>('A');
-  const [srcA, setSrcA] = useState<string | null>(null);
-  const [srcB, setSrcB] = useState<string | null>(null);
-  const [pendingFrame, setPendingFrame] = useState<'A' | 'B' | null>(null);
-  const [showPending, setShowPending] = useState(false);
-  
-  // Track the current URL+version to detect changes
-  const currentSrcRef = useRef<string | null>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [contentOpacity, setContentOpacity] = useState(1);
 
-  // Calculate scale to fit container - use ResizeObserver for responsive updates
-  useEffect(() => {
-    if (!containerRef.current || !url) return;
+  const frameResizeTransition = 'width 120ms cubic-bezier(0.2, 0, 0, 1), height 120ms cubic-bezier(0.2, 0, 0, 1)';
+  const contentSettleTransition = 'transform 100ms cubic-bezier(0.2, 0, 0, 1), opacity 80ms linear';
 
-    const calculateScale = () => {
+  // Tiny settle effect when switching between screenshot and feature graphic.
+  useLayoutEffect(() => {
+    setContentOpacity(0.96);
+    const timeout = setTimeout(() => setContentOpacity(1), 16);
+    return () => clearTimeout(timeout);
+  }, [type]);
+
+  // Track container size for scale calculation.
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateContainerSize = () => {
       const container = containerRef.current;
       if (!container) return;
 
-      // Get container dimensions
       const rect = container.getBoundingClientRect();
-      const containerWidth = rect.width - 40;
-      const containerHeight = rect.height - 40;
-
-      // Skip if container has no size yet
-      if (containerWidth <= 0 || containerHeight <= 0) return;
-
-      let contentWidth: number, contentHeight: number;
-      if (type === 'feature-graphic') {
-        contentWidth = 1024;
-        contentHeight = 500;
-      } else {
-        contentWidth = 1242;
-        contentHeight = 2688;
-      }
-
-      const scaleX = containerWidth / contentWidth;
-      const scaleY = containerHeight / contentHeight;
-      // Use whichever scale fits, no arbitrary cap
-      const newScale = Math.min(scaleX, scaleY);
-      setScale(Math.max(0.1, newScale)); // Ensure minimum visibility
+      setContainerSize({ width: rect.width, height: rect.height });
     };
 
-    // Calculate immediately and also after a short delay for layout settling
-    calculateScale();
-    const timeout = setTimeout(calculateScale, 100);
+    updateContainerSize();
 
-    // Recalculate on resize
-    const observer = new ResizeObserver(calculateScale);
+    const observer = new ResizeObserver(updateContainerSize);
     observer.observe(containerRef.current);
 
     return () => {
-      clearTimeout(timeout);
       observer.disconnect();
     };
-  }, [url, type]);
+  }, []);
 
-  // Handle URL/version changes - load into inactive frame
-  useEffect(() => {
-    if (!url) return;
+  // Generate CSS for the preview
+  const baseCSS = useMemo(
+    () => getBaseStylesCSS(theme, { scopeSelector: '.screenshot-preview' }),
+    [theme]
+  );
+  
+  // Typography CSS for screenshot
+  const typographyCSS = useMemo(() => {
+    if (type !== 'screenshot' || !screenshot?.typography) return '';
     
-    const newSrc = url + '?v=' + version + '&t=' + Date.now();
+    const typo = screenshot.typography;
+    const w = dimensions.width;
+    const headlineFontSize = w * ((typo.headlineFontSize ?? 5.2) / 100);
+    const subtitleFontSize = w * ((typo.subtitleFontSize ?? 2.4) / 100);
+    const headlineFontWeight = typo.headlineFontWeight ?? 800;
+    const subtitleFontWeight = typo.subtitleFontWeight ?? 500;
+    const headlineLineHeight = typo.headlineLineHeight ?? 1.15;
+    const textColor = typo.textColor ?? 'white';
+    const textAlign = typo.textAlign ?? 'center';
+    const horizontalPadding = typo.horizontalPadding ?? 6;
     
-    // Initial load - just set the active frame
-    if (currentSrcRef.current === null) {
-      currentSrcRef.current = newSrc;
-      if (activeFrame === 'A') {
-        setSrcA(newSrc);
-      } else {
-        setSrcB(newSrc);
+    return `
+      .screenshot-preview .headline-area {
+        text-align: ${textAlign};
+        color: ${textColor};
+        padding-left: ${horizontalPadding}%;
+        padding-right: ${horizontalPadding}%;
       }
-      return;
-    }
-    
-    // Subsequent updates - load into the inactive frame
-    currentSrcRef.current = newSrc;
-    const nextFrame = activeFrame === 'A' ? 'B' : 'A';
-    setPendingFrame(nextFrame);
-    setShowPending(false); // Start hidden
-    
-    if (nextFrame === 'A') {
-      setSrcA(newSrc);
-    } else {
-      setSrcB(newSrc);
-    }
-  }, [version, url]);
+      
+      .screenshot-preview .headline-area h1 {
+        font-size: ${headlineFontSize}px;
+        font-weight: ${headlineFontWeight};
+        line-height: ${headlineLineHeight};
+      }
+      
+      .screenshot-preview .headline-area p {
+        font-size: ${subtitleFontSize}px;
+        font-weight: ${subtitleFontWeight};
+      }
+    `;
+  }, [type, screenshot?.typography, dimensions]);
 
-  // Handle iframe load complete - fade in the new frame
-  const handleFrameLoad = useCallback((frame: 'A' | 'B') => {
-    if (pendingFrame === frame) {
-      // Small delay to ensure the iframe content is painted
-      requestAnimationFrame(() => {
-        setShowPending(true); // Trigger fade-in
-        // After transition completes, make this the active frame
-        setTimeout(() => {
-          setActiveFrame(frame);
-          setPendingFrame(null);
-          setShowPending(false);
-        }, 300);
-      });
-    }
-  }, [pendingFrame]);
+  // Feature graphic specific CSS
+  const featureGraphicCSS = useMemo(() => {
+    if (type !== 'feature-graphic') return '';
+    
+    const fontUrl = theme.googleFontsUrl 
+      ? `@import url('${theme.googleFontsUrl}');` 
+      : '';
+    
+    return `
+      ${fontUrl}
+      
+      .fg-preview .feature-graphic {
+        width: 100%;
+        height: 100%;
+        background: ${theme.background.gradient};
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        padding: 0 80px;
+      }
+      
+      .fg-preview .glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(60px);
+        opacity: 0.5;
+      }
+      
+      .fg-preview .content {
+        flex: 1;
+        z-index: 10;
+      }
+      
+      .fg-preview .logo {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      
+      .fg-preview .logo-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      
+      .fg-preview .logo-icon img {
+        object-fit: contain;
+      }
+      
+      .fg-preview .app-name {
+        font-size: 24px;
+        font-weight: 700;
+        color: white;
+      }
+      
+      .fg-preview .content h1 {
+        font-size: 48px;
+        font-weight: 800;
+        color: white;
+        line-height: 1.1;
+        margin-bottom: 16px;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      }
+      
+      .fg-preview .content p {
+        font-size: 20px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9);
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+      
+      .fg-preview .phone-container {
+        position: absolute;
+        right: 40px;
+        top: 50%;
+        z-index: 5;
+        width: 200px;
+      }
+      
+      .fg-preview .mascot {
+        position: absolute;
+        z-index: 20;
+      }
+      
+      .fg-preview .mascot img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    `;
+  }, [type, theme]);
 
-  if (!url) {
+  const width = type === 'feature-graphic' ? 1024 : dimensions.width;
+  const height = type === 'feature-graphic' ? 500 : dimensions.height;
+
+  const scale = useMemo(() => {
+    const availableWidth = containerSize.width - 40;
+    const availableHeight = containerSize.height - 40;
+
+    if (availableWidth <= 0 || availableHeight <= 0) {
+      return 0.3;
+    }
+
+    const scaleX = availableWidth / width;
+    const scaleY = availableHeight / height;
+    return Math.max(0.1, Math.min(scaleX, scaleY));
+  }, [containerSize, width, height]);
+
+  const hasContent = type === 'screenshot' ? !!screenshot : !!featureGraphic;
+
+  if (!hasContent) {
     return (
-      <div class="text-zinc-500">
+      <div className="text-zinc-500">
         No preview available
       </div>
     );
   }
 
-  const width = type === 'feature-graphic' ? 1024 : 1242;
-  const height = type === 'feature-graphic' ? 500 : 2688;
-
-  const iframeBaseStyle = {
-    width: width + 'px',
-    height: height + 'px',
-    transform: `scale(${scale})`,
-    transformOrigin: 'top left',
-  };
-
-  // Determine visibility: active frame always visible, pending frame fades in
-  const getFrameStyle = (frame: 'A' | 'B') => {
-    const isActive = activeFrame === frame;
-    const isPending = pendingFrame === frame;
-    
-    // Active frame: always fully visible at bottom
-    if (isActive) {
-      return {
-        ...iframeBaseStyle,
-        opacity: 1,
-        zIndex: 1,
-        pointerEvents: 'auto' as const,
-      };
-    }
-    
-    // Pending frame: fades in on top
-    if (isPending) {
-      return {
-        ...iframeBaseStyle,
-        opacity: showPending ? 1 : 0,
-        zIndex: 2,
-        transition: TRANSITION,
-        pointerEvents: 'none' as const,
-      };
-    }
-    
-    // Inactive frame: hidden
-    return {
-      ...iframeBaseStyle,
-      opacity: 0,
-      zIndex: 0,
-      pointerEvents: 'none' as const,
-    };
-  };
-
   return (
     <div
       ref={containerRef}
-      class="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex items-center justify-center"
     >
       <div
-        class="relative bg-black rounded-lg overflow-hidden shadow-2xl"
+        className="relative bg-black rounded-lg overflow-hidden shadow-2xl"
         style={{
           width: width * scale + 'px',
           height: height * scale + 'px',
+          transition: frameResizeTransition,
         }}
       >
-        {/* Frame A */}
-        {srcA && (
-          <iframe
-            src={srcA}
-            onLoad={() => handleFrameLoad('A')}
-            class="preview-iframe absolute inset-0"
-            style={getFrameStyle('A')}
-          />
-        )}
-        
-        {/* Frame B */}
-        {srcB && (
-          <iframe
-            src={srcB}
-            onLoad={() => handleFrameLoad('B')}
-            class="preview-iframe absolute inset-0"
-            style={getFrameStyle('B')}
-          />
-        )}
+        {/* Isolated preview container */}
+        <div
+          className={type === 'screenshot' ? 'screenshot-preview' : 'fg-preview'}
+          style={{
+            width: width + 'px',
+            height: height + 'px',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            opacity: contentOpacity,
+            transition: contentSettleTransition,
+            // Reset inherited styles
+            fontFamily: theme.fontFamily,
+          }}
+        >
+          {/* Inject styles */}
+          <style dangerouslySetInnerHTML={{ __html: baseCSS + typographyCSS + featureGraphicCSS }} />
+          
+          {/* Render content */}
+          {type === 'screenshot' && screenshot && (
+            <ScreenshotContent
+              options={{
+                screenshot,
+                theme,
+                app,
+                dimensions,
+                assetUrlPrefix: '/assets/',
+              }}
+            />
+          )}
+          
+          {type === 'feature-graphic' && featureGraphic && (
+            <FeatureGraphicContent
+              options={{
+                featureGraphic,
+                theme,
+                app,
+                assetUrlPrefix: '/assets/',
+              }}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

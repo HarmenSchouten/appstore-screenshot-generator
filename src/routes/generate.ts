@@ -9,7 +9,7 @@ import { join } from '@std/path';
 import { ensureDir } from '@std/fs';
 import type { ProjectConfig } from '../types/index.ts';
 import { getProjectAssetsDir, getProjectOutputDir } from '../projects.ts';
-import { renderScreenshot, renderFeatureGraphic } from '../renderer.ts';
+import { renderScreenshot, renderFeatureGraphic } from '../renderer-components/server.ts';
 
 export function createGenerateRoutes(
   getCurrentProjectId: () => string,

@@ -5,28 +5,33 @@
  * Manages the application state and coordinates between sidebar, preview, and editors.
  */
 
-import { useState, useEffect, useRef } from 'preact/hooks';
-import { Sidebar } from './Sidebar.tsx';
-import { Preview } from './Preview.tsx';
-import { ScreenshotEditor, FeatureGraphicEditor } from './editors/index.ts';
-import { ProjectModal } from './modals/ProjectModal.tsx';
-import { GenerateModal } from './modals/GenerateModal.tsx';
-import { ThemeEditorModal } from './modals/ThemeEditorModal.tsx';
-import { MediaManagerModal } from './modals/MediaManagerModal.tsx';
-import { parseUrlParams, buildUrl } from '../utils/routing.ts';
-import { saveConfig as apiSaveConfig, fetchAssets, activateProject, createProject, deleteProject, renameProject } from '../utils/api.ts';
-import type { AppData, Assets, SelectedItem, Config, Screenshot, FeatureGraphic, GenerateProgress, GenerateResult } from '../types.ts';
+import { useState, useEffect, useRef } from 'react';
+import { Sidebar } from './Sidebar';
+import { Preview } from './Preview';
+import { ScreenshotEditor, FeatureGraphicEditor } from './editors/index';
+import { ProjectModal } from './modals/ProjectModal';
+import { GenerateModal } from './modals/GenerateModal';
+import { ThemeEditorModal } from './modals/ThemeEditorModal';
+import { MediaManagerModal } from './modals/MediaManagerModal';
+import { parseUrlParams, buildUrl } from '../utils/routing';
+import { saveConfig as apiSaveConfig, fetchAssets, activateProject, createProject, deleteProject, renameProject } from '../utils/api';
+import type { AppData, Assets, SelectedItem, Config, Screenshot, FeatureGraphic, GenerateProgress, GenerateResult } from '../types';
 
-declare const __APP_DATA__: AppData;
+// Access app data from window (set by main.tsx after API fetch)
+declare global {
+  interface Window {
+    __APP_DATA__: AppData;
+  }
+}
 
 export function App() {
-  const appData = __APP_DATA__;
-  
+  const appData = window.__APP_DATA__;
+
   // Parse URL for initial state
   const urlParams = parseUrlParams();
   const validProject = appData.projects.find(p => p.id === urlParams.project);
   const initialProject = validProject ? urlParams.project : appData.projectId;
-  
+
   // State
   const [config, setConfig] = useState<Config>(appData.config);
   const [projects, setProjects] = useState(appData.projects);
@@ -66,9 +71,8 @@ export function App() {
     results: null,
     outputDir: '',
   });
-  const [previewVersion, setPreviewVersion] = useState(0);
 
-  const saveTimeoutRef = useRef<number | null>(null);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingConfigRef = useRef<Config | null>(null);
   const SAVE_DEBOUNCE_MS = 50;
 
@@ -115,7 +119,7 @@ export function App() {
     await apiSaveConfig(configToPersist);
   };
 
-  const flushPendingSave = async (refreshPreview = true) => {
+  const flushPendingSave = async () => {
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
@@ -126,9 +130,7 @@ export function App() {
     const configToPersist = pendingConfigRef.current;
     pendingConfigRef.current = null;
     await persistConfig(configToPersist);
-    if (refreshPreview) {
-      setPreviewVersion(v => v + 1);
-    }
+    // Preview auto-updates via React state
   };
 
   const saveConfig = (newConfig: Config) => {
@@ -139,9 +141,9 @@ export function App() {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Save immediately and refresh preview after save completes
+    // Save immediately - preview auto-updates via React state
     saveTimeoutRef.current = setTimeout(async () => {
-      await flushPendingSave(true);
+      await flushPendingSave();
     }, SAVE_DEBOUNCE_MS);
   };
 
@@ -170,6 +172,29 @@ export function App() {
     }
   };
 
+  const addFeatureGraphic = () => {
+    const newConfig = { ...config };
+    const langConfig = newConfig.languages?.find(l => l.language === selectedLang);
+    const androidConfig = langConfig?.platforms?.android;
+    if (!androidConfig) return;
+
+    androidConfig.featureGraphic = {
+      headline: 'Feature Graphic Headline',
+      subtitle: 'Add a compelling subtitle',
+      imagePath: '',
+      glows: [],
+      showIcon: true,
+      showAppName: true,
+      phoneRotation: 5,
+      phoneScale: 100,
+      phoneX: 0,
+      phoneY: 0,
+    };
+
+    saveConfig(newConfig);
+    setSelectedItem({ type: 'feature-graphic' });
+  };
+
   const addScreenshot = () => {
     const id = 'screenshot-' + Date.now();
     const newScreenshot: Screenshot = {
@@ -177,8 +202,11 @@ export function App() {
       headline: 'New Screenshot',
       subtitle: 'Add a subtitle',
       imagePath: '',
-      glows: [{ color: 'purple', size: 400, top: '10%', left: '20%' }],
+      glows: [],
       phoneFrame: { scale: 70, bottomOffset: 6 },
+      typography: {
+        headlineFontSize: 8
+      }
     };
 
     const newConfig = { ...config };
@@ -209,7 +237,7 @@ export function App() {
   };
 
   const switchProject = async (projectId: string) => {
-    await flushPendingSave(false);
+    await flushPendingSave();
     const data = await activateProject(projectId);
     setCurrentProject(projectId);
     setConfig(data.config);
@@ -357,23 +385,32 @@ export function App() {
     return undefined;
   };
 
-  // Get preview URL
-  const getPreviewUrl = (): string | null => {
-    if (selectedItem?.type === 'screenshot' && selectedItem.id) {
-      return `/preview/screenshot/${selectedLang}/${selectedPlatform}/${selectedItem.id}`;
-    }
-    if (selectedItem?.type === 'feature-graphic') {
-      return `/preview/feature-graphic/${selectedLang}`;
-    }
-    return null;
+  // Get platform dimensions for preview
+  const getDimensions = () => {
+    const platformConfig = getPlatformConfig();
+    return platformConfig?.dimensions || { width: 1242, height: 2688 };
   };
 
   const selectedScreenshot = getSelectedScreenshot();
   const featureGraphic = getFeatureGraphic();
-  const previewUrl = getPreviewUrl();
+  const dimensions = getDimensions();
+
+  // A missing feature-graphic should not stay selected.
+  useEffect(() => {
+    if (selectedItem?.type === 'feature-graphic' && !featureGraphic) {
+      setSelectedItem(null);
+    }
+  }, [selectedItem, featureGraphic]);
+
+  // Check if we have content to preview
+  const hasPreviewContent = selectedItem?.type === 'screenshot'
+    ? !!selectedScreenshot
+    : selectedItem?.type === 'feature-graphic'
+      ? !!featureGraphic
+      : false;
 
   return (
-    <div class="flex h-screen bg-zinc-950 text-white overflow-hidden">
+    <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
       {/* Left Sidebar */}
       <Sidebar
         config={config}
@@ -389,6 +426,7 @@ export function App() {
         onSelectPlatform={setSelectedPlatform}
         onSelectItem={setSelectedItem}
         onAddScreenshot={addScreenshot}
+        onAddFeatureGraphic={addFeatureGraphic}
         onDeleteScreenshot={deleteScreenshot}
         onSwitchProject={switchProject}
         onShowProjectModal={() => setShowProjectModal(true)}
@@ -403,16 +441,19 @@ export function App() {
       />
 
       {/* Preview Area */}
-      <div class="flex-1 flex flex-col min-w-0">
-        <div class="flex-1 flex items-center justify-center p-8 bg-zinc-900/50">
-          {previewUrl ? (
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex items-center justify-center p-8 bg-zinc-900/50">
+          {hasPreviewContent ? (
             <Preview
-              url={previewUrl}
               type={selectedItem?.type === 'feature-graphic' ? 'feature-graphic' : 'screenshot'}
-              version={previewVersion}
+              screenshot={selectedScreenshot}
+              featureGraphic={featureGraphic}
+              theme={config.theme}
+              app={config.app}
+              dimensions={dimensions}
             />
           ) : (
-            <div class="text-zinc-500">
+            <div className="text-zinc-500">
               Select a screenshot or feature graphic to preview
             </div>
           )}

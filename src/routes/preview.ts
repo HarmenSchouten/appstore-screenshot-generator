@@ -7,7 +7,7 @@
 
 import { Hono } from 'hono';
 import type { ProjectConfig } from '../types/index.ts';
-import { renderScreenshot, renderFeatureGraphic } from '../renderer.ts';
+import { renderScreenshot, renderFeatureGraphic } from '../renderer-components/server.ts';
 
 export function createPreviewRoutes(
   getConfig: () => Promise<ProjectConfig>

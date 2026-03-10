@@ -34,10 +34,10 @@ export function Slider({
 
   return (
     <div>
-      <div class="flex justify-between items-center mb-1">
-        <label class="text-xs text-zinc-500">{label}</label>
+      <div className="flex justify-between items-center mb-1">
+        <label className="text-xs text-zinc-500">{label}</label>
         {showValue && (
-          <span class="text-xs text-zinc-400">
+          <span className="text-xs text-zinc-400">
             {displayValue}
             {unit}
           </span>
@@ -50,7 +50,7 @@ export function Slider({
         step={step}
         value={value}
         onInput={(e) => onChange(Number((e.target as HTMLInputElement).value))}
-        class="w-full"
+        className="w-full"
       />
     </div>
   );

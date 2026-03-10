@@ -12,7 +12,7 @@
 
 import { join } from '@std/path';
 import { ensureDir } from '@std/fs';
-import { renderScreenshot, renderFeatureGraphic } from './renderer.ts';
+import { renderScreenshot, renderFeatureGraphic } from './renderer-components/server.ts';
 import type { Platform, Language, ScreenshotConfig } from './types.ts';
 
 // Parse command line arguments
@@ -22,17 +22,6 @@ const parseArgs = () => {
     lang: args.includes('--lang') ? args[args.indexOf('--lang') + 1] as Language : null,
     platform: args.includes('--platform') ? args[args.indexOf('--platform') + 1] as Platform : null,
   };
-};
-
-/**
- * Convert relative path to file:// URL for browser rendering
- */
-const toFileUrl = (relativePath: string, basePath: string): string => {
-  const absolutePath = join(basePath, relativePath);
-  if (Deno.build.os === 'windows') {
-    return `file:///${absolutePath.replace(/\\/g, '/')}`;
-  }
-  return `file://${absolutePath}`;
 };
 
 /**

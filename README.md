@@ -26,18 +26,24 @@ Visual screenshot generator for App Store and Google Play. Create professional m
 ### Prerequisites
 
 - [Deno](https://deno.land/) 2.0 or higher
+- [Node.js](https://nodejs.org/) 18+ (for Vite frontend)
 - Google Chrome or Chromium (for PNG export)
 
 ### Run the Editor
 
 ```bash
-# Clone and start
+# Clone the repo
 git clone https://github.com/yourusername/appstore-screenshots.git
 cd appstore-screenshots
+
+# Install npm dependencies
+npm install
+
+# Start both servers (API + Vite)
 deno task dev
 ```
 
-Open **http://localhost:3000** in your browser.
+Open **http://localhost:5173** in your browser.
 
 ## Using the Editor
 
