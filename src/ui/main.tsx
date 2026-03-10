@@ -55,11 +55,11 @@ async function init() {
   } catch (error) {
     console.error('Failed to initialize app:', error);
     document.getElementById('root')!.innerHTML = `
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-red-500 mb-2">Failed to load application</h1>
-          <p className="text-zinc-400">Make sure the API server is running on port 3000</p>
-          <p className="text-zinc-500 text-sm mt-2">Run: deno task dev:server</p>
+      <div class="flex items-center justify-center h-screen">
+        <div class="text-center">
+          <h1 class="text-xl font-bold text-red-500 mb-2">Failed to load application</h1>
+          <p class="text-zinc-400">Make sure the API server is running on port 3000</p>
+          <p class="text-zinc-500 text-sm mt-2">Run: deno task dev:server</p>
         </div>
       </div>
     `;
