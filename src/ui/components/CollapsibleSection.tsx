@@ -4,7 +4,7 @@
  * Collapsible section with header and content area.
  */
 
-import { useState, ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 interface CollapsibleSectionProps {
   title: string;
