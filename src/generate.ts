@@ -25,17 +25,6 @@ const parseArgs = () => {
 };
 
 /**
- * Convert relative path to file:// URL for browser rendering
- */
-const _toFileUrl = (relativePath: string, basePath: string): string => {
-  const absolutePath = join(basePath, relativePath);
-  if (Deno.build.os === 'windows') {
-    return `file:///${absolutePath.replace(/\\/g, '/')}`;
-  }
-  return `file://${absolutePath}`;
-};
-
-/**
  * Get asset URL prefix for file:// protocol
  */
 const getAssetUrlPrefix = (config: ScreenshotConfig, projectRoot: string): string => {
