@@ -72,15 +72,6 @@ Click **Media Library** in the sidebar to:
 - Upload new images with drag & drop
 - Rename or delete existing assets
 
-### URL Routing
-
-Every screenshot has a stable URL in the format:
-```
-http://localhost:3000/{project}/{language}/{platform}/{screenshot-id}
-```
-
-Share these links with your team to reference specific screenshots.
-
 ### Copy Between Platforms
 
 Use the **⧉** button next to the platform tabs to copy your Android configuration to iOS (or vice versa). This saves time when creating similar screenshots for both stores.
@@ -130,6 +121,11 @@ appstore-screenshots/
 ```
 
 > See [docs/003-TSX-REFACTOR.md](docs/003-TSX-REFACTOR.md) for detailed architecture documentation.
+
+## Rendering
+The preview and export share the same renderer components to keep output consistent.
+In the editor, the preview renders those components directly in the browser.
+For generation, the server renders full HTML with React `renderToStaticMarkup`, then converts that HTML to PNG.
 
 ## Screenshot Options
 
@@ -224,10 +220,6 @@ export PUPPETEER_EXECUTABLE_PATH="/path/to/chrome"
 ### Fonts not loading
 
 Ensure you have an internet connection for Google Fonts loading during generation.
-
-### Preview not matching output
-
-The preview uses an iframe with the same renderer as export—what you see is what you get. If there's a mismatch, try refreshing the browser.
 
 ## Development
 
