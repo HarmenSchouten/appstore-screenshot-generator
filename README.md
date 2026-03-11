@@ -33,8 +33,8 @@ Visual screenshot generator for App Store and Google Play. Create professional m
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/appstore-screenshots.git
-cd appstore-screenshots
+git clone https://github.com/HarmenSchouten/appstore-screenshot-generator.git
+cd appstore-screenshot-generator
 
 # Install npm dependencies
 npm install
@@ -88,36 +88,42 @@ Generated files are saved to `projects/{project-id}/output/{language}/{platform}
 ## Project Structure
 
 ```
-appstore-screenshots/
-├── projects/               # Your projects (auto-created)
+appstore-screenshot-generator/
+├── assets/                  # Optional root assets/examples
+├── config/                  # Shared/base config files
+├── projects/                # Your projects (auto-created)
 │   └── my-app/
-│       ├── config.json     # Project configuration
-│       ├── assets/         # Uploaded images
+│       ├── config.json      # Project configuration
+│       ├── assets/          # Uploaded images
 │       │   ├── screenshots/
 │       │   ├── mascots/
 │       │   └── icons/
-│       └── output/         # Generated PNGs
+│       └── output/          # Generated PNGs
 │
 ├── src/
-│   ├── server.ts           # Web server (route orchestration)
-│   ├── renderer.ts         # Screenshot HTML rendering
-│   ├── convert.ts          # HTML → PNG conversion
-│   ├── projects.ts         # Project management
-│   │
-│   ├── types/              # TypeScript type definitions
-│   ├── routes/             # API route modules
-│   ├── lib/                # Shared utilities
-│   │
-│   └── ui/                 # Preact TSX frontend
-│       ├── components/     # React-style components
-│       │   ├── editors/    # Screenshot/glow/shape editors
-│       │   ├── inputs/     # Form controls
-│       │   └── modals/     # Dialogs
-│       └── utils/          # API client, routing
-│
-├── dist/                   # Compiled UI bundle
-├── scripts/                # Build scripts
-└── deno.json               # Deno config & tasks
+│   ├── server.ts            # Web server (route orchestration)
+│   ├── build.ts             # Build orchestration helpers
+│   ├── generate.ts          # Config -> HTML generation
+│   ├── convert.ts           # HTML → PNG conversion
+│   ├── projects.ts          # Project management
+│   │ 
+│   ├── lib/                 # Shared utilities
+│   ├── routes/              # API route modules
+│   ├── renderer-components/ # Isomorphic React renderers
+│   ├── types/               # TypeScript type definitions
+│   ├── types.ts             # Type exports
+│   │ 
+│   └── ui/                  # React + Vite frontend
+│       ├── components/      # UI components and editors
+│       │   ├── editors/     # Screenshot/glow/shape editors
+│       │   ├── inputs/      # Form controls
+│       │   └── modals/      # Dialogs
+│       └── utils/           # API client, routing
+│ 
+├── dist/                    # Compiled UI bundle
+├── docs/                    # Architecture and design notes
+├── output/                  # Generated HTML/PNG output (root mode)
+└── deno.json                # Deno config & tasks
 ```
 
 > See [docs/003-TSX-REFACTOR.md](docs/003-TSX-REFACTOR.md) for detailed architecture documentation.
@@ -213,8 +219,11 @@ Default dimensions follow App Store / Google Play requirements:
 The converter searches for Chrome/Chromium automatically. If not found:
 
 ```bash
-# Set the path manually
+# macOS/Linux
 export PUPPETEER_EXECUTABLE_PATH="/path/to/chrome"
+
+# Windows PowerShell
+$env:PUPPETEER_EXECUTABLE_PATH="C:\Path\To\chrome.exe"
 ```
 
 ### Fonts not loading
@@ -224,11 +233,11 @@ Ensure you have an internet connection for Google Fonts loading during generatio
 ## Development
 
 ```bash
-# Build UI bundle (required after UI changes)
-deno task build:ui
-
 # Run with file watching (UI + server)
 deno task dev
+
+# Run full CLI pipeline (generate HTML + convert PNG)
+deno task build
 
 # Type check
 deno check src/server.ts
