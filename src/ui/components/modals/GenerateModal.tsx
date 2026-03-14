@@ -60,7 +60,7 @@ export function GenerateModal({ progress, generating, onClose }: GenerateModalPr
   }, [results]);
 
   const openFolder = async () => {
-    await fetch('/api/open-folder', {
+    await fetch('/api/generate/open-folder', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),

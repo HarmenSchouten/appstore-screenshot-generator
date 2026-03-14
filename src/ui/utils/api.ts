@@ -117,7 +117,7 @@ export async function fetchGenerated(): Promise<{ results: unknown[]; outputDir:
  * Open output folder in file explorer
  */
 export async function openOutputFolder(): Promise<void> {
-  await fetch('/api/open-folder', {
+  await fetch('/api/generate/open-folder', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({}),

@@ -92,8 +92,23 @@ export function App() {
     }
   };
 
-  // Load assets and last generated on mount
+  // On mount, sync server to URL-specified project if they differ
+  const initialSyncDone = useRef(false);
   useEffect(() => {
+    if (!initialSyncDone.current) {
+      initialSyncDone.current = true;
+      if (initialProject !== appData.projectId) {
+        // URL says a different project than the server's active one — sync it
+        activateProject(initialProject).then((data) => {
+          setConfig(data.config);
+          setSelectedLang(data.config.languages?.[0]?.language || 'en');
+          setSelectedItem(null);
+          fetchAssets().then(setAssets);
+          fetchLastGenerated();
+        });
+        return;
+      }
+    }
     fetchAssets().then(setAssets);
     fetchLastGenerated();
   }, [currentProject]);
@@ -253,6 +268,7 @@ export function App() {
 
   const switchProject = async (projectId: string) => {
     await flushPendingSave();
+    setLastGenerated(null);
     const data = await activateProject(projectId);
     setCurrentProject(projectId);
     setConfig(data.config);
