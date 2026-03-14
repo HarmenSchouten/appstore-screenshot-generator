@@ -501,8 +501,8 @@ export function App() {
               featureGraphic={featureGraphic}
               theme={config.theme}
               app={config.app}
-              platform={selectedPlatform}
-              defaultDevicePresetId={defaultDevicePresetId}
+              platform={selectedItem?.type === 'feature-graphic' ? 'android' : selectedPlatform}
+              defaultDevicePresetId={selectedItem?.type === 'feature-graphic' ? getPlatformDefaultDevicePresetId('android') : defaultDevicePresetId}
               dimensions={dimensions}
             />
           ) : (

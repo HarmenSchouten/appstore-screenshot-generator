@@ -8,7 +8,7 @@
 import { join } from '@std/path';
 import { ensureDir, exists } from '@std/fs';
 
-import { DEFAULT_PLATFORM_DEFAULTS, LEGACY_PLATFORM_DEFAULTS } from './device-presets/index.ts';
+import { DEFAULT_PLATFORM_DEFAULTS, LEGACY_PLATFORM_DEFAULTS, isDevicePresetId } from './device-presets/index.ts';
 import type {
   ColorPalette,
   ProjectConfig,
@@ -136,17 +136,20 @@ export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
     ? DEFAULT_PLATFORM_DEFAULTS
     : LEGACY_PLATFORM_DEFAULTS;
 
+  const androidId = config.platformDefaults?.android?.defaultDevicePresetId;
+  const iosId = config.platformDefaults?.ios?.defaultDevicePresetId;
+
   return {
     ...config,
     platformDefaults: {
       android: {
         defaultDevicePresetId:
-          config.platformDefaults?.android?.defaultDevicePresetId ??
+          (androidId && isDevicePresetId(androidId) ? androidId : null) ??
           fallbackPlatformDefaults.android.defaultDevicePresetId,
       },
       ios: {
         defaultDevicePresetId:
-          config.platformDefaults?.ios?.defaultDevicePresetId ??
+          (iosId && isDevicePresetId(iosId) ? iosId : null) ??
           fallbackPlatformDefaults.ios.defaultDevicePresetId,
       },
     },

@@ -5,7 +5,7 @@
  * and frame layout controls (scale, offset, rotation, gap).
  */
 
-import { getDevicePresetsForPlatform } from '../../../device-presets/index';
+import { getDevicePresetsForPlatform, isDevicePresetId } from '../../../device-presets/index';
 import { Slider, ImageSelect } from '../inputs/index';
 import type { Screenshot, Assets, Config } from '../../types';
 
@@ -101,7 +101,7 @@ export function DeviceMockupEditor({
                   devicePresetId: undefined,
                 },
               });
-            } else {
+            } else if (isDevicePresetId(val)) {
               onUpdate({
                 phoneFrame: {
                   ...screenshot.phoneFrame,

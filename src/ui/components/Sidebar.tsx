@@ -196,7 +196,6 @@ export function Sidebar({
         {screenshots.map((screenshot, index) => (
           <SidebarItemCard
             key={screenshot.id}
-            itemKey={screenshot.id}
             title={screenshot.headline || `Screenshot ${index + 1}`}
             subtitle={screenshot.subtitle}
             index={index}
@@ -222,7 +221,6 @@ export function Sidebar({
             <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-2">Feature Graphic</div>
             {featureGraphic ? (
               <SidebarItemCard
-                itemKey="__feature-graphic__"
                 title={featureGraphic.headline || 'Feature Graphic'}
                 subtitle={featureGraphic.subtitle}
                 isSelected={selectedItem?.type === 'feature-graphic'}

@@ -47,7 +47,7 @@ export function getDevicePresetsForPlatform(platform: Platform): DevicePreset[] 
 }
 
 export function isDevicePresetId(value: string): value is DevicePresetId {
-  return value in DEVICE_PRESETS;
+  return Object.hasOwn(DEVICE_PRESETS, value);
 }
 
 export function resolveDeviceMode(phoneFrame?: PhoneFrameOptions): DeviceMode {
