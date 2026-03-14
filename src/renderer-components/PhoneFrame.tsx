@@ -121,8 +121,11 @@ export function PhoneFrame({
   const renderButton = (index: number, button: NonNullable<typeof preset.buttons>[number]): React.ReactElement => {
     const isLeft = button.side === 'left';
     const offset = button.offset * scale;
-    const buttonHighlight = 'rgba(255,255,255,0.10)';
-    const buttonShadow = 'rgba(0,0,0,0.28)';
+    const r = button.radius * scale;
+    const br = isLeft ? `${r}px 0 0 ${r}px` : `0 ${r}px ${r}px 0`;
+    // Directional highlight layered over the solid button fill so the button is never transparent
+    const highlight = `linear-gradient(${isLeft ? '90deg' : '270deg'}, transparent 0%, rgba(255,255,255,0.10) 100%)`;
+    const bg = button.background ?? `${highlight}, ${buttonFill}`;
 
     return (
       <div
@@ -133,13 +136,15 @@ export function PhoneFrame({
           [isLeft ? 'left' : 'right']: `${-offset}px`,
           width: `${button.width * scale}px`,
           height: `${button.height * scale}px`,
-          background: button.background ?? buttonFill,
-          boxShadow: isLeft
-            ? `inset -1px 0 0 ${buttonHighlight}, -1px 0 1px ${buttonShadow}`
-            : `inset 1px 0 0 ${buttonHighlight}, 1px 0 1px ${buttonShadow}`,
-          borderRadius: isLeft
-            ? `${button.radius * scale}px 0 0 ${button.radius * scale}px`
-            : `0 ${button.radius * scale}px ${button.radius * scale}px 0`,
+          background: bg,
+          border: '0.5px solid rgba(0,0,0,0.35)',
+          boxShadow: [
+            // Light catch on the outer face of the button
+            isLeft ? 'inset -1px 0 0 rgba(255,255,255,0.15)' : 'inset 1px 0 0 rgba(255,255,255,0.15)',
+            // Drop shadow away from frame
+            isLeft ? '-1px 0 2px rgba(0,0,0,0.25)' : '1px 0 2px rgba(0,0,0,0.25)',
+          ].join(', '),
+          borderRadius: br,
         }}
       />
     );
