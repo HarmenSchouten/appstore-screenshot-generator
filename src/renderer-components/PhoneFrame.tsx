@@ -260,6 +260,7 @@ export function Phones({
               pixelWidth={phonePixelWidth}
               rotation={i === 0 ? -dualRotation : dualRotation}
               extraStyles={{
+                flexShrink: 0,
                 zIndex: i === 0 ? 1 : 2,
                 ...(i === 0 ? { marginRight: '-2%' } : { marginLeft: '-2%' }),
               }}

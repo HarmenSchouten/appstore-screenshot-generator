@@ -5,9 +5,9 @@
  * content, typography, layout, phone frame, glows, shapes, and mascot.
  */
 
-import { getDevicePresetsForPlatform } from '../../../device-presets/index';
-import { Slider, ColorInput, ImageSelect } from '../inputs/index';
+import { Slider, ColorInput } from '../inputs/index';
 import { CollapsibleSection } from '../CollapsibleSection';
+import { DeviceMockupEditor } from './DeviceMockupEditor';
 import { GlowEditorInline } from './GlowEditorInline';
 import { ShapeEditorInline } from './ShapeEditorInline';
 import { MascotEditorInline } from './MascotEditorInline';
@@ -32,10 +32,7 @@ export function ScreenshotEditor({
   onUpdateConfig: _onUpdateConfig,
   onAssetsRefresh,
 }: ScreenshotEditorProps) {
-  const isDual = Array.isArray(screenshot.imagePath);
   const typo = screenshot.typography || {};
-  const devicePresets = getDevicePresetsForPlatform(selectedPlatform);
-  const usingDeviceOverride = screenshot.phoneFrame?.deviceMode === 'override';
 
   const updateTypography = (updates: Record<string, unknown>) => {
     onUpdate({ typography: { ...typo, ...updates } });
@@ -178,139 +175,16 @@ export function ScreenshotEditor({
           />
         </CollapsibleSection>
 
-        {/* Images Section */}
-        <CollapsibleSection title="Phone Screenshot" defaultOpen={true}>
-          <div className="flex justify-end mb-2">
-            <button
-              onClick={() => {
-                if (isDual) {
-                  onUpdate({ imagePath: (screenshot.imagePath as string[])[0] || '' });
-                } else {
-                  onUpdate({ imagePath: [(screenshot.imagePath as string) || '', ''] });
-                }
-              }}
-              className="text-xs px-3 py-1.5 bg-zinc-800 rounded hover:bg-zinc-700"
-            >
-              {isDual ? '← Single Phone' : 'Dual Phones →'}
-            </button>
-          </div>
-
-          {isDual ? (
-            <div className="space-y-3">
-              <ImageSelect
-                label="Left Phone"
-                value={(screenshot.imagePath as string[])[0] || ''}
-                onChange={(v) => onUpdate({ imagePath: [v, (screenshot.imagePath as string[])[1] || ''] })}
-                options={assets.screenshots || []}
-                category="screenshots"
-                onAssetsRefresh={onAssetsRefresh}
-              />
-              <ImageSelect
-                label="Right Phone"
-                value={(screenshot.imagePath as string[])[1] || ''}
-                onChange={(v) => onUpdate({ imagePath: [(screenshot.imagePath as string[])[0] || '', v] })}
-                options={assets.screenshots || []}
-                category="screenshots"
-                onAssetsRefresh={onAssetsRefresh}
-              />
-            </div>
-          ) : (
-            <ImageSelect
-              value={(screenshot.imagePath as string) || ''}
-              onChange={(v) => onUpdate({ imagePath: v })}
-              options={assets.screenshots || []}
-              category="screenshots"
-              onAssetsRefresh={onAssetsRefresh}
-            />
-          )}
-        </CollapsibleSection>
-
-        {/* Phone Frame Section */}
-        <CollapsibleSection title="Phone Frame" defaultOpen={false}>
-          <div className="mb-3">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={usingDeviceOverride}
-                onChange={(e) => onUpdate({
-                  phoneFrame: {
-                    ...screenshot.phoneFrame,
-                    deviceMode: (e.target as HTMLInputElement).checked ? 'override' : 'inherit',
-                    devicePresetId: (e.target as HTMLInputElement).checked
-                      ? screenshot.phoneFrame?.devicePresetId ?? devicePresets[0]?.id
-                      : undefined,
-                  },
-                })}
-                className="rounded"
-              />
-              Override platform device for this screenshot
-            </label>
-            {!usingDeviceOverride && (
-              <div className="mt-2 text-xs text-zinc-500">
-                Using platform default: {config.platformDefaults[selectedPlatform].defaultDevicePresetId}
-              </div>
-            )}
-          </div>
-
-          {usingDeviceOverride && (
-            <div className="mb-3">
-              <label className="text-xs text-zinc-500 block mb-1">Override Device</label>
-              <select
-                value={screenshot.phoneFrame?.devicePresetId ?? devicePresets[0]?.id ?? ''}
-                onChange={(e) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, deviceMode: 'override', devicePresetId: (e.target as HTMLSelectElement).value } })}
-                className="w-full px-3 py-2 rounded text-sm"
-              >
-                {devicePresets.map((preset) => (
-                  <option key={preset.id} value={preset.id}>
-                    {preset.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <Slider
-              label="Scale"
-              value={screenshot.phoneFrame?.scale ?? (isDual ? 42 : 70)}
-              onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, scale: v } })}
-              min={isDual ? 30 : 50}
-              max={100}
-              step={1}
-              unit="%"
-            />
-            <Slider
-              label="Bottom Offset"
-              value={screenshot.phoneFrame?.bottomOffset ?? 6}
-              onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, bottomOffset: v } })}
-              min={0}
-              max={100}
-              step={1}
-              unit="%"
-            />
-            {isDual && (
-              <>
-                <Slider
-                  label="Rotation"
-                  value={screenshot.phoneFrame?.dualRotation ?? 6}
-                  onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, dualRotation: v } })}
-                  min={0}
-                  max={15}
-                  step={1}
-                  unit="°"
-                />
-                <Slider
-                  label="Gap"
-                  value={screenshot.phoneFrame?.dualGap ?? 2}
-                  onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, dualGap: v } })}
-                  min={0}
-                  max={10}
-                  step={0.5}
-                  unit="%"
-                />
-              </>
-            )}
-          </div>
+        {/* Device Mockup Section */}
+        <CollapsibleSection title="Device Mockup" defaultOpen={true}>
+          <DeviceMockupEditor
+            screenshot={screenshot}
+            assets={assets}
+            config={config}
+            selectedPlatform={selectedPlatform}
+            onUpdate={onUpdate}
+            onAssetsRefresh={onAssetsRefresh}
+          />
         </CollapsibleSection>
 
         {/* Glows Section */}
