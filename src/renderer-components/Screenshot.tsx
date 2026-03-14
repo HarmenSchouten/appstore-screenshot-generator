@@ -23,7 +23,7 @@ interface ScreenshotProps {
  * Use this for client-side preview where you already have a document.
  */
 export function ScreenshotContent({ options }: ScreenshotProps): React.ReactElement {
-  const { screenshot, app, dimensions, assetUrlPrefix = '/assets/' } = options;
+  const { screenshot, app, dimensions, assetUrlPrefix = '/assets/', platform, defaultDevicePresetId } = options;
   
   return (
     <div className="screenshot">
@@ -42,7 +42,13 @@ export function ScreenshotContent({ options }: ScreenshotProps): React.ReactElem
       </div>
       
       {/* Phone Mockups */}
-      <Phones screenshot={screenshot} assetUrlPrefix={assetUrlPrefix} containerWidth={dimensions.width} />
+      <Phones
+        screenshot={screenshot}
+        platform={platform}
+        defaultDevicePresetId={defaultDevicePresetId}
+        assetUrlPrefix={assetUrlPrefix}
+        containerWidth={dimensions.width}
+      />
       
       {/* Mascot */}
       <Mascot mascot={screenshot.mascot} app={app} assetUrlPrefix={assetUrlPrefix} />

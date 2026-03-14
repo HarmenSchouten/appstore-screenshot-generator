@@ -15,7 +15,8 @@ import { ThemeEditorModal } from './modals/ThemeEditorModal';
 import { MediaManagerModal } from './modals/MediaManagerModal';
 import { parseUrlParams, buildUrl } from '../utils/routing';
 import { saveConfig as apiSaveConfig, fetchAssets, activateProject, createProject, deleteProject, renameProject } from '../utils/api';
-import type { AppData, Assets, SelectedItem, Config, Screenshot, FeatureGraphic, GenerateProgress, GenerateResult } from '../types';
+import { getDefaultDevicePresetId } from '../../device-presets/index';
+import type { AppData, Assets, DevicePresetId, SelectedItem, Config, Screenshot, FeatureGraphic, GenerateProgress, GenerateResult } from '../types';
 
 // Access app data from window (set by main.tsx after API fetch)
 declare global {
@@ -91,8 +92,23 @@ export function App() {
     }
   };
 
-  // Load assets and last generated on mount
+  // On mount, sync server to URL-specified project if they differ
+  const initialSyncDone = useRef(false);
   useEffect(() => {
+    if (!initialSyncDone.current) {
+      initialSyncDone.current = true;
+      if (initialProject !== appData.projectId) {
+        // URL says a different project than the server's active one — sync it
+        activateProject(initialProject).then((data) => {
+          setConfig(data.config);
+          setSelectedLang(data.config.languages?.[0]?.language || 'en');
+          setSelectedItem(null);
+          fetchAssets().then(setAssets);
+          fetchLastGenerated();
+        });
+        return;
+      }
+    }
     fetchAssets().then(setAssets);
     fetchLastGenerated();
   }, [currentProject]);
@@ -172,6 +188,20 @@ export function App() {
     }
   };
 
+  const updatePlatformDefaultDevicePreset = (platform: 'android' | 'ios', devicePresetId: DevicePresetId) => {
+    const newConfig = {
+      ...config,
+      platformDefaults: {
+        ...config.platformDefaults,
+        [platform]: {
+          ...config.platformDefaults[platform],
+          defaultDevicePresetId: devicePresetId,
+        },
+      },
+    };
+    saveConfig(newConfig);
+  };
+
   const addFeatureGraphic = () => {
     const newConfig = { ...config };
     const langConfig = newConfig.languages?.find(l => l.language === selectedLang);
@@ -231,6 +261,18 @@ export function App() {
     }
   };
 
+  const deleteFeatureGraphic = () => {
+    const newConfig = { ...config };
+    const langConfig = newConfig.languages?.find(l => l.language === selectedLang);
+    if (langConfig?.platforms?.android) {
+      delete langConfig.platforms.android.featureGraphic;
+      saveConfig(newConfig);
+      if (selectedItem?.type === 'feature-graphic') {
+        setSelectedItem(null);
+      }
+    }
+  };
+
   const refreshAssets = async () => {
     const newAssets = await fetchAssets();
     setAssets(newAssets);
@@ -238,6 +280,7 @@ export function App() {
 
   const switchProject = async (projectId: string) => {
     await flushPendingSave();
+    setLastGenerated(null);
     const data = await activateProject(projectId);
     setCurrentProject(projectId);
     setConfig(data.config);
@@ -391,9 +434,14 @@ export function App() {
     return platformConfig?.dimensions || { width: 1242, height: 2688 };
   };
 
+  const getPlatformDefaultDevicePresetId = (platform: 'android' | 'ios' = selectedPlatform) => {
+    return config.platformDefaults?.[platform]?.defaultDevicePresetId ?? getDefaultDevicePresetId(platform);
+  };
+
   const selectedScreenshot = getSelectedScreenshot();
   const featureGraphic = getFeatureGraphic();
   const dimensions = getDimensions();
+  const defaultDevicePresetId = getPlatformDefaultDevicePresetId();
 
   // A missing feature-graphic should not stay selected.
   useEffect(() => {
@@ -421,18 +469,21 @@ export function App() {
         selectedItem={selectedItem}
         screenshots={getScreenshots()}
         featureGraphic={featureGraphic}
+        platformDefaultDevicePresetId={defaultDevicePresetId}
         assets={assets}
         onSelectLang={setSelectedLang}
         onSelectPlatform={setSelectedPlatform}
         onSelectItem={setSelectedItem}
         onAddScreenshot={addScreenshot}
         onAddFeatureGraphic={addFeatureGraphic}
+        onDeleteFeatureGraphic={deleteFeatureGraphic}
         onDeleteScreenshot={deleteScreenshot}
         onSwitchProject={switchProject}
         onShowProjectModal={() => setShowProjectModal(true)}
         onGenerate={generateAll}
         onAddLanguage={addLanguage}
         onCopyPlatformConfig={copyPlatformConfig}
+        onUpdatePlatformDefaultDevicePreset={updatePlatformDefaultDevicePreset}
         onShowThemeEditor={() => setShowThemeEditor(true)}
         onShowMediaManager={() => setShowMediaManager(true)}
         generating={generating}
@@ -450,6 +501,8 @@ export function App() {
               featureGraphic={featureGraphic}
               theme={config.theme}
               app={config.app}
+              platform={selectedItem?.type === 'feature-graphic' ? 'android' : selectedPlatform}
+              defaultDevicePresetId={selectedItem?.type === 'feature-graphic' ? getPlatformDefaultDevicePresetId('android') : defaultDevicePresetId}
               dimensions={dimensions}
             />
           ) : (
@@ -466,6 +519,7 @@ export function App() {
           screenshot={selectedScreenshot}
           assets={assets}
           config={config}
+          selectedPlatform={selectedPlatform}
           onUpdate={(updates) => updateScreenshot(selectedScreenshot.id, updates)}
           onUpdateConfig={saveConfig}
           onAssetsRefresh={refreshAssets}

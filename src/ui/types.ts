@@ -6,6 +6,7 @@
 
 // Re-export from main types
 export type {
+  DevicePresetId,
   ProjectConfig,
   ProjectInfo,
   Screenshot,

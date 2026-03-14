@@ -8,106 +8,12 @@
 import { join } from '@std/path';
 import { ensureDir, exists } from '@std/fs';
 
-export interface ProjectInfo {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProjectConfig {
-  app: {
-    name: string;
-    iconPath?: string;
-    defaultMascotPath?: string;
-  };
-  theme: {
-    background: { gradient: string };
-    fontFamily: string;
-    googleFontsUrl?: string;
-  };
-  palette?: ColorPalette;
-  assetsBasePath: string;
-  languages: LanguageConfig[];
-}
-
-export interface LanguageConfig {
-  language: string;
-  platforms: {
-    android: PlatformConfig;
-    ios: PlatformConfig;
-  };
-}
-
-export interface PlatformConfig {
-  dimensions: { width: number; height: number };
-  screenshots: Screenshot[];
-  featureGraphic?: FeatureGraphic | null;
-}
-
-export interface Screenshot {
-  id: string;
-  headline: string;
-  subtitle: string;
-  imagePath: string | string[];
-  glows: GlowEffect[];
-  phoneFrame?: PhoneFrameOptions;
-  mascot?: MascotOptions | null;
-}
-
-export interface GlowEffect {
-  color: string;
-  size: number;
-  top?: string;
-  right?: string;
-  bottom?: string;
-  left?: string;
-}
-
-export interface PhoneFrameOptions {
-  scale?: number;
-  bottomOffset?: number;
-  dualRotation?: number;
-  dualGap?: number;
-}
-
-export interface MascotOptions {
-  position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-  imagePath?: string;
-  size?: number;
-  offset?: number;
-  borderRadius?: number;
-}
-
-export interface FeatureGraphic {
-  headline: string;
-  subtitle: string;
-  imagePath: string;
-  glows: GlowEffect[];
-  showIcon?: boolean;
-  showAppName?: boolean;
-  phoneRotation?: number;
-  phoneScale?: number;
-  mascot?: MascotOptions | null;
-}
-
-/**
- * Color Palette for consistent theming
- */
-export interface ColorPalette {
-  primary: string;      // Main brand color (hex)
-  secondary: string;    // Secondary brand color (hex)
-  accent: string;       // Accent color (hex)
-}
-
-/**
- * Gradient preset definition
- */
-export interface GradientPreset {
-  id: string;
-  name: string;
-  css: string;          // CSS gradient string
-}
+import { DEFAULT_PLATFORM_DEFAULTS, LEGACY_PLATFORM_DEFAULTS, isDevicePresetId } from './device-presets/index.ts';
+import type {
+  ColorPalette,
+  ProjectConfig,
+  ProjectInfo,
+} from './types/index.ts';
 
 /**
  * Predefined gradient templates - use {primary}, {secondary}, {accent} as placeholders
@@ -204,6 +110,7 @@ export function getDefaultConfig(appName: string = 'My App'): ProjectConfig {
       fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif",
       googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
     },
+    platformDefaults: structuredClone(DEFAULT_PLATFORM_DEFAULTS),
     assetsBasePath: 'assets',
     languages: [
       {
@@ -221,6 +128,31 @@ export function getDefaultConfig(appName: string = 'My App'): ProjectConfig {
         },
       },
     ],
+  };
+}
+
+export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
+  const fallbackPlatformDefaults = config.platformDefaults
+    ? DEFAULT_PLATFORM_DEFAULTS
+    : LEGACY_PLATFORM_DEFAULTS;
+
+  const androidId = config.platformDefaults?.android?.defaultDevicePresetId;
+  const iosId = config.platformDefaults?.ios?.defaultDevicePresetId;
+
+  return {
+    ...config,
+    platformDefaults: {
+      android: {
+        defaultDevicePresetId:
+          (androidId && isDevicePresetId(androidId) ? androidId : null) ??
+          fallbackPlatformDefaults.android.defaultDevicePresetId,
+      },
+      ios: {
+        defaultDevicePresetId:
+          (iosId && isDevicePresetId(iosId) ? iosId : null) ??
+          fallbackPlatformDefaults.ios.defaultDevicePresetId,
+      },
+    },
   };
 }
 
@@ -304,7 +236,7 @@ export async function loadProject(projectId: string): Promise<ProjectConfig> {
   
   try {
     const content = await Deno.readTextFile(configPath);
-    return JSON.parse(content);
+    return normalizeProjectConfig(JSON.parse(content));
   } catch {
     // If config doesn't exist, check for legacy config locations
     
@@ -312,7 +244,7 @@ export async function loadProject(projectId: string): Promise<ProjectConfig> {
     try {
       const legacyPath = join(Deno.cwd(), 'config', 'config.json');
       const content = await Deno.readTextFile(legacyPath);
-      return JSON.parse(content);
+      return normalizeProjectConfig(JSON.parse(content));
     } catch {
       // Return default config
       return getDefaultConfig();
@@ -325,6 +257,7 @@ export async function loadProject(projectId: string): Promise<ProjectConfig> {
  */
 export async function saveProject(projectId: string, config: ProjectConfig): Promise<void> {
   const projectDir = getProjectDir(projectId);
+  const normalizedConfig = normalizeProjectConfig(config);
   
   // Ensure project directory exists
   await ensureDir(projectDir);
@@ -332,7 +265,7 @@ export async function saveProject(projectId: string, config: ProjectConfig): Pro
   // Save config
   await Deno.writeTextFile(
     getProjectConfigPath(projectId),
-    JSON.stringify(config, null, 2)
+    JSON.stringify(normalizedConfig, null, 2)
   );
   
   // Update project info
@@ -340,13 +273,13 @@ export async function saveProject(projectId: string, config: ProjectConfig): Pro
   try {
     const info: ProjectInfo = JSON.parse(await Deno.readTextFile(infoPath));
     info.updatedAt = new Date().toISOString();
-    info.name = config.app.name;
+    info.name = normalizedConfig.app.name;
     await Deno.writeTextFile(infoPath, JSON.stringify(info, null, 2));
   } catch {
     // Create project info if it doesn't exist
     const info: ProjectInfo = {
       id: projectId,
-      name: config.app.name,
+      name: normalizedConfig.app.name,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -389,7 +322,7 @@ export async function renameProject(projectId: string, newName: string): Promise
   
   // Update config app name
   try {
-    const config = JSON.parse(await Deno.readTextFile(configPath));
+    const config = normalizeProjectConfig(JSON.parse(await Deno.readTextFile(configPath)));
     config.app.name = newName;
     await Deno.writeTextFile(configPath, JSON.stringify(config, null, 2));
   } catch {
@@ -495,7 +428,7 @@ export async function initializeProjects(): Promise<string> {
     // Save config
     await Deno.writeTextFile(
       getProjectConfigPath(DEFAULT_PROJECT_ID),
-      JSON.stringify(config || getDefaultConfig(), null, 2)
+      JSON.stringify(normalizeProjectConfig(config || getDefaultConfig()), null, 2)
     );
     
     // Create project info

@@ -5,6 +5,7 @@
 import type { Language, Dimensions } from './base.ts';
 import type { Screenshot, FeatureGraphic } from './screenshot.ts';
 import type { ThemeConfig, ColorPalette, AppBranding } from './theme.ts';
+import type { PlatformDefaults } from './device.ts';
 
 // ============================================================
 // Platform & Language Config
@@ -49,6 +50,8 @@ export interface ProjectConfig {
   palette?: ColorPalette;
   /** Base path for assets */
   assetsBasePath: string;
+  /** Shared platform defaults applied across all languages */
+  platformDefaults: PlatformDefaults;
   /** All language configurations */
   languages: LanguageConfig[];
 }

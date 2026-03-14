@@ -71,6 +71,8 @@ const generate = async (config: ScreenshotConfig) => {
           screenshot,
           theme: config.theme,
           app: config.app,
+          platform,
+          defaultDevicePresetId: config.platformDefaults[platform].defaultDevicePresetId,
           dimensions: platformConfig.dimensions,
           assetUrlPrefix,
         });
@@ -90,6 +92,8 @@ const generate = async (config: ScreenshotConfig) => {
           featureGraphic: platformConfig.featureGraphic,
           theme: config.theme,
           app: config.app,
+          platform: 'android',
+          defaultDevicePresetId: config.platformDefaults.android.defaultDevicePresetId,
           assetUrlPrefix,
         });
 

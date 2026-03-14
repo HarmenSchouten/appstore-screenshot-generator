@@ -5,8 +5,9 @@
  * content, typography, layout, phone frame, glows, shapes, and mascot.
  */
 
-import { Slider, ColorInput, ImageSelect } from '../inputs/index';
+import { Slider, ColorInput } from '../inputs/index';
 import { CollapsibleSection } from '../CollapsibleSection';
+import { DeviceMockupEditor } from './DeviceMockupEditor';
 import { GlowEditorInline } from './GlowEditorInline';
 import { ShapeEditorInline } from './ShapeEditorInline';
 import { MascotEditorInline } from './MascotEditorInline';
@@ -16,6 +17,7 @@ interface ScreenshotEditorProps {
   screenshot: Screenshot;
   assets: Assets;
   config: Config;
+  selectedPlatform: 'android' | 'ios';
   onUpdate: (updates: Partial<Screenshot>) => void;
   onUpdateConfig: (config: Config) => void;
   onAssetsRefresh: () => Promise<void>;
@@ -25,11 +27,11 @@ export function ScreenshotEditor({
   screenshot,
   assets,
   config,
+  selectedPlatform,
   onUpdate,
   onUpdateConfig: _onUpdateConfig,
   onAssetsRefresh,
 }: ScreenshotEditorProps) {
-  const isDual = Array.isArray(screenshot.imagePath);
   const typo = screenshot.typography || {};
 
   const updateTypography = (updates: Record<string, unknown>) => {
@@ -173,97 +175,16 @@ export function ScreenshotEditor({
           />
         </CollapsibleSection>
 
-        {/* Images Section */}
-        <CollapsibleSection title="Phone Screenshot" defaultOpen={true}>
-          <div className="flex justify-end mb-2">
-            <button
-              onClick={() => {
-                if (isDual) {
-                  onUpdate({ imagePath: (screenshot.imagePath as string[])[0] || '' });
-                } else {
-                  onUpdate({ imagePath: [(screenshot.imagePath as string) || '', ''] });
-                }
-              }}
-              className="text-xs px-3 py-1.5 bg-zinc-800 rounded hover:bg-zinc-700"
-            >
-              {isDual ? '← Single Phone' : 'Dual Phones →'}
-            </button>
-          </div>
-
-          {isDual ? (
-            <div className="space-y-3">
-              <ImageSelect
-                label="Left Phone"
-                value={(screenshot.imagePath as string[])[0] || ''}
-                onChange={(v) => onUpdate({ imagePath: [v, (screenshot.imagePath as string[])[1] || ''] })}
-                options={assets.screenshots || []}
-                category="screenshots"
-                onAssetsRefresh={onAssetsRefresh}
-              />
-              <ImageSelect
-                label="Right Phone"
-                value={(screenshot.imagePath as string[])[1] || ''}
-                onChange={(v) => onUpdate({ imagePath: [(screenshot.imagePath as string[])[0] || '', v] })}
-                options={assets.screenshots || []}
-                category="screenshots"
-                onAssetsRefresh={onAssetsRefresh}
-              />
-            </div>
-          ) : (
-            <ImageSelect
-              value={(screenshot.imagePath as string) || ''}
-              onChange={(v) => onUpdate({ imagePath: v })}
-              options={assets.screenshots || []}
-              category="screenshots"
-              onAssetsRefresh={onAssetsRefresh}
-            />
-          )}
-        </CollapsibleSection>
-
-        {/* Phone Frame Section */}
-        <CollapsibleSection title="Phone Frame" defaultOpen={false}>
-          <div className="grid grid-cols-2 gap-3">
-            <Slider
-              label="Scale"
-              value={screenshot.phoneFrame?.scale ?? (isDual ? 42 : 70)}
-              onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, scale: v } })}
-              min={isDual ? 30 : 50}
-              max={100}
-              step={1}
-              unit="%"
-            />
-            <Slider
-              label="Bottom Offset"
-              value={screenshot.phoneFrame?.bottomOffset ?? 6}
-              onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, bottomOffset: v } })}
-              min={0}
-              max={100}
-              step={1}
-              unit="%"
-            />
-            {isDual && (
-              <>
-                <Slider
-                  label="Rotation"
-                  value={screenshot.phoneFrame?.dualRotation ?? 6}
-                  onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, dualRotation: v } })}
-                  min={0}
-                  max={15}
-                  step={1}
-                  unit="°"
-                />
-                <Slider
-                  label="Gap"
-                  value={screenshot.phoneFrame?.dualGap ?? 2}
-                  onChange={(v) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, dualGap: v } })}
-                  min={0}
-                  max={10}
-                  step={0.5}
-                  unit="%"
-                />
-              </>
-            )}
-          </div>
+        {/* Device Mockup Section */}
+        <CollapsibleSection title="Device Mockup" defaultOpen={true}>
+          <DeviceMockupEditor
+            screenshot={screenshot}
+            assets={assets}
+            config={config}
+            selectedPlatform={selectedPlatform}
+            onUpdate={onUpdate}
+            onAssetsRefresh={onAssetsRefresh}
+          />
         </CollapsibleSection>
 
         {/* Glows Section */}

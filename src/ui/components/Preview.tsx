@@ -9,7 +9,7 @@ import { useState, useLayoutEffect, useRef, useMemo } from 'react';
 import { ScreenshotContent } from '../../renderer-components/Screenshot';
 import { FeatureGraphicContent } from '../../renderer-components/FeatureGraphic';
 import { getBaseStylesCSS } from '../../renderer-components/BaseStyles';
-import type { Screenshot, FeatureGraphic, ThemeConfig, AppConfig } from '../../renderer-components/types';
+import type { DevicePresetId, Platform, Screenshot, FeatureGraphic, ThemeConfig, AppConfig } from '../../renderer-components/types';
 
 interface PreviewProps {
   type: 'screenshot' | 'feature-graphic';
@@ -17,10 +17,12 @@ interface PreviewProps {
   featureGraphic?: FeatureGraphic;
   theme: ThemeConfig;
   app: AppConfig;
+  platform: Platform;
+  defaultDevicePresetId: DevicePresetId;
   dimensions: { width: number; height: number };
 }
 
-export function Preview({ type, screenshot, featureGraphic, theme, app, dimensions }: PreviewProps) {
+export function Preview({ type, screenshot, featureGraphic, theme, app, platform, defaultDevicePresetId, dimensions }: PreviewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [contentOpacity, setContentOpacity] = useState(1);
@@ -260,6 +262,8 @@ export function Preview({ type, screenshot, featureGraphic, theme, app, dimensio
                 screenshot,
                 theme,
                 app,
+                platform,
+                defaultDevicePresetId,
                 dimensions,
                 assetUrlPrefix: '/assets/',
               }}
@@ -272,6 +276,8 @@ export function Preview({ type, screenshot, featureGraphic, theme, app, dimensio
                 featureGraphic,
                 theme,
                 app,
+                platform,
+                defaultDevicePresetId,
                 assetUrlPrefix: '/assets/',
               }}
             />

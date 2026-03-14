@@ -8,6 +8,7 @@
  * - base.ts       - Platform, Language, Dimensions
  * - effects.ts    - GlowEffect, Shape
  * - components.ts - PhoneFrameOptions, MascotOptions, TypographyOptions
+ * - device.ts     - DevicePreset, DevicePresetId, PlatformDefaults
  * - screenshot.ts - Screenshot, FeatureGraphic
  * - theme.ts      - ThemeConfig, ColorPalette, AppBranding
  * - config.ts     - PlatformConfig, LanguageConfig, ProjectConfig
@@ -23,6 +24,9 @@ export * from './effects.ts';
 
 // UI components
 export * from './components.ts';
+
+// Device presets
+export * from './device.ts';
 
 // Screenshots and feature graphics
 export * from './screenshot.ts';
