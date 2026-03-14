@@ -6,6 +6,7 @@
  */
 
 import type { ColorPalette, GradientTemplate } from '../types/index.ts';
+import { DEFAULT_PLATFORM_DEFAULTS } from '../device-presets/index.ts';
 
 // Re-export GLOW_COLORS from renderer-components (single source of truth)
 export { GLOW_COLORS } from '../renderer-components/constants.ts';
@@ -80,6 +81,7 @@ export function getDefaultConfig(appName: string = 'My App') {
       googleFontsUrl: "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');",
     },
     palette: DEFAULT_PALETTES[0].palette,
+    platformDefaults: structuredClone(DEFAULT_PLATFORM_DEFAULTS),
     assetsBasePath: 'assets',
     languages: [
       {

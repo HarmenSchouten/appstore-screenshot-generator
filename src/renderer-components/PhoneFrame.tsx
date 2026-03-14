@@ -1,107 +1,200 @@
 /**
  * Phone Frame Component
  * 
- * Renders an iOS-style phone mockup with screenshot.
- * Uses inline styles scaled proportionally to the phone size.
+ * Renders a device-preset driven phone mockup with screenshot.
+ * Uses reference-width geometry so preview and export stay in sync.
  */
 
 import React from 'react';
-import type { Screenshot } from './types.ts';
+import {
+  DEVICE_PRESET_REFERENCE_WIDTH,
+  getDevicePreset,
+  resolveScreenshotDevicePresetId,
+} from '../device-presets/index.ts';
+import type { DevicePresetId, Platform, Screenshot } from './types.ts';
 import { assetUrl } from './utils.ts';
 
 interface PhoneFrameProps {
   imageUrl: string;
+  presetId: DevicePresetId;
   widthPercent: number;
   rotation?: number;
   extraStyles?: React.CSSProperties;
-  /** Approximate pixel width for scaling calculations (default: 400) */
+  /** Approximate pixel width for scaling calculations (default: reference width) */
   pixelWidth?: number;
 }
 
 /**
  * Single Phone Frame with inline scaled styles
  */
-export function PhoneFrame({ imageUrl, widthPercent, rotation = 0, extraStyles = {}, pixelWidth = 400 }: PhoneFrameProps): React.ReactElement {
-  // Scale factor based on reference size of 400px
-  const scale = pixelWidth / 400;
-  
-  // Scaled values - optimized for sleek modern iPhone look
-  // Reference: 400px phone width
-  const frameRadius = Math.round(24 * scale);   // 6% of width - subtle outer corner
-  const framePadding = Math.round(5 * scale);   // 1.25% of width - thin bezel
-  const screenRadius = Math.round(18 * scale);  // 4.5% of width - screen corners
-  const buttonWidth = Math.max(2, Math.round(3 * scale));  // visible but subtle buttons
-  
+export function PhoneFrame({
+  imageUrl,
+  presetId,
+  widthPercent,
+  rotation = 0,
+  extraStyles = {},
+  pixelWidth = DEVICE_PRESET_REFERENCE_WIDTH,
+}: PhoneFrameProps): React.ReactElement {
+  const preset = getDevicePreset(presetId);
+  const scale = pixelWidth / DEVICE_PRESET_REFERENCE_WIDTH;
+  const frameBorderWidth = Math.max(1, (preset.material.borderWidth ?? 1) * scale);
+  const faceInset = (preset.material.faceInset ?? 0) * scale;
+  const faceBorderWidth = preset.material.faceBorderColor
+    ? Math.max(1, (preset.material.faceBorderWidth ?? 1) * scale)
+    : 0;
+  const innerInset = Math.max(1, frameBorderWidth);
+  const innerBorderWidth = Math.max(1, Math.round(scale));
+
   const containerStyle: React.CSSProperties = {
     width: `${widthPercent}%`,
     ...(rotation !== 0 && { transform: `rotate(${rotation}deg)` }),
     ...extraStyles,
   };
-  
+
   const frameStyle: React.CSSProperties = {
     position: 'relative',
-    background: 'linear-gradient(145deg, #2a2a2e 0%, #1a1a1e 100%)',
-    borderRadius: `${frameRadius}px`,
-    padding: `${framePadding}px`,
-    boxShadow: `0 ${20 * scale}px ${40 * scale}px rgba(0, 0, 0, 0.4), 0 0 0 ${Math.max(1, Math.round(scale))}px rgba(80, 80, 85, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1)`,
-  };
-  
-  const screenStyle: React.CSSProperties = {
     width: '100%',
-    aspectRatio: '9 / 19.5',
+    aspectRatio: `${DEVICE_PRESET_REFERENCE_WIDTH} / ${preset.bodyHeight}`,
+    background: preset.material.frameFill,
+    borderRadius: `${preset.outerRadius * scale}px`,
+    boxShadow: preset.material.shadow,
+    border: preset.material.borderColor ? `${frameBorderWidth}px solid ${preset.material.borderColor}` : undefined,
+  };
+
+  const frameFaceStyle: React.CSSProperties | null = preset.material.faceFill
+    ? {
+        position: 'absolute',
+        inset: `${faceInset}px`,
+        borderRadius: `${Math.max((preset.outerRadius * scale) - faceInset, 0)}px`,
+        background: preset.material.faceFill,
+        border: preset.material.faceBorderColor ? `${faceBorderWidth}px solid ${preset.material.faceBorderColor}` : undefined,
+        boxShadow: preset.material.faceShadow,
+        pointerEvents: 'none',
+      }
+    : null;
+
+  const frameInnerStyle: React.CSSProperties | null = preset.material.innerFill || preset.material.innerBorderColor
+    ? {
+        position: 'absolute',
+        inset: `${innerInset}px`,
+        borderRadius: `${Math.max((preset.outerRadius * scale) - innerInset, 0)}px`,
+        background: preset.material.innerFill,
+        border: preset.material.innerBorderColor ? `${innerBorderWidth}px solid ${preset.material.innerBorderColor}` : undefined,
+        pointerEvents: 'none',
+      }
+    : null;
+
+  const topHighlightStyle: React.CSSProperties | null = preset.material.topHighlight
+    ? {
+        position: 'absolute',
+        inset: `${innerInset}px`,
+        borderRadius: `${Math.max((preset.outerRadius * scale) - innerInset, 0)}px`,
+        background: preset.material.topHighlight,
+        pointerEvents: 'none',
+      }
+    : null;
+
+  const screenStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: `${preset.screen.top * scale}px`,
+    right: `${preset.screen.right * scale}px`,
+    bottom: `${preset.screen.bottom * scale}px`,
+    left: `${preset.screen.left * scale}px`,
     background: '#000',
-    borderRadius: `${screenRadius}px`,
+    borderRadius: `${preset.screen.radius * scale}px`,
     overflow: 'hidden',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    boxShadow: preset.material.screenShadow,
   };
-  
-  // Side button styles - subtle and proportional
-  const powerButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    right: `-${buttonWidth}px`,
-    top: '22%',
-    width: `${buttonWidth}px`,
-    height: '5%',
-    background: 'linear-gradient(90deg, #3a3a3e 0%, #2a2a2e 100%)',
-    borderRadius: `0 ${Math.max(1, buttonWidth / 2)}px ${Math.max(1, buttonWidth / 2)}px 0`,
+
+  const screenImageStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
   };
-  
-  const volumeButtonStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: `-${buttonWidth}px`,
-    top: '16%',
-    width: `${buttonWidth}px`,
-    height: '2%',
-    background: 'linear-gradient(270deg, #3a3a3e 0%, #2a2a2e 100%)',
-    borderRadius: `${Math.max(1, buttonWidth / 2)}px 0 0 ${Math.max(1, buttonWidth / 2)}px`,
+
+  const buttonFill = preset.material.buttonFill ?? 'linear-gradient(90deg, #4a4b52 0%, #22242a 100%)';
+
+  const renderButton = (index: number, button: NonNullable<typeof preset.buttons>[number]): React.ReactElement => {
+    const isLeft = button.side === 'left';
+    const offset = button.offset * scale;
+    const buttonHighlight = 'rgba(255,255,255,0.10)';
+    const buttonShadow = 'rgba(0,0,0,0.28)';
+
+    return (
+      <div
+        key={index}
+        style={{
+          position: 'absolute',
+          top: `${button.top * scale}px`,
+          [isLeft ? 'left' : 'right']: `${-offset}px`,
+          width: `${button.width * scale}px`,
+          height: `${button.height * scale}px`,
+          background: button.background ?? buttonFill,
+          boxShadow: isLeft
+            ? `inset -1px 0 0 ${buttonHighlight}, -1px 0 1px ${buttonShadow}`
+            : `inset 1px 0 0 ${buttonHighlight}, 1px 0 1px ${buttonShadow}`,
+          borderRadius: isLeft
+            ? `${button.radius * scale}px 0 0 ${button.radius * scale}px`
+            : `0 ${button.radius * scale}px ${button.radius * scale}px 0`,
+        }}
+      />
+    );
   };
-  
-  const volumeButton2Style: React.CSSProperties = {
-    ...volumeButtonStyle,
-    top: '22%',
-    height: '4%',
-  };
-  
-  const volumeButton3Style: React.CSSProperties = {
-    ...volumeButtonStyle,
-    top: '29%',
-    height: '4%',
-  };
+
+  const cutout = preset.cutout;
+
+  const cutoutStyle: React.CSSProperties | null = cutout
+    ? cutout.type === 'dynamic-island'
+      ? {
+          position: 'absolute',
+          top: `${cutout.top * scale}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: `${(cutout.width ?? 0) * scale}px`,
+          height: `${(cutout.height ?? 0) * scale}px`,
+          borderRadius: `${(cutout.radius ?? 0) * scale}px`,
+          background: cutout.background ?? '#050505',
+          border: cutout.borderColor
+            ? `${Math.max(1, (cutout.borderWidth ?? 1) * scale)}px solid ${cutout.borderColor}`
+            : undefined,
+          boxShadow: cutout.shadow ?? 'inset 0 1px 0 rgba(255,255,255,0.06)',
+          zIndex: 2,
+        }
+      : cutout.type === 'hole-punch'
+        ? {
+            position: 'absolute',
+            top: `${cutout.top * scale}px`,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: `${(cutout.diameter ?? 0) * scale}px`,
+            height: `${(cutout.diameter ?? 0) * scale}px`,
+            borderRadius: '999px',
+            background: cutout.background ?? '#000',
+            border: cutout.borderColor
+              ? `${Math.max(1, (cutout.borderWidth ?? 1) * scale)}px solid ${cutout.borderColor}`
+              : undefined,
+            boxShadow: cutout.shadow ?? '0 0 0 1px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.04)',
+            zIndex: 2,
+          }
+        : null
+    : null;
   
   return (
     <div style={containerStyle}>
       <div style={frameStyle}>
-        {/* Side buttons */}
-        <div style={powerButtonStyle} />
-        <div style={volumeButtonStyle} />
-        <div style={volumeButton2Style} />
-        <div style={volumeButton3Style} />
-        
+        {preset.buttons?.map((button: NonNullable<typeof preset.buttons>[number], index: number) => renderButton(index, button))}
+        {frameFaceStyle && <div style={frameFaceStyle} />}
+        {frameInnerStyle && <div style={frameInnerStyle} />}
+        {topHighlightStyle && <div style={topHighlightStyle} />}
+
         <div style={screenStyle}>
+          {cutoutStyle && <div style={cutoutStyle} />}
           {imageUrl ? (
-            <img src={imageUrl} alt="Screenshot" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={imageUrl} alt="Screenshot" style={screenImageStyle} />
           ) : (
             <div style={{ width: '100%', height: '100%', background: '#1a1a1a' }} />
           )}
@@ -113,6 +206,8 @@ export function PhoneFrame({ imageUrl, widthPercent, rotation = 0, extraStyles =
 
 interface PhonesProps {
   screenshot: Screenshot;
+  platform: Platform;
+  defaultDevicePresetId: DevicePresetId;
   assetUrlPrefix?: string;
   /** Container width in pixels for scaling calculations */
   containerWidth?: number;
@@ -121,18 +216,25 @@ interface PhonesProps {
 /**
  * Phone Area (Single or Dual Phones)
  */
-export function Phones({ screenshot, assetUrlPrefix = '/assets/', containerWidth = 1290 }: PhonesProps): React.ReactElement {
+export function Phones({
+  screenshot,
+  platform,
+  defaultDevicePresetId,
+  assetUrlPrefix = '/assets/',
+  containerWidth = 1290,
+}: PhonesProps): React.ReactElement {
   const isDual = Array.isArray(screenshot.imagePath);
   const images = isDual ? screenshot.imagePath as string[] : [screenshot.imagePath as string];
-  
+
   const phoneScale = screenshot.phoneFrame?.scale ?? (isDual ? 42 : 70);
   const bottomOffset = screenshot.phoneFrame?.bottomOffset ?? 6;
   const dualRotation = screenshot.phoneFrame?.dualRotation ?? 6;
   const dualGap = screenshot.phoneFrame?.dualGap ?? 2;
-  
+  const presetId = resolveScreenshotDevicePresetId(platform, defaultDevicePresetId, screenshot.phoneFrame);
+
   // Calculate actual phone width in pixels
   const phonePixelWidth = Math.round(containerWidth * (phoneScale / 100));
-  
+
   if (isDual) {
     return (
       <div className="phone-area" style={{ bottom: `${bottomOffset}%` }}>
@@ -148,6 +250,7 @@ export function Phones({ screenshot, assetUrlPrefix = '/assets/', containerWidth
             <PhoneFrame
               key={i}
               imageUrl={assetUrl(img, assetUrlPrefix)}
+              presetId={presetId}
               widthPercent={phoneScale}
               pixelWidth={phonePixelWidth}
               rotation={i === 0 ? -dualRotation : dualRotation}
@@ -172,6 +275,7 @@ export function Phones({ screenshot, assetUrlPrefix = '/assets/', containerWidth
     }}>
       <PhoneFrame
         imageUrl={assetUrl(images[0], assetUrlPrefix)}
+        presetId={presetId}
         widthPercent={100}
         pixelWidth={phonePixelWidth}
       />

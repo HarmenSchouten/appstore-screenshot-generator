@@ -25,6 +25,15 @@ export const screenshotConfig: ScreenshotConfig = {
     googleFontsUrl: 'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap',
   },
 
+  platformDefaults: {
+    android: {
+      defaultDevicePresetId: 'android-pixel-9-pro',
+    },
+    ios: {
+      defaultDevicePresetId: 'ios-iphone-15-pro',
+    },
+  },
+
   // Assets base path (relative to project root)
   assetsBasePath: 'assets',
 

@@ -5,7 +5,8 @@
  */
 
 import { useState } from 'react';
-import type { Config, ProjectInfo, Screenshot, FeatureGraphic, SelectedItem, Assets } from '../types';
+import { getDevicePresetSummary, getDevicePresetsForPlatform } from '../../device-presets/index';
+import type { Config, ProjectInfo, Screenshot, FeatureGraphic, SelectedItem, Assets, DevicePresetId } from '../types';
 
 interface SidebarProps {
   config: Config;
@@ -16,6 +17,7 @@ interface SidebarProps {
   selectedItem: SelectedItem;
   screenshots: Screenshot[];
   featureGraphic?: FeatureGraphic;
+  platformDefaultDevicePresetId: DevicePresetId;
   assets?: Assets;
   onSelectLang: (lang: string) => void;
   onSelectPlatform: (platform: 'android' | 'ios') => void;
@@ -28,6 +30,7 @@ interface SidebarProps {
   onGenerate: () => void;
   onAddLanguage: (lang: string, copyFrom: string | null) => void;
   onCopyPlatformConfig: (source: 'android' | 'ios', target: 'android' | 'ios') => void;
+  onUpdatePlatformDefaultDevicePreset: (platform: 'android' | 'ios', devicePresetId: DevicePresetId) => void;
   onShowThemeEditor: () => void;
   onShowMediaManager: () => void;
   generating: boolean;
@@ -44,6 +47,7 @@ export function Sidebar({
   selectedItem,
   screenshots,
   featureGraphic,
+  platformDefaultDevicePresetId,
   assets,
   onSelectLang,
   onSelectPlatform,
@@ -56,6 +60,7 @@ export function Sidebar({
   onGenerate,
   onAddLanguage,
   onCopyPlatformConfig,
+  onUpdatePlatformDefaultDevicePreset,
   onShowThemeEditor,
   onShowMediaManager,
   generating,
@@ -66,6 +71,7 @@ export function Sidebar({
   const currentProjectInfo = projects.find(p => p.id === currentProject);
   const languages = config.languages || [];
   const assetCount = assets ? assets.screenshots.length + assets.mascots.length + assets.icons.length : 0;
+  const platformPresets = getDevicePresetsForPlatform(selectedPlatform);
 
   return (
     <div className="w-72 bg-zinc-900 border-r border-zinc-800 flex flex-col">
@@ -160,6 +166,23 @@ export function Sidebar({
           >
             <i className="fa-solid fa-clone" />
           </button>
+        </div>
+        <div className="mt-3 rounded border border-zinc-800 bg-zinc-950/40 p-3">
+          <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-2">Platform Device</div>
+          <select
+            value={platformDefaultDevicePresetId}
+            onChange={(e) => onUpdatePlatformDefaultDevicePreset(selectedPlatform, (e.target as HTMLSelectElement).value as DevicePresetId)}
+            className="w-full px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700"
+          >
+            {platformPresets.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
+          <div className="mt-2 text-xs text-zinc-500">
+            {getDevicePresetSummary(platformDefaultDevicePresetId)}
+          </div>
         </div>
       </div>
 

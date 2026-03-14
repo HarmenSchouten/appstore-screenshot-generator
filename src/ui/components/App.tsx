@@ -15,7 +15,8 @@ import { ThemeEditorModal } from './modals/ThemeEditorModal';
 import { MediaManagerModal } from './modals/MediaManagerModal';
 import { parseUrlParams, buildUrl } from '../utils/routing';
 import { saveConfig as apiSaveConfig, fetchAssets, activateProject, createProject, deleteProject, renameProject } from '../utils/api';
-import type { AppData, Assets, SelectedItem, Config, Screenshot, FeatureGraphic, GenerateProgress, GenerateResult } from '../types';
+import { getDefaultDevicePresetId } from '../../device-presets/index';
+import type { AppData, Assets, DevicePresetId, SelectedItem, Config, Screenshot, FeatureGraphic, GenerateProgress, GenerateResult } from '../types';
 
 // Access app data from window (set by main.tsx after API fetch)
 declare global {
@@ -170,6 +171,20 @@ export function App() {
       };
       saveConfig(newConfig);
     }
+  };
+
+  const updatePlatformDefaultDevicePreset = (platform: 'android' | 'ios', devicePresetId: DevicePresetId) => {
+    const newConfig = {
+      ...config,
+      platformDefaults: {
+        ...config.platformDefaults,
+        [platform]: {
+          ...config.platformDefaults[platform],
+          defaultDevicePresetId: devicePresetId,
+        },
+      },
+    };
+    saveConfig(newConfig);
   };
 
   const addFeatureGraphic = () => {
@@ -391,9 +406,14 @@ export function App() {
     return platformConfig?.dimensions || { width: 1242, height: 2688 };
   };
 
+  const getPlatformDefaultDevicePresetId = (platform: 'android' | 'ios' = selectedPlatform) => {
+    return config.platformDefaults?.[platform]?.defaultDevicePresetId ?? getDefaultDevicePresetId(platform);
+  };
+
   const selectedScreenshot = getSelectedScreenshot();
   const featureGraphic = getFeatureGraphic();
   const dimensions = getDimensions();
+  const defaultDevicePresetId = getPlatformDefaultDevicePresetId();
 
   // A missing feature-graphic should not stay selected.
   useEffect(() => {
@@ -421,6 +441,7 @@ export function App() {
         selectedItem={selectedItem}
         screenshots={getScreenshots()}
         featureGraphic={featureGraphic}
+        platformDefaultDevicePresetId={defaultDevicePresetId}
         assets={assets}
         onSelectLang={setSelectedLang}
         onSelectPlatform={setSelectedPlatform}
@@ -433,6 +454,7 @@ export function App() {
         onGenerate={generateAll}
         onAddLanguage={addLanguage}
         onCopyPlatformConfig={copyPlatformConfig}
+        onUpdatePlatformDefaultDevicePreset={updatePlatformDefaultDevicePreset}
         onShowThemeEditor={() => setShowThemeEditor(true)}
         onShowMediaManager={() => setShowMediaManager(true)}
         generating={generating}
@@ -450,6 +472,8 @@ export function App() {
               featureGraphic={featureGraphic}
               theme={config.theme}
               app={config.app}
+              platform={selectedPlatform}
+              defaultDevicePresetId={defaultDevicePresetId}
               dimensions={dimensions}
             />
           ) : (
@@ -466,6 +490,7 @@ export function App() {
           screenshot={selectedScreenshot}
           assets={assets}
           config={config}
+          selectedPlatform={selectedPlatform}
           onUpdate={(updates) => updateScreenshot(selectedScreenshot.id, updates)}
           onUpdateConfig={saveConfig}
           onAssetsRefresh={refreshAssets}

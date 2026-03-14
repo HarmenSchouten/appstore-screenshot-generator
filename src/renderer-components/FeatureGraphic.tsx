@@ -48,7 +48,7 @@ function FeatureGlow({ glow }: { glow: GlowEffect }): React.ReactElement {
  * Feature Graphic Content (without HTML wrapper)
  */
 export function FeatureGraphicContent({ options }: FeatureGraphicProps): React.ReactElement {
-  const { featureGraphic, app, assetUrlPrefix = '/assets/' } = options;
+  const { featureGraphic, app, assetUrlPrefix = '/assets/', defaultDevicePresetId } = options;
   
   const phoneRotation = featureGraphic.phoneRotation ?? 5;
   const phoneScale = featureGraphic.phoneScale ?? 100;
@@ -126,6 +126,7 @@ export function FeatureGraphicContent({ options }: FeatureGraphicProps): React.R
       >
         <PhoneFrame
           imageUrl={assetUrl(featureGraphic.imagePath, assetUrlPrefix)}
+          presetId={defaultDevicePresetId}
           widthPercent={100}
           pixelWidth={200}
           extraStyles={{

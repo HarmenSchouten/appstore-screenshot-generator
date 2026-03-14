@@ -34,6 +34,8 @@ export function createPreviewRoutes(
       screenshot,
       theme: config.theme,
       app: config.app,
+      platform: platform as 'android' | 'ios',
+      defaultDevicePresetId: config.platformDefaults[platform as 'android' | 'ios'].defaultDevicePresetId,
       dimensions: platformConfig.dimensions,
       assetUrlPrefix: '/assets/',
     });
@@ -59,6 +61,8 @@ export function createPreviewRoutes(
       featureGraphic,
       theme: config.theme,
       app: config.app,
+      platform: 'android',
+      defaultDevicePresetId: config.platformDefaults.android.defaultDevicePresetId,
       assetUrlPrefix: '/assets/',
     });
     

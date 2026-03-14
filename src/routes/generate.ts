@@ -52,6 +52,8 @@ export function createGenerateRoutes(
               screenshot,
               theme: config.theme,
               app: config.app,
+              platform: platformName as 'android' | 'ios',
+              defaultDevicePresetId: config.platformDefaults[platformName as 'android' | 'ios'].defaultDevicePresetId,
               dimensions: platformConfig.dimensions,
               assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, '/')}/`,
             });
@@ -82,6 +84,8 @@ export function createGenerateRoutes(
               featureGraphic: fg,
               theme: config.theme,
               app: config.app,
+              platform: 'android',
+              defaultDevicePresetId: config.platformDefaults.android.defaultDevicePresetId,
               assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, '/')}/`,
             });
             
@@ -156,6 +160,8 @@ export function createGenerateRoutes(
                   screenshot,
                   theme: config.theme,
                   app: config.app,
+                  platform: platformName as 'android' | 'ios',
+                  defaultDevicePresetId: config.platformDefaults[platformName as 'android' | 'ios'].defaultDevicePresetId,
                   dimensions: platformConfig.dimensions,
                   assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, '/')}/`,
                 });
@@ -181,6 +187,8 @@ export function createGenerateRoutes(
                   featureGraphic: fg,
                   theme: config.theme,
                   app: config.app,
+                  platform: 'android',
+                  defaultDevicePresetId: config.platformDefaults.android.defaultDevicePresetId,
                   assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, '/')}/`,
                 });
                 await Deno.writeTextFile(htmlPath, html);

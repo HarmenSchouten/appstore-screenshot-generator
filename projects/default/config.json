@@ -77,5 +77,13 @@
     "primary": "#22c55e",
     "secondary": "#14b8a6",
     "accent": "#84cc16"
+  },
+  "platformDefaults": {
+    "android": {
+      "defaultDevicePresetId": "android-pixel-9-pro"
+    },
+    "ios": {
+      "defaultDevicePresetId": "ios-iphone-15-pro"
+    }
   }
 }

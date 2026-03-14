@@ -1,0 +1,48 @@
+import type { DevicePreset } from '../../types/device.ts';
+
+export const IOS_IPHONE_15_PRO_PRESET = {
+  id: 'ios-iphone-15-pro',
+  label: 'iPhone 15 Pro',
+  platform: 'ios',
+  family: 'iPhone Pro',
+  bodyHeight: 831,
+  outerRadius: 57,
+  screen: {
+    top: 10,
+    right: 11,
+    bottom: 10,
+    left: 11,
+    radius: 46,
+  },
+  cutout: {
+    type: 'dynamic-island',
+    top: 11,
+    width: 85,
+    height: 23,
+    radius: 12,
+    background: '#000',
+    borderColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 0.75,
+    shadow: '0 1px 1px rgba(0,0,0,0.35)',
+  },
+  buttons: [
+    { side: 'left', top: 142, height: 32, width: 4.5, offset: 2.5, radius: 2.25 },
+    { side: 'left', top: 195, height: 74, width: 4.5, offset: 2.5, radius: 2.25 },
+    { side: 'left', top: 284, height: 74, width: 4.5, offset: 2.5, radius: 2.25 },
+    { side: 'right', top: 203, height: 91, width: 4.5, offset: 2.5, radius: 2.25 },
+  ],
+  material: {
+    frameFill: '#b8b1a8',
+    faceFill: '#040404',
+    faceInset: 4,
+    faceBorderColor: 'rgba(255,255,255,0.02)',
+    faceBorderWidth: 0.75,
+    faceShadow: 'inset 0 1px 0 rgba(255,255,255,0.025)',
+    borderColor: '#ede7de',
+    borderWidth: 1,
+    buttonFill: '#ada59b',
+    shadow: '0 18px 40px rgba(0, 0, 0, 0.24), 0 8px 18px rgba(0, 0, 0, 0.10)',
+    screenShadow: undefined,
+  },
+  summary: 'Titanium rails, slimmer bezels, compact Dynamic Island',
+} satisfies DevicePreset;

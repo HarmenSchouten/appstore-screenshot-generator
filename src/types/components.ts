@@ -2,6 +2,8 @@
  * UI Component types - Phone Frame, Mascot, Typography
  */
 
+import type { DeviceMode, DevicePresetId } from './device.ts';
+
 // ============================================================
 // Phone Frame
 // ============================================================
@@ -15,6 +17,10 @@ export interface PhoneFrameOptions {
   dualRotation?: number;
   /** Gap between phones in dual mode (0-30px) */
   dualGap?: number;
+  /** Inherit platform default or use an explicit device preset */
+  deviceMode?: DeviceMode;
+  /** Device preset to use when deviceMode = override */
+  devicePresetId?: DevicePresetId;
 }
 
 // ============================================================

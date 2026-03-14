@@ -5,6 +5,7 @@
  * content, typography, layout, phone frame, glows, shapes, and mascot.
  */
 
+import { getDevicePresetsForPlatform } from '../../../device-presets/index';
 import { Slider, ColorInput, ImageSelect } from '../inputs/index';
 import { CollapsibleSection } from '../CollapsibleSection';
 import { GlowEditorInline } from './GlowEditorInline';
@@ -16,6 +17,7 @@ interface ScreenshotEditorProps {
   screenshot: Screenshot;
   assets: Assets;
   config: Config;
+  selectedPlatform: 'android' | 'ios';
   onUpdate: (updates: Partial<Screenshot>) => void;
   onUpdateConfig: (config: Config) => void;
   onAssetsRefresh: () => Promise<void>;
@@ -25,12 +27,15 @@ export function ScreenshotEditor({
   screenshot,
   assets,
   config,
+  selectedPlatform,
   onUpdate,
   onUpdateConfig: _onUpdateConfig,
   onAssetsRefresh,
 }: ScreenshotEditorProps) {
   const isDual = Array.isArray(screenshot.imagePath);
   const typo = screenshot.typography || {};
+  const devicePresets = getDevicePresetsForPlatform(selectedPlatform);
+  const usingDeviceOverride = screenshot.phoneFrame?.deviceMode === 'override';
 
   const updateTypography = (updates: Record<string, unknown>) => {
     onUpdate({ typography: { ...typo, ...updates } });
@@ -222,6 +227,48 @@ export function ScreenshotEditor({
 
         {/* Phone Frame Section */}
         <CollapsibleSection title="Phone Frame" defaultOpen={false}>
+          <div className="mb-3">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={usingDeviceOverride}
+                onChange={(e) => onUpdate({
+                  phoneFrame: {
+                    ...screenshot.phoneFrame,
+                    deviceMode: (e.target as HTMLInputElement).checked ? 'override' : 'inherit',
+                    devicePresetId: (e.target as HTMLInputElement).checked
+                      ? screenshot.phoneFrame?.devicePresetId ?? devicePresets[0]?.id
+                      : undefined,
+                  },
+                })}
+                className="rounded"
+              />
+              Override platform device for this screenshot
+            </label>
+            {!usingDeviceOverride && (
+              <div className="mt-2 text-xs text-zinc-500">
+                Using platform default: {config.platformDefaults[selectedPlatform].defaultDevicePresetId}
+              </div>
+            )}
+          </div>
+
+          {usingDeviceOverride && (
+            <div className="mb-3">
+              <label className="text-xs text-zinc-500 block mb-1">Override Device</label>
+              <select
+                value={screenshot.phoneFrame?.devicePresetId ?? devicePresets[0]?.id ?? ''}
+                onChange={(e) => onUpdate({ phoneFrame: { ...screenshot.phoneFrame, deviceMode: 'override', devicePresetId: (e.target as HTMLSelectElement).value } })}
+                className="w-full px-3 py-2 rounded text-sm"
+              >
+                {devicePresets.map((preset) => (
+                  <option key={preset.id} value={preset.id}>
+                    {preset.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <Slider
               label="Scale"
