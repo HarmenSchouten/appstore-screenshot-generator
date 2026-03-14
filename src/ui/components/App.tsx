@@ -261,6 +261,18 @@ export function App() {
     }
   };
 
+  const deleteFeatureGraphic = () => {
+    const newConfig = { ...config };
+    const langConfig = newConfig.languages?.find(l => l.language === selectedLang);
+    if (langConfig?.platforms?.android) {
+      delete langConfig.platforms.android.featureGraphic;
+      saveConfig(newConfig);
+      if (selectedItem?.type === 'feature-graphic') {
+        setSelectedItem(null);
+      }
+    }
+  };
+
   const refreshAssets = async () => {
     const newAssets = await fetchAssets();
     setAssets(newAssets);
@@ -464,6 +476,7 @@ export function App() {
         onSelectItem={setSelectedItem}
         onAddScreenshot={addScreenshot}
         onAddFeatureGraphic={addFeatureGraphic}
+        onDeleteFeatureGraphic={deleteFeatureGraphic}
         onDeleteScreenshot={deleteScreenshot}
         onSwitchProject={switchProject}
         onShowProjectModal={() => setShowProjectModal(true)}

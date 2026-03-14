@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { getDevicePresetSummary, getDevicePresetsForPlatform } from '../../device-presets/index';
 import type { Config, ProjectInfo, Screenshot, FeatureGraphic, SelectedItem, Assets, DevicePresetId } from '../types';
+import { SidebarItemCard } from './SidebarItemCard';
 
 interface SidebarProps {
   config: Config;
@@ -24,6 +25,7 @@ interface SidebarProps {
   onSelectItem: (item: SelectedItem) => void;
   onAddScreenshot: () => void;
   onAddFeatureGraphic: () => void;
+  onDeleteFeatureGraphic: () => void;
   onDeleteScreenshot: (id: string) => void;
   onSwitchProject: (projectId: string) => void;
   onShowProjectModal: () => void;
@@ -54,6 +56,7 @@ export function Sidebar({
   onSelectItem,
   onAddScreenshot,
   onAddFeatureGraphic,
+  onDeleteFeatureGraphic,
   onDeleteScreenshot,
   onSwitchProject,
   onShowProjectModal,
@@ -67,7 +70,7 @@ export function Sidebar({
   lastGenerated,
   onViewLastGenerated,
 }: SidebarProps) {
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteKey, setConfirmDeleteKey] = useState<string | null>(null);
   const currentProjectInfo = projects.find(p => p.id === currentProject);
   const languages = config.languages || [];
   const assetCount = assets ? assets.screenshots.length + assets.mascots.length + assets.icons.length : 0;
@@ -191,61 +194,19 @@ export function Sidebar({
         <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Screenshots</div>
 
         {screenshots.map((screenshot, index) => (
-          <div
+          <SidebarItemCard
             key={screenshot.id}
-            className={`p-3 rounded border ${
-              selectedItem?.type === 'screenshot' && selectedItem.id === screenshot.id
-                ? 'bg-indigo-900/50 border-indigo-500'
-                : 'bg-zinc-800/50 border-transparent hover:bg-zinc-800'
-            }`}
-          >
-            {confirmDeleteId === screenshot.id ? (
-              // Inline delete confirmation
-              <div className="text-center">
-                <p className="text-sm text-red-400 mb-2">Delete this screenshot?</p>
-                <div className="flex gap-2 justify-center">
-                  <button
-                    onClick={() => {
-                      onDeleteScreenshot(screenshot.id);
-                      setConfirmDeleteId(null);
-                    }}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    onClick={() => setConfirmDeleteId(null)}
-                    className="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              // Normal view
-              <div
-                onClick={() => onSelectItem({ type: 'screenshot', id: screenshot.id })}
-                className="flex justify-between items-start gap-2 cursor-pointer"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs text-zinc-500 mb-1">#{index + 1}</div>
-                  <div className="font-medium text-sm truncate">{screenshot.headline || `Screenshot ${index + 1}`}</div>
-                  {screenshot.subtitle && (
-                    <div className="text-xs text-zinc-400 truncate">{screenshot.subtitle}</div>
-                  )}
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmDeleteId(screenshot.id);
-                  }}
-                  className="text-zinc-500 hover:text-red-400 text-lg flex-shrink-0"
-                >
-                  <i className="fa-solid fa-xmark" />
-                </button>
-              </div>
-            )}
-          </div>
+            itemKey={screenshot.id}
+            title={screenshot.headline || `Screenshot ${index + 1}`}
+            subtitle={screenshot.subtitle}
+            index={index}
+            isSelected={selectedItem?.type === 'screenshot' && selectedItem.id === screenshot.id}
+            confirmingDelete={confirmDeleteKey === screenshot.id}
+            onSelect={() => onSelectItem({ type: 'screenshot', id: screenshot.id })}
+            onRequestDelete={() => setConfirmDeleteKey(screenshot.id)}
+            onConfirmDelete={() => { onDeleteScreenshot(screenshot.id); setConfirmDeleteKey(null); }}
+            onCancelDelete={() => setConfirmDeleteKey(null)}
+          />
         ))}
 
         <button
@@ -260,19 +221,17 @@ export function Sidebar({
           <>
             <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-2">Feature Graphic</div>
             {featureGraphic ? (
-              <div
-                onClick={() => onSelectItem({ type: 'feature-graphic' })}
-                className={`p-3 rounded cursor-pointer ${
-                  selectedItem?.type === 'feature-graphic'
-                    ? 'bg-indigo-600/20 border border-indigo-500/50'
-                    : 'bg-zinc-800/50 hover:bg-zinc-800 border border-transparent'
-                }`}
-              >
-                <div className="text-sm font-medium">{featureGraphic.headline || 'Feature Graphic'}</div>
-                {featureGraphic.subtitle && (
-                  <div className="text-xs text-zinc-500 truncate">{featureGraphic.subtitle}</div>
-                )}
-              </div>
+              <SidebarItemCard
+                itemKey="__feature-graphic__"
+                title={featureGraphic.headline || 'Feature Graphic'}
+                subtitle={featureGraphic.subtitle}
+                isSelected={selectedItem?.type === 'feature-graphic'}
+                confirmingDelete={confirmDeleteKey === '__feature-graphic__'}
+                onSelect={() => onSelectItem({ type: 'feature-graphic' })}
+                onRequestDelete={() => setConfirmDeleteKey('__feature-graphic__')}
+                onConfirmDelete={() => { onDeleteFeatureGraphic(); setConfirmDeleteKey(null); }}
+                onCancelDelete={() => setConfirmDeleteKey(null)}
+              />
             ) : (
               <button
                 onClick={onAddFeatureGraphic}
