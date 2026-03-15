@@ -1,0 +1,48 @@
+import type { DevicePreset } from '../../types/device.ts';
+
+export const IOS_IPHONE_17_PRO_MAX_PRESET = {
+  id: 'ios-iphone-17-pro-max',
+  label: 'iPhone 17 Pro Max',
+  platform: 'ios',
+  family: 'iPhone Pro Max',
+  bodyHeight: 838,
+  outerRadius: 58,
+  screen: {
+    top: 10,
+    right: 11,
+    bottom: 10,
+    left: 11,
+    radius: 47,
+  },
+  cutout: {
+    type: 'dynamic-island',
+    top: 11,
+    width: 85,
+    height: 23,
+    radius: 12,
+    background: '#000',
+    borderColor: 'rgba(255,255,255,0.02)',
+    borderWidth: 0.75,
+    shadow: '0 1px 1px rgba(0,0,0,0.35)',
+  },
+  buttons: [
+    { side: 'left', top: 145, height: 37, width: 3, offset: 2, radius: 1.5 },
+    { side: 'left', top: 213, height: 69, width: 3, offset: 2, radius: 1.5 },
+    { side: 'left', top: 297, height: 69, width: 3, offset: 2, radius: 1.5 },
+    { side: 'right', top: 236, height: 87, width: 3, offset: 2, radius: 1.5 },
+  ],
+  material: {
+    frameFill: '#a8a9ad',
+    faceFill: '#040404',
+    faceInset: 4,
+    faceBorderColor: 'rgba(255,255,255,0.02)',
+    faceBorderWidth: 0.75,
+    faceShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+    borderColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    buttonFill: '#a8a9ad',
+    shadow: '0 18px 40px rgba(0, 0, 0, 0.24), 0 8px 18px rgba(0, 0, 0, 0.10)',
+    screenShadow: undefined,
+  },
+  summary: 'Aluminum alloy body, Dynamic Island, expansive 6.9" display',
+} satisfies DevicePreset;

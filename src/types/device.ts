@@ -7,9 +7,12 @@ import type { Platform } from './base.ts';
 export type DevicePresetId =
   | 'ios-iphone-15-pro'
   | 'ios-iphone-15-pro-max'
+  | 'ios-iphone-17-pro'
+  | 'ios-iphone-17-pro-max'
   | 'ios-legacy-classic'
   | 'android-pixel-9-pro'
   | 'android-galaxy-s24-ultra'
+  | 'android-oneplus-13'
   | 'android-legacy-classic';
 
 export type DeviceMode = 'inherit' | 'override';
