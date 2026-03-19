@@ -1,12 +1,12 @@
 /**
  * Base Styles Component
- * 
+ *
  * Provides CSS styles for screenshot rendering.
  * Can be rendered to a <style> tag or exported as a string.
  */
 
-import React from 'react';
-import type { ThemeConfig } from './types.ts';
+import React from "react";
+import type { ThemeConfig } from "./types.ts";
 
 interface BaseStyleOptions {
   /**
@@ -19,26 +19,29 @@ interface BaseStyleOptions {
 /**
  * Generate base CSS styles for screenshot rendering
  */
-export function getBaseStylesCSS(theme: ThemeConfig, options: BaseStyleOptions = {}): string {
-  const fontUrl = theme.googleFontsUrl 
-    ? `@import url('${theme.googleFontsUrl}');` 
-    : '';
+export function getBaseStylesCSS(
+  theme: ThemeConfig,
+  options: BaseStyleOptions = {},
+): string {
+  const fontUrl = theme.googleFontsUrl
+    ? `@import url('${theme.googleFontsUrl}');`
+    : "";
 
   const { scopeSelector } = options;
   const isScoped = Boolean(scopeSelector);
-  const selectorPrefix = scopeSelector ? `${scopeSelector} ` : '';
-  const resetSelector = scopeSelector ? `${scopeSelector}, ${scopeSelector} *` : '*';
-  const fontFamilySelector = scopeSelector ?? 'body';
-  const documentRules = isScoped
-    ? ''
-    : `
+  const selectorPrefix = scopeSelector ? `${scopeSelector} ` : "";
+  const resetSelector = scopeSelector
+    ? `${scopeSelector}, ${scopeSelector} *`
+    : "*";
+  const fontFamilySelector = scopeSelector ?? "body";
+  const documentRules = isScoped ? "" : `
     html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
     }
     `;
-    
+
   return `
     ${fontUrl}
     
@@ -119,7 +122,7 @@ interface BaseStylesProps {
     subtitleFontWeight?: number;
     headlineLineHeight?: number;
     textColor?: string;
-    textAlign?: 'left' | 'center' | 'right';
+    textAlign?: "left" | "center" | "right";
     horizontalPadding?: number;
   };
   dimensions?: { width: number; height: number };
@@ -127,25 +130,29 @@ interface BaseStylesProps {
 
 /**
  * Base Styles Component
- * 
+ *
  * Renders a <style> tag with all necessary CSS for screenshot rendering.
  */
-export function BaseStyles({ theme, typography, dimensions }: BaseStylesProps): React.ReactElement {
+export function BaseStyles(
+  { theme, typography, dimensions }: BaseStylesProps,
+): React.ReactElement {
   const baseCSS = getBaseStylesCSS(theme);
-  
+
   // Typography overrides if provided
-  let typographyCSS = '';
+  let typographyCSS = "";
   if (typography && dimensions) {
     const typo = typography;
-    const headlineFontSize = dimensions.width * ((typo.headlineFontSize ?? 5.2) / 100);
-    const subtitleFontSize = dimensions.width * ((typo.subtitleFontSize ?? 2.4) / 100);
+    const headlineFontSize = dimensions.width *
+      ((typo.headlineFontSize ?? 5.2) / 100);
+    const subtitleFontSize = dimensions.width *
+      ((typo.subtitleFontSize ?? 2.4) / 100);
     const headlineFontWeight = typo.headlineFontWeight ?? 800;
     const subtitleFontWeight = typo.subtitleFontWeight ?? 500;
     const headlineLineHeight = typo.headlineLineHeight ?? 1.15;
-    const textColor = typo.textColor ?? 'white';
-    const textAlign = typo.textAlign ?? 'center';
+    const textColor = typo.textColor ?? "white";
+    const textAlign = typo.textAlign ?? "center";
     const horizontalPadding = typo.horizontalPadding ?? 6;
-    
+
     typographyCSS = `
       .headline-area {
         text-align: ${textAlign};
@@ -166,6 +173,10 @@ export function BaseStyles({ theme, typography, dimensions }: BaseStylesProps): 
       }
     `;
   }
-  
-  return <style dangerouslySetInnerHTML={{ __html: baseCSS + typographyCSS }} />;
+
+  return (
+    <style
+      dangerouslySetInnerHTML={{ __html: baseCSS + typographyCSS }}
+    />
+  );
 }

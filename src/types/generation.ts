@@ -19,12 +19,12 @@ export interface AssetLists {
 export interface GenerationResult {
   path: string;
   relativePath?: string;
-  status: 'success' | 'error';
+  status: "success" | "error";
   error?: string;
 }
 
 export interface GenerationProgress {
-  type: 'start' | 'progress' | 'complete';
+  type: "start" | "progress" | "complete";
   current?: number;
   total?: number;
   item?: string;

@@ -1,13 +1,14 @@
 # 005 - Device Presets and Platform Frame Geometry
 
-Date: 2026-03-14
-Status: Accepted
+Date: 2026-03-14 Status: Accepted
 
 ## Context
 
-The project currently supports platform-level output dimensions, but not platform-specific device identities.
+The project currently supports platform-level output dimensions, but not
+platform-specific device identities.
 
-Today, the renderer uses a single hard-coded phone mockup in `src/renderer-components/PhoneFrame.tsx`:
+Today, the renderer uses a single hard-coded phone mockup in
+`src/renderer-components/PhoneFrame.tsx`:
 
 - one iPhone-like outer frame
 - one fixed screen aspect ratio: `9 / 19.5`
@@ -15,12 +16,15 @@ Today, the renderer uses a single hard-coded phone mockup in `src/renderer-compo
 - no device preset registry
 - no distinction between store upload size and in-canvas device geometry
 
-That is good enough for a generic premium phone look, but it breaks down if we want screenshots to match specific devices more closely.
+That is good enough for a generic premium phone look, but it breaks down if we
+want screenshots to match specific devices more closely.
 
 This matters for two reasons:
 
-1. iOS and Android devices differ in visible screen aspect ratios, corner radii, cutouts, and bezel language.
-2. App store upload size is not the same thing as the phone frame shown inside the screenshot.
+1. iOS and Android devices differ in visible screen aspect ratios, corner radii,
+   cutouts, and bezel language.
+2. App store upload size is not the same thing as the phone frame shown inside
+   the screenshot.
 
 The current configuration model also nudges us toward conflating these concepts:
 
@@ -30,7 +34,8 @@ The current configuration model also nudges us toward conflating these concepts:
 
 ## Problem
 
-If we add “device selection” without separating responsibilities, we will create a confusing model where one dropdown tries to mean all of the following at once:
+If we add “device selection” without separating responsibilities, we will create
+a confusing model where one dropdown tries to mean all of the following at once:
 
 - App Store / Play upload target size
 - front-of-device visual style
@@ -44,15 +49,20 @@ That would make the system harder to reason about and harder to extend.
 Introduce a curated device preset system with three clear responsibilities:
 
 1. existing platform output dimensions
+
 - Keep `PlatformConfig.dimensions` exactly as it works today.
 
 2. platform default device preset
+
 - Add a default frame identity per platform.
 
 3. layout overrides
-- Keep per-screenshot adjustments such as scale, bottom offset, dual rotation, and optional device override.
 
-The default device choice should be made per project, per platform, and inherited by all screenshots for that platform.
+- Keep per-screenshot adjustments such as scale, bottom offset, dual rotation,
+  and optional device override.
+
+The default device choice should be made per project, per platform, and
+inherited by all screenshots for that platform.
 
 Per-screenshot device selection should exist only as an advanced override.
 
@@ -60,15 +70,18 @@ Per-screenshot device selection should exist only as an advanced override.
 
 ### Not per screenshot by default
 
-Per-screenshot device choice would make it too easy to create an inconsistent screenshot set.
-In most store listings, consistency across a platform set is more important than maximum flexibility.
+Per-screenshot device choice would make it too easy to create an inconsistent
+screenshot set. In most store listings, consistency across a platform set is
+more important than maximum flexibility.
 
-It also does not match the current editor structure, which is already organized first by language, then by platform, then by screenshot.
+It also does not match the current editor structure, which is already organized
+first by language, then by platform, then by screenshot.
 
 ### Not global for the whole project
 
-Android and iOS need different preset pools and often different visible screen ratios.
-A single project-wide device selection would either be misleading or require hidden platform exceptions.
+Android and iOS need different preset pools and often different visible screen
+ratios. A single project-wide device selection would either be misleading or
+require hidden platform exceptions.
 
 ### Per platform default, with optional override
 
@@ -84,8 +97,8 @@ This is the right tradeoff between consistency and flexibility.
 
 ### iOS
 
-iPhone front designs are relatively consistent within a generation family.
-The main differences relevant to this project are:
+iPhone front designs are relatively consistent within a generation family. The
+main differences relevant to this project are:
 
 - Dynamic Island size and placement
 - screen aspect family
@@ -93,12 +106,13 @@ The main differences relevant to this project are:
 - corner radius and bezel thickness
 - side button layout
 
-This means iOS presets can be built from a small number of reusable front-face templates.
+This means iOS presets can be built from a small number of reusable front-face
+templates.
 
 ### Android
 
-Android is more fragmented.
-For front-view screenshot mockups, the most important differences are:
+Android is more fragmented. For front-view screenshot mockups, the most
+important differences are:
 
 - `20:9` versus `19.5:9` visible screen ratio
 - centered hole-punch size and vertical offset
@@ -106,7 +120,8 @@ For front-view screenshot mockups, the most important differences are:
 - rounded versus squarer outer corners
 - button placement and frame thickness
 
-This means Android support should start with a narrow, curated preset set rather than a large catalog.
+This means Android support should start with a narrow, curated preset set rather
+than a large catalog.
 
 ## What Needs To Change In The Codebase
 
@@ -124,7 +139,7 @@ Suggested shape:
 interface DevicePreset {
   id: string;
   label: string;
-  platform: 'ios' | 'android';
+  platform: "ios" | "android";
   family: string;
   outer: {
     aspectRatio: number;
@@ -143,7 +158,7 @@ interface DevicePreset {
     insetLeft: number;
   };
   cutout?: {
-    type: 'dynamic-island' | 'hole-punch' | 'none';
+    type: "dynamic-island" | "hole-punch" | "none";
     width: number;
     height: number;
     top: number;
@@ -151,7 +166,7 @@ interface DevicePreset {
     diameter?: number;
   };
   buttons?: Array<{
-    side: 'left' | 'right';
+    side: "left" | "right";
     top: number;
     height: number;
     width: number;
@@ -160,14 +175,16 @@ interface DevicePreset {
 }
 ```
 
-All renderer logic should derive from this registry instead of hard-coded iPhone values.
+All renderer logic should derive from this registry instead of hard-coded iPhone
+values.
 
 ### 2. Add platform-level frame choice without changing dimensions
 
-`PlatformConfig.dimensions` currently represents the full marketing canvas.
-That should remain untouched in this phase.
+`PlatformConfig.dimensions` currently represents the full marketing canvas. That
+should remain untouched in this phase.
 
-What is missing is a platform-level frame choice that does not depend on language and does not change export size.
+What is missing is a platform-level frame choice that does not depend on
+language and does not change export size.
 
 Recommended model:
 
@@ -193,12 +210,13 @@ interface PhoneFrameOptions {
   bottomOffset?: number;
   dualRotation?: number;
   dualGap?: number;
-  deviceMode?: 'inherit' | 'override';
+  deviceMode?: "inherit" | "override";
   devicePresetId?: string;
 }
 ```
 
-Important: device preset selection must not silently mutate the exported canvas size.
+Important: device preset selection must not silently mutate the exported canvas
+size.
 
 ### 3. Rebuild `PhoneFrame.tsx` around preset geometry
 
@@ -231,20 +249,25 @@ The following paths must all resolve the same effective device preset:
 - PNG export
 - Android feature graphic phone preview
 
-The Android feature graphic should default to the Android platform device preset, with an optional override only if needed later.
+The Android feature graphic should default to the Android platform device
+preset, with an optional override only if needed later.
 
 ### 5. Adjust project config now for platform-level defaults
 
-Since this is a greenfield project and migration compatibility is not a concern, the config should be cleaned up now instead of being deferred.
+Since this is a greenfield project and migration compatibility is not a concern,
+the config should be cleaned up now instead of being deferred.
 
-Conceptually, device preset is a project-level platform choice, not a language choice.
+Conceptually, device preset is a project-level platform choice, not a language
+choice.
 
 The current config nests all platform data inside each language:
 
 - `languages[n].platforms.android`
 - `languages[n].platforms.ios`
 
-That is still fine for localized screenshot content, but it is the wrong place for a platform default device preset because it allows the same project to drift between languages.
+That is still fine for localized screenshot content, but it is the wrong place
+for a platform default device preset because it allows the same project to drift
+between languages.
 
 Recommended split:
 
@@ -252,34 +275,40 @@ Recommended split:
 - add `platformDefaults.android.defaultDevicePresetId`
 - add `platformDefaults.ios.defaultDevicePresetId`
 
-This ADR does not propose changing how `dimensions` are modeled yet.
-They can stay where they are today so device preset work remains small and focused.
+This ADR does not propose changing how `dimensions` are modeled yet. They can
+stay where they are today so device preset work remains small and focused.
 
 That yields a practical boundary:
 
 - `platformDefaults`: shared platform-wide frame defaults
-- `languages[*].platforms[*]`: localized screenshots, feature graphics, and existing dimensions
+- `languages[*].platforms[*]`: localized screenshots, feature graphics, and
+  existing dimensions
 
-If output target handling later becomes more sophisticated, that can be revisited separately.
+If output target handling later becomes more sophisticated, that can be
+revisited separately.
 
 ## UI Recommendation
 
 ### Primary control surface
 
-Offer device selection in a platform-level settings area, not inside each screenshot editor by default.
+Offer device selection in a platform-level settings area, not inside each
+screenshot editor by default.
 
 Best fit for the current UI:
 
-- add a compact “Platform Settings” panel near the platform tabs or above the screenshot list
+- add a compact “Platform Settings” panel near the platform tabs or above the
+  screenshot list
 - show:
   - `Default device`
   - maybe a short summary like `Dynamic Island, 19.5:9 screen`
 
-This keeps the decision close to the platform tabs, which already define the editing scope.
+This keeps the decision close to the platform tabs, which already define the
+editing scope.
 
 ### Screenshot editor behavior
 
-Keep the existing `Phone Frame` section for layout controls, but add one advanced control:
+Keep the existing `Phone Frame` section for layout controls, but add one
+advanced control:
 
 - `Use platform device` (default: on)
 - if disabled, show `Override device` dropdown
@@ -296,7 +325,8 @@ For Android feature graphics:
 
 ## Renderer Strategy
 
-Use parametric HTML/CSS/SVG rendering, not baked bitmap frame images, for the built-in presets.
+Use parametric HTML/CSS/SVG rendering, not baked bitmap frame images, for the
+built-in presets.
 
 Why:
 
@@ -308,12 +338,14 @@ Why:
 Practical guidance:
 
 - use CSS for frame body, shadow, and materials
-- use SVG or CSS masks for the screen cutout and Dynamic Island / hole-punch details
+- use SVG or CSS masks for the screen cutout and Dynamic Island / hole-punch
+  details
 - keep all geometry normalized to a reference width, then scale proportionally
 
 ## Copyright and Asset Safety
 
-Built-in presets should be geometric recreations of front-face device classes, not copied vendor artwork.
+Built-in presets should be geometric recreations of front-face device classes,
+not copied vendor artwork.
 
 That means the project should ship:
 
@@ -322,7 +354,8 @@ That means the project should ship:
 - no copied press renders
 - no proprietary frame PNGs unless the user provides them
 
-If later the product needs exact official hardware renders, those should be user-supplied or licensed overlay assets, not bundled defaults.
+If later the product needs exact official hardware renders, those should be
+user-supplied or licensed overlay assets, not bundled defaults.
 
 ## Recommended Starter Presets
 
@@ -338,7 +371,8 @@ Start with a very small set that satisfies two constraints:
 Why start here:
 
 - very common modern iPhone reference shape
-- front view is easy to model: rounded rectangle, thin bezel, Dynamic Island, flat sides
+- front view is easy to model: rounded rectangle, thin bezel, Dynamic Island,
+  flat sides
 - screen ratio is clear and stable
 
 Reference specs used for geometry research:
@@ -381,7 +415,8 @@ Implementation confidence: High
 
 Why start here:
 
-- visibly different from the Pixel due to squarer corners and a more boxy silhouette
+- visibly different from the Pixel due to squarer corners and a more boxy
+  silhouette
 - strong flagship Android reference device
 - still front-view reproducible without needing rear-camera detail
 
@@ -403,7 +438,8 @@ Do not start with:
 - highly curved-edge displays
 - angled 3D marketing mockups
 
-Those introduce a much bigger jump in layout complexity, masking, and composition behavior.
+Those introduce a much bigger jump in layout complexity, masking, and
+composition behavior.
 
 ## Consequences
 
@@ -458,7 +494,9 @@ Sources used for this ADR:
 
 The correct first step is not “add a device dropdown to each screenshot.”
 
-The correct first step is to introduce a platform-level device preset model, leave export dimensions alone, and make the default inherit across all screenshots for that platform.
+The correct first step is to introduce a platform-level device preset model,
+leave export dimensions alone, and make the default inherit across all
+screenshots for that platform.
 
 Start with four presets:
 
@@ -467,4 +505,6 @@ Start with four presets:
 - Google Pixel 9 Pro
 - Samsung Galaxy S24 Ultra
 
-That gives the project one clear iOS family and two clearly different Android families, while staying within a level of visual fidelity that can be reproduced safely and reliably in the current renderer architecture.
+That gives the project one clear iOS family and two clearly different Android
+families, while staying within a level of visual fidelity that can be reproduced
+safely and reliably in the current renderer architecture.

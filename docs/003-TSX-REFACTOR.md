@@ -1,14 +1,17 @@
 # TSX UI Refactor
 
-This document describes the architectural changes made to transition from a monolithic inline HTML server to a modular Preact/TSX component system.
+This document describes the architectural changes made to transition from a
+monolithic inline HTML server to a modular Preact/TSX component system.
 
 ## Overview
 
-The original `server.ts` was ~3,800 lines containing inline HTML generation, all API routes, and business logic mixed together. This refactor:
+The original `server.ts` was ~3,800 lines containing inline HTML generation, all
+API routes, and business logic mixed together. This refactor:
 
 - **Extracts the UI** into Preact TSX components (~4,300 lines across 28 files)
 - **Modularizes server routes** into focused files (~1,000 lines across 7 files)
-- **Consolidates type definitions** into a structured module (~500 lines across 9 files)
+- **Consolidates type definitions** into a structured module (~500 lines across
+  9 files)
 - **Reduces server.ts** to ~280 lines (routing orchestration only)
 
 ## New Directory Structure
@@ -146,6 +149,7 @@ app.route('/api/config', createConfigRoutes(...));
 ### UI State Management
 
 The `App.tsx` component manages:
+
 - Current project, language, platform selection
 - Config state with debounced auto-save
 - Preview version counter for iframe refresh
@@ -156,6 +160,7 @@ State flows down via props; updates flow up via callbacks.
 ### Preview Refresh
 
 When config changes:
+
 1. `saveConfig()` updates local state immediately
 2. Debounced save (50ms) persists to server
 3. After save completes, `previewVersion` increments
@@ -182,12 +187,16 @@ When config changes:
 ## Future Ideas
 
 ### Performance
-- [ ] **Virtual scrolling** for screenshot list when projects have 50+ screenshots
+
+- [ ] **Virtual scrolling** for screenshot list when projects have 50+
+      screenshots
 - [ ] **Lazy load modals** - only import modal code when first opened
 - [ ] **Service worker** for offline asset caching
-- [ ] **Image thumbnails** - generate small previews instead of loading full assets
+- [ ] **Image thumbnails** - generate small previews instead of loading full
+      assets
 
 ### Features
+
 - [ ] **Undo/Redo** - track config history for easy rollback
 - [ ] **Keyboard shortcuts** - delete, duplicate, navigate screenshots
 - [ ] **Drag & drop reorder** - screenshot order in sidebar
@@ -198,18 +207,22 @@ When config changes:
 - [ ] **Localization** - translate editor UI (not just screenshot content)
 
 ### Developer Experience
+
 - [ ] **Hot module replacement** - update UI without full page reload
 - [ ] **Storybook** - component documentation and isolated testing
 - [ ] **E2E tests** - Playwright tests for critical workflows
 - [ ] **Type generation** - auto-generate types from JSON schema
 
 ### Architecture
-- [ ] **State management library** - consider Zustand or Jotai if state grows complex
+
+- [ ] **State management library** - consider Zustand or Jotai if state grows
+      complex
 - [ ] **Form validation** - schema-based validation with Zod
 - [ ] **Error boundaries** - graceful error handling in UI
 - [ ] **Optimistic updates** - update UI before server confirms
 
 ### Integration
+
 - [ ] **GitHub Action** - auto-generate screenshots on config changes
 - [ ] **Figma plugin** - import designs directly as screenshots
 - [ ] **CLI tool** - generate screenshots from command line without UI

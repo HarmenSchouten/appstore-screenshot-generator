@@ -1,9 +1,9 @@
 /**
  * Consolidated Type Definitions for App Store Screenshots
- * 
+ *
  * This module is the single source of truth for all type definitions.
  * Import from '@types' throughout the application.
- * 
+ *
  * Types are organized into logical modules:
  * - base.ts       - Platform, Language, Dimensions
  * - effects.ts    - GlowEffect, Shape
@@ -17,28 +17,28 @@
  */
 
 // Base types
-export * from './base.ts';
+export * from "./base.ts";
 
 // Visual effects
-export * from './effects.ts';
+export * from "./effects.ts";
 
 // UI components
-export * from './components.ts';
+export * from "./components.ts";
 
 // Device presets
-export * from './device.ts';
+export * from "./device.ts";
 
 // Screenshots and feature graphics
-export * from './screenshot.ts';
+export * from "./screenshot.ts";
 
 // Theme and branding
-export * from './theme.ts';
+export * from "./theme.ts";
 
 // Configuration
-export * from './config.ts';
+export * from "./config.ts";
 
 // Renderer options
-export * from './renderer.ts';
+export * from "./renderer.ts";
 
 // Generation and assets
-export * from './generation.ts';
+export * from "./generation.ts";
