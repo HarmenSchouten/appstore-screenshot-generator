@@ -9,8 +9,8 @@
  *   deno run -A src/convert.ts --lang nl --platform ios
  */
 
-import puppeteer, { type Browser, type Page } from "npm:puppeteer@23.11.0";
-import sharp from "npm:sharp@0.33.5";
+import puppeteer, { type Browser, type Page } from "puppeteer";
+import sharp from "sharp";
 import { join } from "@std/path";
 import { ensureDir, walk } from "@std/fs";
 import type { Language, Platform, ScreenshotConfig } from "./types.ts";

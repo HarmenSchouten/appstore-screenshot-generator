@@ -1850,8 +1850,10 @@
       "jsr:@std/path@1",
       "npm:@types/react@^18.3.1",
       "npm:hono@4",
+      "npm:puppeteer@23.11.0",
       "npm:react-dom@^18.3.1",
-      "npm:react@^18.3.1"
+      "npm:react@^18.3.1",
+      "npm:sharp@0.33.5"
     ],
     "packageJson": {
       "dependencies": [
