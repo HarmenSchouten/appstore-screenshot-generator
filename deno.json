@@ -3,6 +3,7 @@
   "tasks": {
     "dev": "npm run dev",
     "dev:api": "deno run -A --watch=src/server.ts,src/routes/ src/server.ts",
+    "check": "deno check src/server.ts",
     "generate": "deno run --allow-read --allow-write src/generate.ts",
     "generate:en": "deno run --allow-read --allow-write src/generate.ts --lang en",
     "convert": "deno run -A src/convert.ts",
