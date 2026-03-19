@@ -1,4 +1,4 @@
-﻿/**
+/**
  * App Store Screenshots - Web UI Server
  *
  * Unified preview and generation using iframe-based rendering.
