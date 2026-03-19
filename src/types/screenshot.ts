@@ -2,8 +2,12 @@
  * Screenshot and Feature Graphic types
  */
 
-import type { GlowEffect, Shape } from './effects.ts';
-import type { PhoneFrameOptions, MascotOptions, TypographyOptions } from './components.ts';
+import type { GlowEffect, Shape } from "./effects.ts";
+import type {
+  MascotOptions,
+  PhoneFrameOptions,
+  TypographyOptions,
+} from "./components.ts";
 
 // ============================================================
 // Screenshot
@@ -68,7 +72,7 @@ export interface FeatureGraphic {
   iconBoxRadius?: number;
   /** Icon box background color */
   iconBoxColor?: string;
-  // Icon image styling  
+  // Icon image styling
   /** Icon image scale percentage, default 100 */
   iconScale?: number;
   /** Icon image border radius in px */

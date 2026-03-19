@@ -3,30 +3,30 @@ import type {
   DevicePreset,
   DevicePresetId,
   PlatformDefaults,
-} from '../types/device.ts';
-import type { PhoneFrameOptions } from '../types/components.ts';
-import type { Platform } from '../types/base.ts';
-import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from './presets/index.ts';
+} from "../types/device.ts";
+import type { PhoneFrameOptions } from "../types/components.ts";
+import type { Platform } from "../types/base.ts";
+import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from "./presets/index.ts";
 
-export * from './presets/index.ts';
+export * from "./presets/index.ts";
 
 export const DEVICE_PRESET_REFERENCE_WIDTH = 400;
 
 export const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
   android: {
-    defaultDevicePresetId: 'android-pixel-9-pro',
+    defaultDevicePresetId: "android-pixel-9-pro",
   },
   ios: {
-    defaultDevicePresetId: 'ios-iphone-15-pro',
+    defaultDevicePresetId: "ios-iphone-15-pro",
   },
 };
 
 export const LEGACY_PLATFORM_DEFAULTS: PlatformDefaults = {
   android: {
-    defaultDevicePresetId: 'android-legacy-classic',
+    defaultDevicePresetId: "android-legacy-classic",
   },
   ios: {
-    defaultDevicePresetId: 'ios-legacy-classic',
+    defaultDevicePresetId: "ios-legacy-classic",
   },
 };
 
@@ -42,7 +42,9 @@ export function getAllDevicePresets(): DevicePreset[] {
   return [...ALL_DEVICE_PRESETS];
 }
 
-export function getDevicePresetsForPlatform(platform: Platform): DevicePreset[] {
+export function getDevicePresetsForPlatform(
+  platform: Platform,
+): DevicePreset[] {
   return getAllDevicePresets().filter((preset) => preset.platform === platform);
 }
 
@@ -51,7 +53,7 @@ export function isDevicePresetId(value: string): value is DevicePresetId {
 }
 
 export function resolveDeviceMode(phoneFrame?: PhoneFrameOptions): DeviceMode {
-  return phoneFrame?.deviceMode ?? 'inherit';
+  return phoneFrame?.deviceMode ?? "inherit";
 }
 
 export function resolveScreenshotDevicePresetId(
@@ -60,7 +62,7 @@ export function resolveScreenshotDevicePresetId(
   phoneFrame?: PhoneFrameOptions,
 ): DevicePresetId {
   if (
-    resolveDeviceMode(phoneFrame) === 'override' &&
+    resolveDeviceMode(phoneFrame) === "override" &&
     phoneFrame?.devicePresetId &&
     isDevicePresetId(phoneFrame.devicePresetId)
   ) {

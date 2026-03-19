@@ -2,7 +2,7 @@
  * UI Component types - Phone Frame, Mascot, Typography
  */
 
-import type { DeviceMode, DevicePresetId } from './device.ts';
+import type { DeviceMode, DevicePresetId } from "./device.ts";
 
 // ============================================================
 // Phone Frame
@@ -29,7 +29,7 @@ export interface PhoneFrameOptions {
 
 export interface MascotOptions {
   /** Position of the mascot */
-  position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  position: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   /** Path to mascot image (relative to assets) */
   imagePath?: string;
   /** Size of mascot as percentage of container width (5-30) */
@@ -59,7 +59,7 @@ export interface TypographyOptions {
   /** Text color (hex) - defaults to white */
   textColor?: string;
   /** Text alignment */
-  textAlign?: 'left' | 'center' | 'right';
+  textAlign?: "left" | "center" | "right";
   /** Horizontal padding as percentage (2-15) */
   horizontalPadding?: number;
 }

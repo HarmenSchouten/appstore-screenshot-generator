@@ -5,243 +5,97 @@
 ![Platforms](https://img.shields.io/badge/Platforms-iOS%20%7C%20Android-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-Visual screenshot generator for App Store and Google Play. Create professional marketing screenshots with a real-time preview editor—no code required.
+Generate App Store and Google Play marketing screenshots with a visual editor
+and a shared render pipeline for preview and export.
 
-## Features
+## What It Does
 
-- 🎨 **Visual Editor** - Design screenshots with live preview, no config files needed
-- 🎨 **Theme System** - Color palettes with gradient presets, typography settings
-- 📱 **Multi-platform** - Generate for both iOS App Store and Google Play
-- 🌍 **Multi-language** - Create localized versions for each market
-- 🖼️ **Phone Frames** - Realistic iOS and Android device frames with customizable scale
-- ✨ **Glow Effects** - Dynamic gradient glows with palette color support
-- 🎭 **Mascot Support** - Add character/branding elements with positioning controls
-- 📊 **Feature Graphics** - Google Play feature graphic with app icon customization
-- 📁 **Project Management** - Organize multiple apps with separate configurations
-- 🗂️ **Media Manager** - Upload, rename, and delete assets
-- 🔗 **Shareable URLs** - Deep links to specific screenshots for team collaboration
+- Visual editor with live preview
+- iOS and Android output support
+- Multi-language project setup
+- Shared renderer for browser preview and PNG export
+- Project-based asset and config management
+
+## Tip
+
+This project started as a script-first screenshot generator. Later on a
+generated frontend was attached to it. The frontend has been iteratively refined
+over time, and the history is documented in
+[docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md).
 
 ## Quick Start
 
 ### Prerequisites
 
-- [Deno](https://deno.land/) 2.0 or higher
-- [Node.js](https://nodejs.org/) 18+ (for Vite frontend)
+- Deno 2.x
+- Node.js 20+
 - Google Chrome or Chromium (for PNG export)
 
-### Run the Editor
+### Run locally
 
 ```bash
-# Clone the repo
 git clone https://github.com/HarmenSchouten/appstore-screenshot-generator.git
 cd appstore-screenshot-generator
-
-# Install npm dependencies
-npm install
-
-# Start both servers (API + Vite)
+npm ci
 deno task dev
 ```
 
-Open **http://localhost:5173** in your browser.
+Open http://localhost:5173
 
-## Using the Editor
+## Day-to-day Commands
 
-### Creating Screenshots
+```bash
+# Start API + Vite UI
+deno task dev
 
-1. **Select or create a project** - Click the project name in the sidebar header
-2. **Choose language and platform** - Use the tabs in the sidebar (EN/NL, Android/iOS)
-3. **Add screenshots** - Click "+ Add Screenshot" or "+ Feature Graphic"
-4. **Edit in real-time** - Use the right panel to customize:
-   - **Content**: Headline and subtitle text
-   - **Typography**: Font sizes, weights, line height, alignment
-   - **Layout**: Title offset from top
-   - **Phone Screenshot**: Select or upload images, single/dual phone modes
-   - **Phone Frame**: Scale, position, rotation (for dual layouts)
-   - **Background Glows**: Add colorful gradient orbs using palette colors
-   - **Mascot**: Optional character overlay with position controls
-
-### Theme & Colors
-
-Click **Theme & Colors** in the sidebar to set your project's color palette and background gradient. Changes apply to all screenshots in the project.
-
-### Media Manager
-
-Click **Media Library** in the sidebar to:
-- View all uploaded assets (screenshots, mascots, icons)
-- Upload new images with drag & drop
-- Rename or delete existing assets
-
-### Copy Between Platforms
-
-Use the **⧉** button next to the platform tabs to copy your Android configuration to iOS (or vice versa). This saves time when creating similar screenshots for both stores.
-
-## Generating PNG Files
-
-1. Click **Generate** in the top right
-2. Watch the progress modal as screenshots are rendered
-3. Preview the generated images in the completion modal
-4. Click **Open in Explorer** to access the output folder
-
-Generated files are saved to `projects/{project-id}/output/{language}/{platform}/`.
-
-## Project Structure
-
-```
-appstore-screenshot-generator/
-├── assets/                  # Optional root assets/examples
-├── config/                  # Shared/base config files
-├── projects/                # Your projects (auto-created)
-│   └── my-app/
-│       ├── config.json      # Project configuration
-│       ├── assets/          # Uploaded images
-│       │   ├── screenshots/
-│       │   ├── mascots/
-│       │   └── icons/
-│       └── output/          # Generated PNGs
-│
-├── src/
-│   ├── server.ts            # Web server (route orchestration)
-│   ├── build.ts             # Build orchestration helpers
-│   ├── generate.ts          # Config -> HTML generation
-│   ├── convert.ts           # HTML → PNG conversion
-│   ├── projects.ts          # Project management
-│   │ 
-│   ├── lib/                 # Shared utilities
-│   ├── routes/              # API route modules
-│   ├── renderer-components/ # Isomorphic React renderers
-│   ├── types/               # TypeScript type definitions
-│   ├── types.ts             # Type exports
-│   │ 
-│   └── ui/                  # React + Vite frontend
-│       ├── components/      # UI components and editors
-│       │   ├── editors/     # Screenshot/glow/shape editors
-│       │   ├── inputs/      # Form controls
-│       │   └── modals/      # Dialogs
-│       └── utils/           # API client, routing
-│ 
-├── dist/                    # Compiled UI bundle
-├── docs/                    # Architecture and design notes
-├── output/                  # Generated HTML/PNG output (root mode)
-└── deno.json                # Deno config & tasks
+# Verify before a PR
+npm run verify
 ```
 
-> See [docs/003-TSX-REFACTOR.md](docs/003-TSX-REFACTOR.md) for detailed architecture documentation.
+## Output and Projects
 
-## Rendering
-The preview and export share the same renderer components to keep output consistent.
-In the editor, the preview renders those components directly in the browser.
-For generation, the server renders full HTML with React `renderToStaticMarkup`, then converts that HTML to PNG.
+- Project data: projects/{project-id}/
+- Generated images: projects/{project-id}/output/{language}/{platform}/
+- Root output mode: output/
 
-## Screenshot Options
+## Architecture at a Glance
 
-### Phone Frame Settings
+- API and orchestration: src/server.ts and src/routes/
+- Screenshot generation: src/generate.ts and src/convert.ts
+- Shared renderer components: src/renderer-components/
+- Editor UI: src/ui/ (React + Vite)
 
-| Setting | Description | Range |
-|---------|-------------|-------|
-| Scale | Phone size relative to canvas | 50-100% |
-| Bottom Offset | Distance from bottom edge | 0-100% |
-| Rotation | Angle for dual phone layouts | 0-15° |
-| Gap | Space between dual phones | 0-10% |
+For project evolution and technical decisions, see:
 
-### Typography Settings
+- [docs/README.md](docs/README.md)
+- [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md)
 
-| Setting | Description | Range |
-|---------|-------------|-------|
-| Headline Size | Main text size | 3-8% |
-| Subtitle Size | Secondary text size | 1.5-4% |
-| Headline Weight | Font weight (400-900) | Regular to Black |
-| Line Height | Text line spacing | 1.0-1.5 |
-| Text Align | Left, center, or right | - |
-| Padding | Horizontal margin | 2-15% |
+## Contributing
 
-### Glow Colors
-
-Glows can use your palette colors (Primary, Secondary, Accent) or preset colors:
-- `purple`, `blue`, `pink`, `cyan`
-- `amber`, `green`, `red`, `orange`
-
-You can also use the color picker for any custom hex color.
-
-### Theme & Colors
-
-Access the **Theme & Colors** modal from the sidebar to configure:
-
-| Setting | Description |
-|---------|-------------|
-| **Color Palette** | Primary, secondary, and accent colors (hex) |
-| **Preset Palettes** | Quick-apply palettes: Purple Night, Ocean Blue, Sunset, Forest, Rose, Midnight, Ember, Teal |
-| **Background Gradient** | Choose from 10 gradient templates or use custom CSS |
-| **Typography** | Font family and Google Fonts URL |
-
-Gradient templates automatically use your palette colors:
-- Solid Primary/Secondary
-- Primary → Dark, Primary → Secondary, Secondary → Primary
-- Radial Primary/Secondary
-- Mesh Primary, Diagonal Split, Triple Gradient
-
-### Mascot Options
-
-| Setting | Description |
-|---------|-------------|
-| Position | `top-left`, `top-right`, `bottom-left`, `bottom-right` |
-| Scale | Size relative to canvas (10-100%) |
-| Offset X/Y | Fine-tune position in pixels |
-
-### Feature Graphic Options
-
-Feature graphics (1024×500) are used for Google Play Store headers.
-
-| Setting | Description |
-|---------|-------------|
-| **Headline/Subtitle** | Text content with typography inherited from theme |
-| **App Icon** | Select from uploaded icons in Media Manager |
-| **Icon Box Scale** | Size of the icon container (50-150%) |
-| **Icon Box Radius** | Corner roundness of container (0-50%) |
-| **Icon Box Color** | Background color of container (hex) |
-| **Icon Scale** | Image size within the box (50-150%) |
-| **Icon Radius** | Corner roundness of icon image (0-50%) |
-| **Icon Offset X/Y** | Fine-tune icon position |
-
-## Dimensions
-
-Default dimensions follow App Store / Google Play requirements:
-
-| Platform | Screenshot Size | Feature Graphic |
-|----------|----------------|-----------------|
-| iOS | 1242 × 2688 | N/A |
-| Android | 1242 × 2688 | 1024 × 500 |
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, verification steps, and PR
+expectations.
 
 ## Troubleshooting
 
 ### Chrome not found
 
-The converter searches for Chrome/Chromium automatically. If not found:
+Set PUPPETEER_EXECUTABLE_PATH if Chrome is not auto-detected.
+
+Windows PowerShell:
+
+```powershell
+$env:PUPPETEER_EXECUTABLE_PATH="C:\Path\To\chrome.exe"
+```
+
+macOS/Linux:
 
 ```bash
-# macOS/Linux
 export PUPPETEER_EXECUTABLE_PATH="/path/to/chrome"
-
-# Windows PowerShell
-$env:PUPPETEER_EXECUTABLE_PATH="C:\Path\To\chrome.exe"
 ```
 
 ### Fonts not loading
 
-Ensure you have an internet connection for Google Fonts loading during generation.
-
-## Development
-
-```bash
-# Run with file watching (UI + server)
-deno task dev
-
-# Run full CLI pipeline (generate HTML + convert PNG)
-deno task build
-
-# Type check
-deno check src/server.ts
-```
+Generation needs network access for Google Fonts URLs in project theme settings.
 
 ## License
 

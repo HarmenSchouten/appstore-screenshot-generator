@@ -2,23 +2,23 @@
  * Device preset types
  */
 
-import type { Platform } from './base.ts';
+import type { Platform } from "./base.ts";
 
 export type DevicePresetId =
-  | 'ios-iphone-15-pro'
-  | 'ios-iphone-15-pro-max'
-  | 'ios-iphone-17-pro'
-  | 'ios-iphone-17-pro-max'
-  | 'ios-legacy-classic'
-  | 'android-pixel-9-pro'
-  | 'android-galaxy-s24-ultra'
-  | 'android-oneplus-13'
-  | 'android-legacy-classic';
+  | "ios-iphone-15-pro"
+  | "ios-iphone-15-pro-max"
+  | "ios-iphone-17-pro"
+  | "ios-iphone-17-pro-max"
+  | "ios-legacy-classic"
+  | "android-pixel-9-pro"
+  | "android-galaxy-s24-ultra"
+  | "android-oneplus-13"
+  | "android-legacy-classic";
 
-export type DeviceMode = 'inherit' | 'override';
+export type DeviceMode = "inherit" | "override";
 
 export interface DeviceButtonPreset {
-  side: 'left' | 'right';
+  side: "left" | "right";
   top: number;
   height: number;
   width: number;
@@ -28,7 +28,7 @@ export interface DeviceButtonPreset {
 }
 
 export interface DeviceCutoutPreset {
-  type: 'dynamic-island' | 'hole-punch' | 'none';
+  type: "dynamic-island" | "hole-punch" | "none";
   top: number;
   width?: number;
   height?: number;

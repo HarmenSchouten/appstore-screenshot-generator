@@ -9,18 +9,22 @@
  *   deno run -A src/convert.ts --lang nl --platform ios
  */
 
-import puppeteer from 'npm:puppeteer@23.11.0';
-import sharp from 'npm:sharp@0.33.5';
-import { join } from '@std/path';
-import { walk, ensureDir } from '@std/fs';
-import type { Language, Platform, ScreenshotConfig } from './types.ts';
+import puppeteer, { type Browser, type Page } from "puppeteer";
+import sharp from "sharp";
+import { join } from "@std/path";
+import { ensureDir, walk } from "@std/fs";
+import type { Language, Platform, ScreenshotConfig } from "./types.ts";
 
 // Parse command line arguments
 const parseArgs = () => {
   const args = Deno.args;
   return {
-    lang: args.includes('--lang') ? args[args.indexOf('--lang') + 1] as Language : null,
-    platform: args.includes('--platform') ? args[args.indexOf('--platform') + 1] as Platform : null,
+    lang: args.includes("--lang")
+      ? args[args.indexOf("--lang") + 1] as Language
+      : null,
+    platform: args.includes("--platform")
+      ? args[args.indexOf("--platform") + 1] as Platform
+      : null,
   };
 };
 
@@ -36,22 +40,24 @@ interface ConversionStats {
 const findChromePath = (): string | undefined => {
   const paths: Record<string, string[]> = {
     win32: [
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-      `${Deno.env.get('LOCALAPPDATA')}\\Google\\Chrome\\Application\\chrome.exe`,
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+      "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+      `${
+        Deno.env.get("LOCALAPPDATA")
+      }\\Google\\Chrome\\Application\\chrome.exe`,
     ],
     darwin: [
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      "/Applications/Chromium.app/Contents/MacOS/Chromium",
     ],
     linux: [
-      '/usr/bin/google-chrome',
-      '/usr/bin/chromium',
-      '/usr/bin/chromium-browser',
+      "/usr/bin/google-chrome",
+      "/usr/bin/chromium",
+      "/usr/bin/chromium-browser",
     ],
   };
 
-  const osType = Deno.build.os === 'windows' ? 'win32' : Deno.build.os;
+  const osType = Deno.build.os === "windows" ? "win32" : Deno.build.os;
   const osPaths = paths[osType] || [];
 
   for (const path of osPaths) {
@@ -70,7 +76,7 @@ const findChromePath = (): string | undefined => {
  * Convert HTML file to PNG with 2x supersampling
  */
 const convertHTMLtoPNG = async (
-  page: any,
+  page: Page,
   htmlPath: string,
   outputPath: string,
   width: number,
@@ -82,17 +88,17 @@ const convertHTMLtoPNG = async (
       height,
       deviceScaleFactor: 2,
     });
-    await page.goto(`file://${htmlPath}`, { waitUntil: 'networkidle0' });
+    await page.goto(`file://${htmlPath}`, { waitUntil: "networkidle0" });
 
     const buffer = await page.screenshot({
-      type: 'png',
+      type: "png",
       omitBackground: false,
     });
 
     await sharp(buffer)
       .resize(width, height, {
-        kernel: 'lanczos3',
-        fit: 'fill',
+        kernel: "lanczos3",
+        fit: "fill",
       })
       .png({
         quality: 100,
@@ -119,13 +125,13 @@ const convert = async (config: ScreenshotConfig) => {
     failed: 0,
   };
 
-  console.log('📸 Converting HTML screenshots to PNG (2x supersampling)\n');
+  console.log("📸 Converting HTML screenshots to PNG (2x supersampling)\n");
 
   // Clean images directory
-  const imagesBaseDir = join(Deno.cwd(), 'output', 'images');
+  const imagesBaseDir = join(Deno.cwd(), "output", "images");
   try {
     await Deno.remove(imagesBaseDir, { recursive: true });
-    console.log('🧹 Cleaned images directory\n');
+    console.log("🧹 Cleaned images directory\n");
   } catch {
     // Directory doesn't exist
   }
@@ -133,7 +139,9 @@ const convert = async (config: ScreenshotConfig) => {
   // Find Chrome
   const chromePath = findChromePath();
   if (!chromePath) {
-    console.error('❌ Could not find Chrome/Chromium. Please install Chrome or set PUPPETEER_EXECUTABLE_PATH.');
+    console.error(
+      "❌ Could not find Chrome/Chromium. Please install Chrome or set PUPPETEER_EXECUTABLE_PATH.",
+    );
     Deno.exit(1);
   }
 
@@ -149,26 +157,46 @@ const convert = async (config: ScreenshotConfig) => {
     for (const langConfig of config.languages) {
       if (langFilter && langConfig.language !== langFilter) continue;
 
-      for (const [platformKey, platformConfig] of Object.entries(langConfig.platforms)) {
+      for (
+        const [platformKey, platformConfig] of Object.entries(
+          langConfig.platforms,
+        )
+      ) {
         const platform = platformKey as Platform;
         if (platformFilter && platform !== platformFilter) continue;
 
-        const emoji = platform === 'ios' ? '🍎' : '🤖';
-        const inputDir = join(Deno.cwd(), 'output', 'html', langConfig.language, platform);
-        const outputDir = join(Deno.cwd(), 'output', 'images', langConfig.language, platform);
+        const emoji = platform === "ios" ? "🍎" : "🤖";
+        const inputDir = join(
+          Deno.cwd(),
+          "output",
+          "html",
+          langConfig.language,
+          platform,
+        );
+        const outputDir = join(
+          Deno.cwd(),
+          "output",
+          "images",
+          langConfig.language,
+          platform,
+        );
 
         try {
           await Deno.stat(inputDir);
         } catch {
-          console.log(`⚠️  Skipping ${langConfig.language}/${platform} (no HTML files found)`);
+          console.log(
+            `⚠️  Skipping ${langConfig.language}/${platform} (no HTML files found)`,
+          );
           continue;
         }
 
         await ensureDir(outputDir);
-        console.log(`${emoji} ${platform.toUpperCase()} (${langConfig.language}) - ${platformConfig.dimensions.width}x${platformConfig.dimensions.height}`);
+        console.log(
+          `${emoji} ${platform.toUpperCase()} (${langConfig.language}) - ${platformConfig.dimensions.width}x${platformConfig.dimensions.height}`,
+        );
 
         const htmlFiles: string[] = [];
-        for await (const entry of walk(inputDir, { exts: ['html'] })) {
+        for await (const entry of walk(inputDir, { exts: ["html"] })) {
           if (entry.isFile) htmlFiles.push(entry.path);
         }
 
@@ -176,20 +204,32 @@ const convert = async (config: ScreenshotConfig) => {
 
         for (const htmlPath of htmlFiles) {
           const filename = htmlPath.split(/[\\/]/).pop()!;
-          const outputFilename = filename.replace('.html', '.png');
+          const outputFilename = filename.replace(".html", ".png");
           const outputPath = join(outputDir, outputFilename);
 
-          const isFeatureGraphic = filename === 'feature-graphic.html';
-          const width = isFeatureGraphic ? 1024 : platformConfig.dimensions.width;
-          const height = isFeatureGraphic ? 500 : platformConfig.dimensions.height;
+          const isFeatureGraphic = filename === "feature-graphic.html";
+          const width = isFeatureGraphic
+            ? 1024
+            : platformConfig.dimensions.width;
+          const height = isFeatureGraphic
+            ? 500
+            : platformConfig.dimensions.height;
 
           console.log(`   📸 Converting ${filename}...`);
           stats.total++;
 
-          const success = await convertHTMLtoPNG(page, htmlPath, outputPath, width, height);
+          const success = await convertHTMLtoPNG(
+            page,
+            htmlPath,
+            outputPath,
+            width,
+            height,
+          );
 
           if (success) {
-            console.log(`      ✅ Saved ${langConfig.language}/${platform}/${outputFilename}`);
+            console.log(
+              `      ✅ Saved ${langConfig.language}/${platform}/${outputFilename}`,
+            );
             stats.successful++;
           } else {
             stats.failed++;
@@ -203,7 +243,7 @@ const convert = async (config: ScreenshotConfig) => {
     await browser.close();
   }
 
-  console.log('📊 Conversion Summary');
+  console.log("📊 Conversion Summary");
   console.log(`   Total: ${stats.total}`);
   console.log(`   ✅ Successful: ${stats.successful}`);
   if (stats.failed > 0) {
@@ -215,7 +255,7 @@ const convert = async (config: ScreenshotConfig) => {
 };
 
 // Shared browser instance for server use
-let sharedBrowser: any = null;
+let sharedBrowser: Browser | null = null;
 
 /**
  * Get or create shared browser instance
@@ -224,7 +264,7 @@ async function getSharedBrowser() {
   if (!sharedBrowser) {
     const chromePath = findChromePath();
     if (!chromePath) {
-      throw new Error('Could not find Chrome/Chromium');
+      throw new Error("Could not find Chrome/Chromium");
     }
     sharedBrowser = await puppeteer.launch({
       headless: true,
@@ -241,22 +281,22 @@ async function getSharedBrowser() {
 export async function convertHtmlFileToPng(
   htmlPath: string,
   outputPath: string,
-  dimensions: { width: number; height: number }
+  dimensions: { width: number; height: number },
 ): Promise<void> {
   const browser = await getSharedBrowser();
   const page = await browser.newPage();
-  
+
   try {
     const success = await convertHTMLtoPNG(
       page,
       htmlPath,
       outputPath,
       dimensions.width,
-      dimensions.height
+      dimensions.height,
     );
-    
+
     if (!success) {
-      throw new Error('Conversion failed');
+      throw new Error("Conversion failed");
     }
   } finally {
     await page.close();
@@ -278,8 +318,8 @@ export { convert };
 
 // Load config from JSON or TypeScript
 async function loadConfig(): Promise<ScreenshotConfig> {
-  const jsonConfigPath = join(Deno.cwd(), 'config', 'config.json');
-  
+  const jsonConfigPath = join(Deno.cwd(), "config", "config.json");
+
   // Try JSON config first
   try {
     const jsonContent = await Deno.readTextFile(jsonConfigPath);
@@ -287,9 +327,11 @@ async function loadConfig(): Promise<ScreenshotConfig> {
   } catch {
     // Fall back to TypeScript config
   }
-  
-  const configPath = join(Deno.cwd(), 'config', 'config.ts');
-  const configUrl = Deno.build.os === 'windows' ? `file:///${configPath.replace(/\\/g, '/')}` : configPath;
+
+  const configPath = join(Deno.cwd(), "config", "config.ts");
+  const configUrl = Deno.build.os === "windows"
+    ? `file:///${configPath.replace(/\\/g, "/")}`
+    : configPath;
   const { screenshotConfig } = await import(configUrl);
   return screenshotConfig;
 }
@@ -301,7 +343,7 @@ if (import.meta.main) {
     const success = await convert(config);
     Deno.exit(success ? 0 : 1);
   } catch (error) {
-    console.error('❌ Error converting screenshots:', error);
+    console.error("❌ Error converting screenshots:", error);
     Deno.exit(1);
   }
 }

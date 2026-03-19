@@ -8,6 +8,10 @@
     "dev:vite": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "check": "deno task check",
+    "lint": "deno lint",
+    "fmt:check": "deno fmt --check",
+    "verify": "npm run fmt:check && npm run lint && npm run check && npm run build",
     "generate": "deno task generate",
     "convert": "deno task convert"
   },

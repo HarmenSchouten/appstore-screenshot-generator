@@ -2,10 +2,10 @@
  * Project and Configuration types
  */
 
-import type { Language, Dimensions } from './base.ts';
-import type { Screenshot, FeatureGraphic } from './screenshot.ts';
-import type { ThemeConfig, ColorPalette, AppBranding } from './theme.ts';
-import type { PlatformDefaults } from './device.ts';
+import type { Dimensions, Language } from "./base.ts";
+import type { FeatureGraphic, Screenshot } from "./screenshot.ts";
+import type { AppBranding, ColorPalette, ThemeConfig } from "./theme.ts";
+import type { PlatformDefaults } from "./device.ts";
 
 // ============================================================
 // Platform & Language Config

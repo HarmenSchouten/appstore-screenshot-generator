@@ -1,29 +1,33 @@
 /**
  * Static UI Routes
- * 
+ *
  * Serves the static UI bundle with server-injected data.
  * This will replace the inline getMainUI once the new UI is complete.
  */
 
-import { Hono, type Context } from 'hono';
-import { GLOW_COLORS, GRADIENT_TEMPLATES, DEFAULT_PALETTES } from '../lib/index.ts';
-import type { ProjectConfig, ProjectInfo } from '../types/index.ts';
+import { type Context, Hono } from "hono";
+import {
+  DEFAULT_PALETTES,
+  GLOW_COLORS,
+  GRADIENT_TEMPLATES,
+} from "../lib/index.ts";
+import type { ProjectConfig, ProjectInfo } from "../types/index.ts";
 
 export function createStaticUIRoutes(
   getConfig: () => Promise<ProjectConfig>,
   listProjects: () => Promise<ProjectInfo[]>,
   getCurrentProjectId: () => string,
   setCurrentProject: (id: string, config: ProjectConfig) => void,
-  loadProject: (id: string) => Promise<ProjectConfig>
+  loadProject: (id: string) => Promise<ProjectConfig>,
 ) {
   const routes = new Hono();
 
   // Read HTML template - no caching for development
   const getTemplate = async (): Promise<string> => {
     try {
-      return await Deno.readTextFile('./dist/index.html');
+      return await Deno.readTextFile("./dist/index.html");
     } catch {
-      throw new Error('dist/index.html not found. Run: deno task build:ui');
+      throw new Error("dist/index.html not found. Run: deno task build:ui");
     }
   };
 
@@ -39,7 +43,10 @@ export function createStaticUIRoutes(
       gradientTemplatesObj[t.id] = t.template;
     }
 
-    const palettesObj: Record<string, { primary: string; secondary: string; accent: string }> = {};
+    const palettesObj: Record<
+      string,
+      { primary: string; secondary: string; accent: string }
+    > = {};
     for (const p of DEFAULT_PALETTES) {
       palettesObj[p.name] = p.palette;
     }
@@ -61,25 +68,25 @@ export function createStaticUIRoutes(
     // Replace placeholder with actual data
     return template.replace(
       /window\.__APP_DATA__\s*=\s*\{\/\*\s*INJECT_APP_DATA\s*\*\/\};?/,
-      `window.__APP_DATA__ = ${appData};`
+      `window.__APP_DATA__ = ${appData};`,
     );
   };
 
   // Serve the JS bundle
-  routes.get('/app.js', async (c) => {
+  routes.get("/app.js", async (c) => {
     try {
-      const js = await Deno.readTextFile('./dist/app.js');
+      const js = await Deno.readTextFile("./dist/app.js");
       return c.body(js, 200, {
-        'Content-Type': 'application/javascript; charset=utf-8',
-        'Cache-Control': 'no-cache',
+        "Content-Type": "application/javascript; charset=utf-8",
+        "Cache-Control": "no-cache",
       });
     } catch {
-      return c.text('Build not found. Run: deno task build:ui', 404);
+      return c.text("Build not found. Run: deno task build:ui", 404);
     }
   });
 
   // Main UI route
-  routes.get('/', async (c) => {
+  routes.get("/", async (c) => {
     try {
       const html = await renderUI();
       return c.html(html);
@@ -90,17 +97,20 @@ export function createStaticUIRoutes(
 
   // Client-side routing support - handles all path variations
   const handleClientRoute = async (c: Context): Promise<Response> => {
-    const project = c.req.param('project');
-    
+    const project = c.req.param("project");
+
     // Skip reserved paths
-    if (project && ['api', 'preview', 'assets', 'output', 'app.js'].includes(project)) {
-      return c.text('Not found', 404);
+    if (
+      project &&
+      ["api", "preview", "assets", "output", "app.js"].includes(project)
+    ) {
+      return c.text("Not found", 404);
     }
 
     // Switch project if needed
     if (project) {
       const projects = await listProjects();
-      const found = projects.find(p => p.id === project);
+      const found = projects.find((p) => p.id === project);
       if (found) {
         const config = await loadProject(project);
         setCurrentProject(project, config);
@@ -115,10 +125,10 @@ export function createStaticUIRoutes(
     }
   };
 
-  routes.get('/:project', handleClientRoute);
-  routes.get('/:project/:lang', handleClientRoute);
-  routes.get('/:project/:lang/:platform', handleClientRoute);
-  routes.get('/:project/:lang/:platform/:screenshot', handleClientRoute);
+  routes.get("/:project", handleClientRoute);
+  routes.get("/:project/:lang", handleClientRoute);
+  routes.get("/:project/:lang/:platform", handleClientRoute);
+  routes.get("/:project/:lang/:platform/:screenshot", handleClientRoute);
 
   return routes;
 }

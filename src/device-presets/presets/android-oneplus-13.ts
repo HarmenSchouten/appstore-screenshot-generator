@@ -1,10 +1,10 @@
-import type { DevicePreset } from '../../types/device.ts';
+import type { DevicePreset } from "../../types/device.ts";
 
 export const ANDROID_ONEPLUS_13_PRESET = {
-  id: 'android-oneplus-13',
-  label: 'OnePlus 13',
-  platform: 'android',
-  family: 'OnePlus',
+  id: "android-oneplus-13",
+  label: "OnePlus 13",
+  platform: "android",
+  family: "OnePlus",
   bodyHeight: 852,
   outerRadius: 44,
   screen: {
@@ -15,31 +15,34 @@ export const ANDROID_ONEPLUS_13_PRESET = {
     radius: 36,
   },
   cutout: {
-    type: 'hole-punch',
+    type: "hole-punch",
     top: 10,
     diameter: 12,
-    background: 'radial-gradient(circle at 35% 30%, #1a1c22 0%, #0a0b0e 42%, #020203 72%, #000 100%)',
-    borderColor: 'rgba(255,255,255,0.04)',
+    background:
+      "radial-gradient(circle at 35% 30%, #1a1c22 0%, #0a0b0e 42%, #020203 72%, #000 100%)",
+    borderColor: "rgba(255,255,255,0.04)",
     borderWidth: 0.75,
-    shadow: '0 0 0 1px rgba(0,0,0,0.36), 0 1px 1px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.04)',
+    shadow:
+      "0 0 0 1px rgba(0,0,0,0.36), 0 1px 1px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.04)",
   },
   buttons: [
-    { side: 'left', top: 152, height: 24, width: 3, offset: 2, radius: 1.5 },
-    { side: 'right', top: 200, height: 52, width: 3, offset: 2, radius: 1.5 },
-    { side: 'right', top: 272, height: 38, width: 3, offset: 2, radius: 1.5 },
+    { side: "left", top: 152, height: 24, width: 3, offset: 2, radius: 1.5 },
+    { side: "right", top: 200, height: 52, width: 3, offset: 2, radius: 1.5 },
+    { side: "right", top: 272, height: 38, width: 3, offset: 2, radius: 1.5 },
   ],
   material: {
-    frameFill: '#2a2c30',
-    faceFill: '#030303',
+    frameFill: "#2a2c30",
+    faceFill: "#030303",
     faceInset: 3,
-    faceBorderColor: 'rgba(255,255,255,0.03)',
+    faceBorderColor: "rgba(255,255,255,0.03)",
     faceBorderWidth: 0.75,
-    faceShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
-    borderColor: 'rgba(255,255,255,0.10)',
+    faceShadow: "inset 0 1px 0 rgba(255,255,255,0.02)",
+    borderColor: "rgba(255,255,255,0.10)",
     borderWidth: 1,
-    buttonFill: '#2a2c30',
-    shadow: '0 24px 52px rgba(0, 0, 0, 0.34), 0 10px 22px rgba(0, 0, 0, 0.14)',
+    buttonFill: "#2a2c30",
+    shadow: "0 24px 52px rgba(0, 0, 0, 0.34), 0 10px 22px rgba(0, 0, 0, 0.14)",
     screenShadow: undefined,
   },
-  summary: 'Matte aluminum frame, alert slider, centered hole-punch, 2K BOE display',
+  summary:
+    "Matte aluminum frame, alert slider, centered hole-punch, 2K BOE display",
 } satisfies DevicePreset;

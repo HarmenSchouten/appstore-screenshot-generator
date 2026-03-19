@@ -1,54 +1,57 @@
-﻿/**
+/**
  * App Store Screenshots - Web UI Server
- * 
+ *
  * Unified preview and generation using iframe-based rendering.
  * The preview shows exactly what will be generated.
  */
 
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { join } from '@std/path';
-import { GLOW_COLORS } from './renderer-components/constants.ts';
-import { GRADIENT_TEMPLATES, DEFAULT_PALETTES } from './lib/index.ts';
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { join } from "@std/path";
+import { GLOW_COLORS } from "./renderer-components/constants.ts";
+import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "./lib/index.ts";
 import {
+  getProjectOutputDir,
   initializeProjects,
   listProjects,
   loadProject,
-  getProjectOutputDir,
-} from './projects.ts';
-import type { ProjectConfig } from '@types';
+} from "./projects.ts";
+import type { ProjectConfig } from "@types";
 
 // Import route modules
 import {
+  createAssetMiddleware,
+  createAssetRoutes,
+  createConfigRoutes,
+  createGenerateRoutes,
   createPreviewRoutes,
   createProjectRoutes,
-  createConfigRoutes,
-  createAssetRoutes,
-  createAssetMiddleware,
-  createGenerateRoutes,
   createStaticUIRoutes,
-} from '@routes';
+} from "@routes";
 
 const app = new Hono();
 
 // Enable CORS for Vite dev server
-app.use('*', cors({
-  origin: [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-  ],
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type'],
-}));
+app.use(
+  "*",
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+    ],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type"],
+  }),
+);
 
 // Current active project
-let currentProjectId: string = 'default';
+let currentProjectId: string = "default";
 let currentConfig: ProjectConfig | null = null;
 
 // Initialize projects on startup
-await initializeProjects().then(id => {
+await initializeProjects().then((id) => {
   currentProjectId = id;
 });
 
@@ -78,9 +81,17 @@ const getProjectState = () => ({
   currentConfig,
 });
 
-const setProjectState = (updates: Partial<{ currentProjectId: string; currentConfig: ProjectConfig | null }>) => {
-  if (updates.currentProjectId !== undefined) currentProjectId = updates.currentProjectId;
-  if (updates.currentConfig !== undefined) currentConfig = updates.currentConfig;
+const setProjectState = (
+  updates: Partial<
+    { currentProjectId: string; currentConfig: ProjectConfig | null }
+  >,
+) => {
+  if (updates.currentProjectId !== undefined) {
+    currentProjectId = updates.currentProjectId;
+  }
+  if (updates.currentConfig !== undefined) {
+    currentConfig = updates.currentConfig;
+  }
 };
 
 const getCurrentProjectId = () => currentProjectId;
@@ -88,17 +99,20 @@ const getCurrentProjectId = () => currentProjectId;
 // ============================================================
 // Init API for Vite frontend
 // ============================================================
-app.get('/api/init', async (c) => {
+app.get("/api/init", async (c) => {
   const config = await getConfig();
   const projects = await listProjects();
-  
+
   // Convert templates and palettes to simple objects
   const gradientTemplatesObj: Record<string, string> = {};
   for (const t of GRADIENT_TEMPLATES) {
     gradientTemplatesObj[t.id] = t.template;
   }
 
-  const palettesObj: Record<string, { primary: string; secondary: string; accent: string }> = {};
+  const palettesObj: Record<
+    string,
+    { primary: string; secondary: string; accent: string }
+  > = {};
   for (const p of DEFAULT_PALETTES) {
     palettesObj[p.name] = p.palette;
   }
@@ -118,74 +132,91 @@ app.get('/api/init', async (c) => {
 // ============================================================
 
 // Asset middleware (serves static files from project assets directory)
-app.use('/assets/*', createAssetMiddleware(getCurrentProjectId));
+app.use("/assets/*", createAssetMiddleware(getCurrentProjectId));
 
 // Preview routes (screenshot and feature graphic HTML rendering)
-app.route('/preview', createPreviewRoutes(getConfig));
+app.route("/preview", createPreviewRoutes(getConfig));
 
 // Project routes (list, create, switch, delete, rename)
-app.route('/api/projects', createProjectRoutes(getProjectState, setProjectState, getConfig));
+app.route(
+  "/api/projects",
+  createProjectRoutes(getProjectState, setProjectState, getConfig),
+);
 
 // Config routes (CRUD for screenshots, feature graphics, languages)
-app.route('/api/config', createConfigRoutes(
-  getCurrentProjectId,
-  getConfig,
-  (config) => { currentConfig = config; }
-));
+app.route(
+  "/api/config",
+  createConfigRoutes(
+    getCurrentProjectId,
+    getConfig,
+    (config) => {
+      currentConfig = config;
+    },
+  ),
+);
 
 // Asset routes (list, upload, rename, delete)
-app.route('/api/assets', createAssetRoutes(getCurrentProjectId));
+app.route("/api/assets", createAssetRoutes(getCurrentProjectId));
 
 // Generation routes (export screenshots to PNG)
-app.route('/api/generate', createGenerateRoutes(
-  getCurrentProjectId,
-  getConfig
-));
+app.route(
+  "/api/generate",
+  createGenerateRoutes(
+    getCurrentProjectId,
+    getConfig,
+  ),
+);
 
 // Glow colors API (for UI color picker)
-app.get('/api/glow-colors', (c) => {
+app.get("/api/glow-colors", (c) => {
   return c.json(GLOW_COLORS);
 });
 
 // Serve generated output files
-app.get('/output/:path{.+}', async (c) => {
-  const filePath = c.req.param('path');
+app.get("/output/:path{.+}", async (c) => {
+  const filePath = c.req.param("path");
   const fullPath = join(getProjectOutputDir(currentProjectId), filePath);
-  
+
   try {
     const file = await Deno.readFile(fullPath);
-    const ext = fullPath.split('.').pop()?.toLowerCase();
-    const contentType = ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'application/octet-stream';
-    return new Response(file, { headers: { 'Content-Type': contentType } });
+    const ext = fullPath.split(".").pop()?.toLowerCase();
+    const contentType = ext === "png"
+      ? "image/png"
+      : ext === "jpg" || ext === "jpeg"
+      ? "image/jpeg"
+      : "application/octet-stream";
+    return new Response(file, { headers: { "Content-Type": contentType } });
   } catch {
     return c.notFound();
   }
 });
 
 // Get previously generated images
-app.get('/api/generated', async (c) => {
+app.get("/api/generated", async (c) => {
   const outputDir = getProjectOutputDir(currentProjectId);
   const results: { relativePath: string; status: string }[] = [];
-  
-  async function scanDir(dir: string, prefix: string = '') {
+
+  async function scanDir(dir: string, prefix: string = "") {
     try {
       for await (const entry of Deno.readDir(dir)) {
         const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
         if (entry.isDirectory) {
           await scanDir(join(dir, entry.name), relativePath);
-        } else if (entry.isFile && (entry.name.endsWith('.png') || entry.name.endsWith('.jpg'))) {
-          results.push({ relativePath, status: 'success' });
+        } else if (
+          entry.isFile &&
+          (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
+        ) {
+          results.push({ relativePath, status: "success" });
         }
       }
     } catch {
       // Directory doesn't exist or can't be read
     }
   }
-  
+
   await scanDir(outputDir);
   return c.json({ results, outputDir });
 });
-
 
 // ============================================================
 // Main UI (Static build from dist/ if available)
@@ -194,8 +225,8 @@ const useStaticUI = await hasStaticUIBuild();
 
 async function hasStaticUIBuild(): Promise<boolean> {
   try {
-    await Deno.stat('./dist/index.html');
-    await Deno.stat('./dist/assets');
+    await Deno.stat("./dist/index.html");
+    await Deno.stat("./dist/assets");
     return true;
   } catch {
     return false;
@@ -203,7 +234,7 @@ async function hasStaticUIBuild(): Promise<boolean> {
 }
 
 if (useStaticUI) {
-  console.log('📦 Serving UI from dist/');
+  console.log("📦 Serving UI from dist/");
   const staticUI = createStaticUIRoutes(
     getConfig,
     listProjects,
@@ -212,13 +243,13 @@ if (useStaticUI) {
       currentProjectId = id;
       currentConfig = config;
     },
-    loadProject
+    loadProject,
   );
-  app.route('/', staticUI);
+  app.route("/", staticUI);
 } else {
   // In dev mode, Vite serves the UI on port 5173
   // This fallback just tells users how to access it
-  app.get('/', (c) => {
+  app.get("/", (c) => {
     return c.html(getDevModeHTML());
   });
 }
