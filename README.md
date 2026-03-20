@@ -16,12 +16,11 @@ and a shared render pipeline for preview and export.
 - Shared renderer for browser preview and PNG export
 - Project-based asset and config management
 
-## Tip
-
-This project started as a script-first screenshot generator. Later on a
-generated frontend was attached to it. The frontend has been iteratively refined
-over time, and the history is documented in
-[docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md).
+> [!NOTE]
+> This project started as a script-first screenshot generator. Later on a
+> generated frontend was attached to it. The frontend has been iteratively refined
+> over time, and the history is documented in
+> [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md).
 
 ## Quick Start
 
