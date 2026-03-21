@@ -2,7 +2,6 @@
  * Static UI Routes
  *
  * Serves the static UI bundle with server-injected data.
- * This will replace the inline getMainUI once the new UI is complete.
  */
 
 import { type Context, Hono } from "hono";
@@ -27,7 +26,7 @@ export function createStaticUIRoutes(
     try {
       return await Deno.readTextFile("./dist/index.html");
     } catch {
-      throw new Error("dist/index.html not found. Run: deno task build:ui");
+      throw new Error("dist/index.html not found. Run: npm run build");
     }
   };
 
@@ -81,7 +80,7 @@ export function createStaticUIRoutes(
         "Cache-Control": "no-cache",
       });
     } catch {
-      return c.text("Build not found. Run: deno task build:ui", 404);
+      return c.text("Build not found. Run: npm run build", 404);
     }
   });
 
@@ -102,7 +101,7 @@ export function createStaticUIRoutes(
     // Skip reserved paths
     if (
       project &&
-      ["api", "preview", "assets", "output", "app.js"].includes(project)
+      ["api", "assets", "output", "app.js"].includes(project)
     ) {
       return c.text("Not found", 404);
     }
