@@ -66,17 +66,6 @@ npm run verify
 - To keep release merges owner-controlled, use GitHub branch protection or
   repository permissions for `main`.
 
-### Commit Message Convention
-
-Release Please uses Conventional Commits to decide the next version:
-
-- `fix:` -> patch release
-- `feat:` -> minor release
-- `feat!:` or any commit with `BREAKING CHANGE:` -> major release
-
-If you use squash merges, make sure the final PR title follows that format so
-the merged commit is categorized correctly.
-
 ## Output and Projects
 
 - Project data: projects/{project-id}/
