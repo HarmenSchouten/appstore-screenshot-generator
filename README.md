@@ -8,6 +8,8 @@
 Generate App Store and Google Play marketing screenshots with a visual editor
 and a shared render pipeline for preview and export.
 
+![App Store Screenshot Generator UI](docs/images/readme-preview.png)
+
 ## What It Does
 
 - Visual editor with live preview
