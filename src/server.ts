@@ -1,8 +1,7 @@
 /**
  * App Store Screenshots - Web UI Server
  *
- * Unified preview and generation using iframe-based rendering.
- * The preview shows exactly what will be generated.
+ * Web UI server and generation API.
  */
 
 import { Hono } from "hono";
@@ -24,7 +23,6 @@ import {
   createAssetRoutes,
   createConfigRoutes,
   createGenerateRoutes,
-  createPreviewRoutes,
   createProjectRoutes,
   createStaticUIRoutes,
 } from "@routes";
@@ -133,9 +131,6 @@ app.get("/api/init", async (c) => {
 
 // Asset middleware (serves static files from project assets directory)
 app.use("/assets/*", createAssetMiddleware(getCurrentProjectId));
-
-// Preview routes (screenshot and feature graphic HTML rendering)
-app.route("/preview", createPreviewRoutes(getConfig));
 
 // Project routes (list, create, switch, delete, rename)
 app.route(
