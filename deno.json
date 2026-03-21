@@ -21,7 +21,7 @@
     "exclude": ["src/ui/", "dist/", "node_modules/"]
   },
   "fmt": {
-    "exclude": ["src/ui/", "dist/", "node_modules/"]
+    "exclude": ["src/ui/", "dist/", "node_modules/", "**/*.md"]
   },
   "exclude": ["src/ui/", "dist/", "node_modules/"],
   "imports": {
