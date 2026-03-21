@@ -44,12 +44,16 @@ Good first contributions:
 
 - Normal feature and fix PRs merge into `main` as usual.
 - Releases are not created for every merge.
-- When a release is wanted, run the `prepare-release` workflow in GitHub Actions.
-- Release Please creates or updates a dedicated release PR with version and changelog updates.
+- When a release is wanted, run the `prepare-release` workflow in GitHub
+  Actions.
+- Release Please creates or updates a dedicated release PR with version and
+  changelog updates.
 - Review that PR like any other change.
-- Merging the release PR triggers the publish workflow, which creates the Git tag and GitHub Release.
+- Merging the release PR triggers the publish workflow, which creates the Git
+  tag and GitHub Release.
 - GitHub Releases provide the stable source artifacts for this repository.
-- If release merges should stay owner-only, enforce that with branch protection or repository permissions on `main`.
+- If release merges should stay owner-only, enforce that with branch protection
+  or repository permissions on `main`.
 
 ## Conventional Commits
 
@@ -59,4 +63,5 @@ Release Please uses commit messages to calculate the next version.
 - `feat:` for minor releases
 - `feat!:` or `BREAKING CHANGE:` for major releases
 
-If you primarily squash merge, set the PR title to the intended Conventional Commit format before merging.
+If you primarily squash merge, set the PR title to the intended Conventional
+Commit format before merging.

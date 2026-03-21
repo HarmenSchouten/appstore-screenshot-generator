@@ -54,12 +54,17 @@ npm run verify
 ## Releases
 
 - Releases are owner-controlled with Release Please.
-- Preparing a release is manual: run the `prepare-release` GitHub Actions workflow when you want a new version.
-- That workflow creates or updates a release PR with the next version number and changelog changes.
+- Preparing a release is manual: run the `prepare-release` GitHub Actions
+  workflow when you want a new version.
+- That workflow creates or updates a release PR with the next version number and
+  changelog changes.
 - Nothing is published until that release PR is merged into `main`.
-- Merging the release PR triggers the `publish-release` workflow, which creates the Git tag and GitHub Release.
-- GitHub automatically attaches stable source archives (`.zip` and `.tar.gz`) to each GitHub Release.
-- To keep release merges owner-controlled, use GitHub branch protection or repository permissions for `main`.
+- Merging the release PR triggers the `publish-release` workflow, which creates
+  the Git tag and GitHub Release.
+- GitHub automatically attaches stable source archives (`.zip` and `.tar.gz`) to
+  each GitHub Release.
+- To keep release merges owner-controlled, use GitHub branch protection or
+  repository permissions for `main`.
 
 ### Commit Message Convention
 
@@ -69,7 +74,8 @@ Release Please uses Conventional Commits to decide the next version:
 - `feat:` -> minor release
 - `feat!:` or any commit with `BREAKING CHANGE:` -> major release
 
-If you use squash merges, make sure the final PR title follows that format so the merged commit is categorized correctly.
+If you use squash merges, make sure the final PR title follows that format so
+the merged commit is categorized correctly.
 
 ## Output and Projects
 
