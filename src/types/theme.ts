@@ -2,7 +2,7 @@
  * Theme and Color Palette types
  */
 
-import type { TypographyOptions } from "./components.ts";
+import type { TypographyOptions } from "./typography.ts";
 
 // ============================================================
 // Theme

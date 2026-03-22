@@ -8,13 +8,9 @@
 export type {
   ColorPalette as Palette,
   DevicePresetId,
-  GlowEffect as Glow,
-  MascotOptions as Mascot,
-  PhoneFrameOptions as PhoneFrame,
   ProjectConfig,
   ProjectInfo,
   Screenshot,
-  Shape,
   ShapeType,
   ThemeConfig as Theme,
 } from "../types/index.ts";

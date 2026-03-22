@@ -3,7 +3,7 @@
  */
 
 import type { Dimensions, Platform } from "./base.ts";
-import type { FeatureGraphic, Screenshot } from "./screenshot.ts";
+import type { Screenshot } from "./screenshot.ts";
 import type { AppBranding, ThemeConfig } from "./theme.ts";
 import type { DevicePresetId } from "./device.ts";
 
@@ -19,14 +19,5 @@ export interface RenderOptions {
   defaultDevicePresetId: DevicePresetId;
   dimensions: Dimensions;
   /** For preview: '/assets/', for export: 'file:///...' */
-  assetUrlPrefix?: string;
-}
-
-export interface FeatureGraphicRenderOptions {
-  featureGraphic: FeatureGraphic;
-  theme: ThemeConfig;
-  app: AppBranding;
-  platform: Platform;
-  defaultDevicePresetId: DevicePresetId;
   assetUrlPrefix?: string;
 }

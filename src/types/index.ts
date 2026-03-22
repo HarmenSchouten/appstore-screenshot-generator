@@ -6,8 +6,8 @@
  *
  * Types are organized into logical modules:
  * - base.ts       - Platform, Language, Dimensions
- * - effects.ts    - GlowEffect, Shape
- * - components.ts - PhoneFrameOptions, MascotOptions, TypographyOptions
+ * - effects.ts    - ShapeType
+ * - typography.ts - TypographyOptions
  * - device.ts     - DevicePreset, DevicePresetId, PlatformDefaults
  * - screenshot.ts - Screenshot, FeatureGraphic
  * - theme.ts      - ThemeConfig, ColorPalette, AppBranding
@@ -23,7 +23,7 @@ export * from "./base.ts";
 export * from "./effects.ts";
 
 // UI components
-export * from "./components.ts";
+export * from "./typography.ts";
 
 // Device presets
 export * from "./device.ts";
