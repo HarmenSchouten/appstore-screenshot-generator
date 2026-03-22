@@ -10,12 +10,14 @@ export function SortableLayerCard({
   id,
   layer,
   index,
+  onClick,
   onDuplicate,
   onDelete,
 }: {
   id: string;
   layer: Layer;
   index: number;
+  onClick: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
 }) {
@@ -68,13 +70,18 @@ export function SortableLayerCard({
         <i className="fa-solid fa-grip-vertical text-xs" />
       </button>
 
-      {/* Type icon */}
-      <i className={`${meta.icon} ${meta.color} text-sm w-4 text-center`} />
-
-      {/* Name */}
-      <span className="flex-1 text-sm text-zinc-200 truncate">
-        {layerDisplayName(layer, index)}
-      </span>
+      {/* Clickable label area */}
+      <button
+        onClick={onClick}
+        className="flex items-center gap-2 flex-1 min-w-0 text-left"
+      >
+        <i
+          className={`${meta.icon} ${meta.color} text-sm w-4 text-center shrink-0`}
+        />
+        <span className="text-sm text-zinc-200 truncate">
+          {layerDisplayName(layer, index)}
+        </span>
+      </button>
 
       {/* Opacity indicator (only when not full) */}
       {(layer.opacity ?? 1) < 1 && (
