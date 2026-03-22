@@ -42,6 +42,15 @@ export function App() {
   const screenshots = useAppStore(selectScreenshots);
   const dimensions = useAppStore(selectDimensions);
 
+  const projects = useAppStore((s) => s.projects);
+  const projectModalOpen = useAppStore((s) => s.projectModalOpen);
+  const themeEditorOpen = useAppStore((s) => s.themeEditorOpen);
+  const mediaManagerOpen = useAppStore((s) => s.mediaManagerOpen);
+  const generating = useAppStore((s) => s.generating);
+  const generateProgress = useAppStore((s) => s.generateProgress);
+  const showGenerateModal = useAppStore((s) => s.showGenerateModal);
+
+  // Stable action references (never change, safe to read once)
   const {
     setConfig,
     setSelectedLang,
@@ -50,23 +59,13 @@ export function App() {
     updateScreenshot,
     refreshAssets,
     getDefaultDevicePreset,
-    // Generation
-    generating,
-    generateProgress,
-    showGenerateModal,
     generateAll,
     closeGenerateModal,
     refreshLastGenerated,
-    // Projects
-    projects,
     switchProject,
     createProject,
     removeProject,
     renameProject,
-    // UI modals
-    projectModalOpen,
-    themeEditorOpen,
-    mediaManagerOpen,
     closeProjectModal,
     closeThemeEditor,
     closeMediaManager,
