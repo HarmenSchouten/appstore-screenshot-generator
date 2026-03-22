@@ -1,28 +1,39 @@
 /**
  * UI Entry Point
- * 
+ *
  * Initializes the React application.
  * In Vite mode, we fetch initial data from the API.
  */
 
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { App } from './components/App';
-import './styles.css';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { App } from "./components/App";
+import { useAppStore } from "./store/index.ts";
+import { parseUrlParams } from "./utils/routing.ts";
+import "./styles.css";
 
 // Type definitions for global utilities (AppData declared in App.tsx)
 declare global {
   interface Window {
     GRADIENT_TEMPLATES: Record<string, string>;
-    DEFAULT_PALETTES: Record<string, { primary: string; secondary: string; accent: string }>;
-    applyPaletteToGradient: (template: string, palette: { primary: string; secondary: string; accent: string }) => string;
+    DEFAULT_PALETTES: Record<
+      string,
+      { primary: string; secondary: string; accent: string }
+    >;
+    applyPaletteToGradient: (
+      template: string,
+      palette: { primary: string; secondary: string; accent: string },
+    ) => string;
   }
 }
 
 // Initialize global palette utilities
 window.GRADIENT_TEMPLATES = {};
 window.DEFAULT_PALETTES = {};
-window.applyPaletteToGradient = (template: string, palette: { primary: string; secondary: string; accent: string }) => {
+window.applyPaletteToGradient = (
+  template: string,
+  palette: { primary: string; secondary: string; accent: string },
+) => {
   return template
     .replace(/\{primary\}/g, palette.primary)
     .replace(/\{secondary\}/g, palette.secondary)
@@ -33,28 +44,64 @@ window.applyPaletteToGradient = (template: string, palette: { primary: string; s
 async function init() {
   try {
     // Fetch initial application data from server
-    const response = await fetch('/api/init');
+    const response = await fetch("/api/init");
     if (!response.ok) {
       throw new Error(`Failed to load app data: ${response.status}`);
     }
-    
+
     const appData = await response.json();
-    
+
     // Store global utilities for palette system
     window.__APP_DATA__ = appData;
     window.GRADIENT_TEMPLATES = appData.gradientTemplates || {};
     window.DEFAULT_PALETTES = appData.palettes || {};
-    
+
+    // Hydrate Zustand store with server data
+    const urlParams = parseUrlParams();
+    const validProject = appData.projects.find(
+      (p: { id: string }) => p.id === urlParams.project,
+    );
+    const initialProject = validProject ? urlParams.project : appData.projectId;
+    const initialLang = (() => {
+      if (
+        urlParams.lang &&
+        appData.config.languages?.find(
+          (l: { language: string }) => l.language === urlParams.lang,
+        )
+      ) {
+        return urlParams.lang;
+      }
+      return appData.config.languages?.[0]?.language || "en";
+    })();
+    const initialPlatform = urlParams.platform &&
+        ["android", "ios"].includes(urlParams.platform)
+      ? urlParams.platform
+      : "android";
+    const initialItem = urlParams.screenshotId === "feature-graphic"
+      ? { type: "feature-graphic" as const }
+      : urlParams.screenshotId
+      ? { type: "screenshot" as const, id: urlParams.screenshotId }
+      : null;
+
+    useAppStore.setState({
+      config: appData.config,
+      projects: appData.projects,
+      currentProject: initialProject,
+      selectedLang: initialLang,
+      selectedPlatform: initialPlatform as "android" | "ios",
+      selectedItem: initialItem,
+    });
+
     // Mount application
-    const root = createRoot(document.getElementById('root')!);
+    const root = createRoot(document.getElementById("root")!);
     root.render(
       <React.StrictMode>
         <App />
-      </React.StrictMode>
+      </React.StrictMode>,
     );
   } catch (error) {
-    console.error('Failed to initialize app:', error);
-    document.getElementById('root')!.innerHTML = `
+    console.error("Failed to initialize app:", error);
+    document.getElementById("root")!.innerHTML = `
       <div class="flex items-center justify-center h-screen">
         <div class="text-center">
           <h1 class="text-xl font-bold text-red-500 mb-2">Failed to load application</h1>

@@ -1,39 +1,101 @@
 /**
  * ThemeEditor Modal Component
- * 
+ *
  * Modal for editing theme colors, gradients, and typography.
  */
 
-import { useState } from 'react';
-import { ColorInput } from '../inputs/ColorInput';
-import type { Config } from '../../types';
+import { useState } from "react";
+import { ColorInput } from "../inputs/ColorInput";
+import type { Config } from "../../types";
 
 // Constants imported from lib
 const GRADIENT_TEMPLATES = [
-  { id: 'solid-primary', name: 'Solid Primary', template: '{primary}' },
-  { id: 'solid-secondary', name: 'Solid Secondary', template: '{secondary}' },
-  { id: 'primary-dark', name: 'Primary to Dark', template: 'linear-gradient(135deg, {primary} 0%, #0a0a0a 100%)' },
-  { id: 'primary-secondary', name: 'Primary to Secondary', template: 'linear-gradient(135deg, {primary} 0%, {secondary} 100%)' },
-  { id: 'secondary-primary', name: 'Secondary to Primary', template: 'linear-gradient(135deg, {secondary} 0%, {primary} 100%)' },
-  { id: 'radial-primary', name: 'Radial Primary', template: 'radial-gradient(circle at 30% 30%, {primary} 0%, #0a0a0a 70%)' },
-  { id: 'radial-secondary', name: 'Radial Secondary', template: 'radial-gradient(circle at 30% 30%, {secondary} 0%, #0a0a0a 70%)' },
-  { id: 'mesh-primary', name: 'Mesh Primary', template: 'linear-gradient(135deg, {primary}22 0%, transparent 50%), linear-gradient(225deg, {secondary}22 0%, transparent 50%), #0a0a0a' },
-  { id: 'diagonal-split', name: 'Diagonal Split', template: 'linear-gradient(135deg, {primary} 0%, {primary} 50%, {secondary} 50%, {secondary} 100%)' },
-  { id: 'triple-gradient', name: 'Triple Gradient', template: 'linear-gradient(135deg, {primary} 0%, {secondary} 50%, {accent} 100%)' },
+  { id: "solid-primary", name: "Solid Primary", template: "{primary}" },
+  { id: "solid-secondary", name: "Solid Secondary", template: "{secondary}" },
+  {
+    id: "primary-dark",
+    name: "Primary to Dark",
+    template: "linear-gradient(135deg, {primary} 0%, #0a0a0a 100%)",
+  },
+  {
+    id: "primary-secondary",
+    name: "Primary to Secondary",
+    template: "linear-gradient(135deg, {primary} 0%, {secondary} 100%)",
+  },
+  {
+    id: "secondary-primary",
+    name: "Secondary to Primary",
+    template: "linear-gradient(135deg, {secondary} 0%, {primary} 100%)",
+  },
+  {
+    id: "radial-primary",
+    name: "Radial Primary",
+    template: "radial-gradient(circle at 30% 30%, {primary} 0%, #0a0a0a 70%)",
+  },
+  {
+    id: "radial-secondary",
+    name: "Radial Secondary",
+    template: "radial-gradient(circle at 30% 30%, {secondary} 0%, #0a0a0a 70%)",
+  },
+  {
+    id: "mesh-primary",
+    name: "Mesh Primary",
+    template:
+      "linear-gradient(135deg, {primary}22 0%, transparent 50%), linear-gradient(225deg, {secondary}22 0%, transparent 50%), #0a0a0a",
+  },
+  {
+    id: "diagonal-split",
+    name: "Diagonal Split",
+    template:
+      "linear-gradient(135deg, {primary} 0%, {primary} 50%, {secondary} 50%, {secondary} 100%)",
+  },
+  {
+    id: "triple-gradient",
+    name: "Triple Gradient",
+    template:
+      "linear-gradient(135deg, {primary} 0%, {secondary} 50%, {accent} 100%)",
+  },
 ];
 
 const DEFAULT_PALETTES = [
-  { name: 'Purple Night', palette: { primary: '#a855f7', secondary: '#6366f1', accent: '#ec4899' } },
-  { name: 'Ocean Blue', palette: { primary: '#3b82f6', secondary: '#06b6d4', accent: '#22c55e' } },
-  { name: 'Sunset', palette: { primary: '#f97316', secondary: '#ef4444', accent: '#f59e0b' } },
-  { name: 'Forest', palette: { primary: '#22c55e', secondary: '#14b8a6', accent: '#84cc16' } },
-  { name: 'Rose', palette: { primary: '#ec4899', secondary: '#f43f5e', accent: '#a855f7' } },
-  { name: 'Midnight', palette: { primary: '#6366f1', secondary: '#8b5cf6', accent: '#3b82f6' } },
-  { name: 'Ember', palette: { primary: '#ef4444', secondary: '#f97316', accent: '#fbbf24' } },
-  { name: 'Teal', palette: { primary: '#14b8a6', secondary: '#06b6d4', accent: '#22c55e' } },
+  {
+    name: "Purple Night",
+    palette: { primary: "#a855f7", secondary: "#6366f1", accent: "#ec4899" },
+  },
+  {
+    name: "Ocean Blue",
+    palette: { primary: "#3b82f6", secondary: "#06b6d4", accent: "#22c55e" },
+  },
+  {
+    name: "Sunset",
+    palette: { primary: "#f97316", secondary: "#ef4444", accent: "#f59e0b" },
+  },
+  {
+    name: "Forest",
+    palette: { primary: "#22c55e", secondary: "#14b8a6", accent: "#84cc16" },
+  },
+  {
+    name: "Rose",
+    palette: { primary: "#ec4899", secondary: "#f43f5e", accent: "#a855f7" },
+  },
+  {
+    name: "Midnight",
+    palette: { primary: "#6366f1", secondary: "#8b5cf6", accent: "#3b82f6" },
+  },
+  {
+    name: "Ember",
+    palette: { primary: "#ef4444", secondary: "#f97316", accent: "#fbbf24" },
+  },
+  {
+    name: "Teal",
+    palette: { primary: "#14b8a6", secondary: "#06b6d4", accent: "#22c55e" },
+  },
 ];
 
-function applyPaletteToGradient(template: string, palette: { primary: string; secondary: string; accent: string }): string {
+function applyPaletteToGradient(
+  template: string,
+  palette: { primary: string; secondary: string; accent: string },
+): string {
   return template
     .replace(/\{primary\}/g, palette.primary)
     .replace(/\{secondary\}/g, palette.secondary)
@@ -46,10 +108,16 @@ interface ThemeEditorModalProps {
   onSave: (newConfig: Config) => void;
 }
 
-export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalProps) {
-  const defaultPalette = { primary: '#a855f7', secondary: '#6366f1', accent: '#ec4899' };
+export function ThemeEditorModal(
+  { config, onClose, onSave }: ThemeEditorModalProps,
+) {
+  const defaultPalette = {
+    primary: "#a855f7",
+    secondary: "#6366f1",
+    accent: "#ec4899",
+  };
   const currentPalette = config.palette || defaultPalette;
-  const currentGradient = config.theme?.background?.gradient || '';
+  const currentGradient = config.theme?.background?.gradient || "";
 
   // Detect which gradient template matches current gradient
   const detectSelectedGradient = () => {
@@ -59,14 +127,20 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
         return t.id;
       }
     }
-    return 'custom';
+    return "custom";
   };
 
   const [palette, setPalette] = useState(currentPalette);
-  const [selectedGradient, setSelectedGradient] = useState(detectSelectedGradient);
+  const [selectedGradient, setSelectedGradient] = useState(
+    detectSelectedGradient,
+  );
   const [customGradient, setCustomGradient] = useState(currentGradient);
-  const [fontFamily, setFontFamily] = useState(config.theme?.fontFamily || 'Inter, sans-serif');
-  const [googleFontsUrl, setGoogleFontsUrl] = useState(config.theme?.googleFontsUrl || '');
+  const [fontFamily, setFontFamily] = useState(
+    config.theme?.fontFamily || "Inter, sans-serif",
+  );
+  const [googleFontsUrl, setGoogleFontsUrl] = useState(
+    config.theme?.googleFontsUrl || "",
+  );
 
   // Generate gradients from palette
   const gradients = GRADIENT_TEMPLATES.map((t) => ({
@@ -80,10 +154,9 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
   };
 
   const handleSave = () => {
-    const gradient =
-      selectedGradient === 'custom'
-        ? customGradient
-        : gradients.find((g) => g.id === selectedGradient)?.css || customGradient;
+    const gradient = selectedGradient === "custom"
+      ? customGradient
+      : gradients.find((g) => g.id === selectedGradient)?.css || customGradient;
 
     onSave({
       ...config,
@@ -101,10 +174,9 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
     setPalette(presetPalette);
   };
 
-  const currentPreviewGradient =
-    selectedGradient === 'custom'
-      ? customGradient
-      : gradients.find((g) => g.id === selectedGradient)?.css || '';
+  const currentPreviewGradient = selectedGradient === "custom"
+    ? customGradient
+    : gradients.find((g) => g.id === selectedGradient)?.css || "";
 
   return (
     <div
@@ -118,7 +190,10 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
             <i className="fa-solid fa-palette mr-2" />
             Theme & Colors
           </h2>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white text-xl">
+          <button
+            onClick={onClose}
+            className="text-zinc-500 hover:text-white text-xl"
+          >
             <i className="fa-solid fa-xmark" />
           </button>
         </div>
@@ -130,22 +205,39 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
             <h3 className="text-sm font-medium mb-3">Color Palette</h3>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Primary</label>
-                <ColorInput value={palette.primary} onChange={(v) => updatePalette({ primary: v })} />
+                <label className="text-xs text-zinc-500 block mb-1">
+                  Primary
+                </label>
+                <ColorInput
+                  value={palette.primary}
+                  onChange={(v) => updatePalette({ primary: v })}
+                />
               </div>
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Secondary</label>
-                <ColorInput value={palette.secondary} onChange={(v) => updatePalette({ secondary: v })} />
+                <label className="text-xs text-zinc-500 block mb-1">
+                  Secondary
+                </label>
+                <ColorInput
+                  value={palette.secondary}
+                  onChange={(v) => updatePalette({ secondary: v })}
+                />
               </div>
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Accent</label>
-                <ColorInput value={palette.accent} onChange={(v) => updatePalette({ accent: v })} />
+                <label className="text-xs text-zinc-500 block mb-1">
+                  Accent
+                </label>
+                <ColorInput
+                  value={palette.accent}
+                  onChange={(v) => updatePalette({ accent: v })}
+                />
               </div>
             </div>
 
             {/* Preset Palettes */}
             <div className="mt-4">
-              <label className="text-xs text-zinc-500 block mb-2">Preset Palettes</label>
+              <label className="text-xs text-zinc-500 block mb-2">
+                Preset Palettes
+              </label>
               <div className="flex flex-wrap gap-2">
                 {DEFAULT_PALETTES.map((preset) => (
                   <button
@@ -155,9 +247,18 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
                     title={preset.name}
                   >
                     <div className="flex">
-                      <div className="w-3 h-3 rounded-l" style={{ background: preset.palette.primary }} />
-                      <div className="w-3 h-3" style={{ background: preset.palette.secondary }} />
-                      <div className="w-3 h-3 rounded-r" style={{ background: preset.palette.accent }} />
+                      <div
+                        className="w-3 h-3 rounded-l"
+                        style={{ background: preset.palette.primary }}
+                      />
+                      <div
+                        className="w-3 h-3"
+                        style={{ background: preset.palette.secondary }}
+                      />
+                      <div
+                        className="w-3 h-3 rounded-r"
+                        style={{ background: preset.palette.accent }}
+                      />
                     </div>
                     {preset.name}
                   </button>
@@ -176,20 +277,22 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
                   onClick={() => setSelectedGradient(g.id)}
                   className={`p-1 rounded border-2 ${
                     selectedGradient === g.id
-                      ? 'border-indigo-500'
-                      : 'border-transparent hover:border-zinc-600'
+                      ? "border-indigo-500"
+                      : "border-transparent hover:border-zinc-600"
                   }`}
                 >
                   <div className="h-12 rounded" style={{ background: g.css }} />
-                  <div className="text-xs text-zinc-400 mt-1 truncate">{g.name}</div>
+                  <div className="text-xs text-zinc-400 mt-1 truncate">
+                    {g.name}
+                  </div>
                 </button>
               ))}
               <button
-                onClick={() => setSelectedGradient('custom')}
+                onClick={() => setSelectedGradient("custom")}
                 className={`p-1 rounded border-2 ${
-                  selectedGradient === 'custom'
-                    ? 'border-indigo-500'
-                    : 'border-transparent hover:border-zinc-600'
+                  selectedGradient === "custom"
+                    ? "border-indigo-500"
+                    : "border-transparent hover:border-zinc-600"
                 }`}
               >
                 <div className="h-12 rounded bg-zinc-800 flex items-center justify-center">
@@ -199,24 +302,35 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
               </button>
             </div>
 
-            {selectedGradient === 'custom' && (
+            {selectedGradient === "custom" && (
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Custom CSS Gradient</label>
+                <label className="text-xs text-zinc-500 block mb-1">
+                  Custom CSS Gradient
+                </label>
                 <input
                   type="text"
                   value={customGradient}
-                  onInput={(e) => setCustomGradient((e.target as HTMLInputElement).value)}
+                  onInput={(e) =>
+                    setCustomGradient((e.target as HTMLInputElement).value)}
                   className="w-full px-3 py-2 rounded text-sm font-mono bg-zinc-800 border border-zinc-700"
                   placeholder="linear-gradient(135deg, #a855f7 0%, #0a0a0a 100%)"
                 />
-                <div className="mt-2 h-16 rounded" style={{ background: customGradient }} />
+                <div
+                  className="mt-2 h-16 rounded"
+                  style={{ background: customGradient }}
+                />
               </div>
             )}
 
             {/* Preview */}
             <div className="mt-3">
-              <label className="text-xs text-zinc-500 block mb-1">Preview</label>
-              <div className="h-20 rounded" style={{ background: currentPreviewGradient }} />
+              <label className="text-xs text-zinc-500 block mb-1">
+                Preview
+              </label>
+              <div
+                className="h-20 rounded"
+                style={{ background: currentPreviewGradient }}
+              />
             </div>
           </div>
 
@@ -225,21 +339,27 @@ export function ThemeEditorModal({ config, onClose, onSave }: ThemeEditorModalPr
             <h3 className="text-sm font-medium mb-3">Typography</h3>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Font Family</label>
+                <label className="text-xs text-zinc-500 block mb-1">
+                  Font Family
+                </label>
                 <input
                   type="text"
                   value={fontFamily}
-                  onInput={(e) => setFontFamily((e.target as HTMLInputElement).value)}
+                  onInput={(e) =>
+                    setFontFamily((e.target as HTMLInputElement).value)}
                   className="w-full px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700"
                   placeholder="Inter, sans-serif"
                 />
               </div>
               <div>
-                <label className="text-xs text-zinc-500 block mb-1">Google Fonts URL (optional)</label>
+                <label className="text-xs text-zinc-500 block mb-1">
+                  Google Fonts URL (optional)
+                </label>
                 <input
                   type="text"
                   value={googleFontsUrl}
-                  onInput={(e) => setGoogleFontsUrl((e.target as HTMLInputElement).value)}
+                  onInput={(e) =>
+                    setGoogleFontsUrl((e.target as HTMLInputElement).value)}
                   className="w-full px-3 py-2 rounded text-sm font-mono bg-zinc-800 border border-zinc-700"
                   placeholder="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');"
                 />

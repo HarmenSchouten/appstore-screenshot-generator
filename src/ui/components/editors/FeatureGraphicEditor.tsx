@@ -1,16 +1,16 @@
 /**
  * FeatureGraphicEditor Component
- * 
+ *
  * Full editor panel for configuring feature graphic settings including
  * content, icon, phone screenshot, glows, shapes, and mascot.
  */
 
-import { Slider, LabeledColorInput, ImageSelect } from '../inputs/index';
-import { CollapsibleSection } from '../CollapsibleSection';
-import { GlowEditorInline } from './GlowEditorInline';
-import { ShapeEditorInline } from './ShapeEditorInline';
-import { MascotEditorInline } from './MascotEditorInline';
-import type { FeatureGraphic, Assets, Config } from '../../types';
+import { ImageSelect, LabeledColorInput, Slider } from "../inputs/index";
+import { CollapsibleSection } from "../CollapsibleSection";
+import { GlowEditorInline } from "./GlowEditorInline";
+import { ShapeEditorInline } from "./ShapeEditorInline";
+import { MascotEditorInline } from "./MascotEditorInline";
+import type { Assets, Config, FeatureGraphic } from "../../types";
 
 interface FeatureGraphicEditorProps {
   featureGraphic: FeatureGraphic;
@@ -42,8 +42,9 @@ export function FeatureGraphicEditor({
             <label className="text-xs text-zinc-500 block mb-1">Headline</label>
             <input
               type="text"
-              value={fg.headline || ''}
-              onInput={(e) => onUpdate({ headline: (e.target as HTMLInputElement).value })}
+              value={fg.headline || ""}
+              onInput={(e) =>
+                onUpdate({ headline: (e.target as HTMLInputElement).value })}
               className="w-full px-3 py-2 rounded text-sm"
               placeholder="Your headline here..."
             />
@@ -52,8 +53,9 @@ export function FeatureGraphicEditor({
             <label className="text-xs text-zinc-500 block mb-1">Subtitle</label>
             <input
               type="text"
-              value={fg.subtitle || ''}
-              onInput={(e) => onUpdate({ subtitle: (e.target as HTMLInputElement).value })}
+              value={fg.subtitle || ""}
+              onInput={(e) =>
+                onUpdate({ subtitle: (e.target as HTMLInputElement).value })}
               className="w-full px-3 py-2 rounded text-sm"
               placeholder="A compelling subtitle..."
             />
@@ -63,7 +65,10 @@ export function FeatureGraphicEditor({
               <input
                 type="checkbox"
                 checked={fg.showIcon !== false}
-                onChange={(e) => onUpdate({ showIcon: (e.target as HTMLInputElement).checked })}
+                onChange={(e) =>
+                  onUpdate({
+                    showIcon: (e.target as HTMLInputElement).checked,
+                  })}
                 className="rounded"
               />
               Show App Icon
@@ -72,19 +77,26 @@ export function FeatureGraphicEditor({
               <input
                 type="checkbox"
                 checked={fg.showAppName !== false}
-                onChange={(e) => onUpdate({ showAppName: (e.target as HTMLInputElement).checked })}
+                onChange={(e) =>
+                  onUpdate({
+                    showAppName: (e.target as HTMLInputElement).checked,
+                  })}
                 className="rounded"
               />
               Show App Name
             </label>
           </div>
-          
+
           {fg.showIcon !== false && (
             <>
               <ImageSelect
                 label="App Icon"
-                value={config.app?.iconPath || ''}
-                onChange={(v) => onUpdateConfig({ ...config, app: { ...config.app, iconPath: v } })}
+                value={config.app?.iconPath || ""}
+                onChange={(v) =>
+                  onUpdateConfig({
+                    ...config,
+                    app: { ...config.app, iconPath: v },
+                  })}
                 options={assets.icons || []}
                 category="icons"
                 onAssetsRefresh={onAssetsRefresh}
@@ -112,7 +124,7 @@ export function FeatureGraphicEditor({
               </div>
               <LabeledColorInput
                 label="Background"
-                value={fg.iconBoxColor || 'rgba(255,255,255,0.15)'}
+                value={fg.iconBoxColor || "rgba(255,255,255,0.15)"}
                 onChange={(v) => onUpdate({ iconBoxColor: v })}
                 placeholder="rgba(255,255,255,0.15)"
               />
@@ -163,7 +175,7 @@ export function FeatureGraphicEditor({
         <CollapsibleSection title="Phone Screenshot" defaultOpen={true}>
           <ImageSelect
             label="Image"
-            value={fg.imagePath || ''}
+            value={fg.imagePath || ""}
             onChange={(v) => onUpdate({ imagePath: v })}
             options={assets.screenshots || []}
             category="screenshots"

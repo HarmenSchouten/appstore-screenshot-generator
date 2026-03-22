@@ -1,23 +1,23 @@
 /**
  * ScreenshotEditor Component
- * 
+ *
  * Full editor panel for configuring screenshot settings including
  * content, typography, layout, phone frame, glows, shapes, and mascot.
  */
 
-import { Slider, ColorInput } from '../inputs/index';
-import { CollapsibleSection } from '../CollapsibleSection';
-import { DeviceMockupEditor } from './DeviceMockupEditor';
-import { GlowEditorInline } from './GlowEditorInline';
-import { ShapeEditorInline } from './ShapeEditorInline';
-import { MascotEditorInline } from './MascotEditorInline';
-import type { Screenshot, Assets, Config } from '../../types';
+import { ColorInput, Slider } from "../inputs/index";
+import { CollapsibleSection } from "../CollapsibleSection";
+import { DeviceMockupEditor } from "./DeviceMockupEditor";
+import { GlowEditorInline } from "./GlowEditorInline";
+import { ShapeEditorInline } from "./ShapeEditorInline";
+import { MascotEditorInline } from "./MascotEditorInline";
+import type { Assets, Config, Screenshot } from "../../types";
 
 interface ScreenshotEditorProps {
   screenshot: Screenshot;
   assets: Assets;
   config: Config;
-  selectedPlatform: 'android' | 'ios';
+  selectedPlatform: "android" | "ios";
   onUpdate: (updates: Partial<Screenshot>) => void;
   onUpdateConfig: (config: Config) => void;
   onAssetsRefresh: () => Promise<void>;
@@ -49,8 +49,9 @@ export function ScreenshotEditor({
             <label className="text-xs text-zinc-500 block mb-1">Headline</label>
             <input
               type="text"
-              value={screenshot.headline || ''}
-              onInput={(e) => onUpdate({ headline: (e.target as HTMLInputElement).value })}
+              value={screenshot.headline || ""}
+              onInput={(e) =>
+                onUpdate({ headline: (e.target as HTMLInputElement).value })}
               className="w-full px-3 py-2 rounded text-sm"
               placeholder="Your headline here..."
             />
@@ -59,8 +60,9 @@ export function ScreenshotEditor({
             <label className="text-xs text-zinc-500 block mb-1">Subtitle</label>
             <input
               type="text"
-              value={screenshot.subtitle || ''}
-              onInput={(e) => onUpdate({ subtitle: (e.target as HTMLInputElement).value })}
+              value={screenshot.subtitle || ""}
+              onInput={(e) =>
+                onUpdate({ subtitle: (e.target as HTMLInputElement).value })}
               className="w-full px-3 py-2 rounded text-sm"
               placeholder="A compelling subtitle..."
             />
@@ -89,10 +91,17 @@ export function ScreenshotEditor({
               unit="%"
             />
             <div>
-              <label className="text-xs text-zinc-500 block mb-1">Headline Weight</label>
+              <label className="text-xs text-zinc-500 block mb-1">
+                Headline Weight
+              </label>
               <select
                 value={typo.headlineFontWeight ?? 800}
-                onChange={(e) => updateTypography({ headlineFontWeight: Number((e.target as HTMLSelectElement).value) })}
+                onChange={(e) =>
+                  updateTypography({
+                    headlineFontWeight: Number(
+                      (e.target as HTMLSelectElement).value,
+                    ),
+                  })}
                 className="w-full px-3 py-2 rounded text-sm"
               >
                 <option value="400">Regular (400)</option>
@@ -104,10 +113,17 @@ export function ScreenshotEditor({
               </select>
             </div>
             <div>
-              <label className="text-xs text-zinc-500 block mb-1">Subtitle Weight</label>
+              <label className="text-xs text-zinc-500 block mb-1">
+                Subtitle Weight
+              </label>
               <select
                 value={typo.subtitleFontWeight ?? 500}
-                onChange={(e) => updateTypography({ subtitleFontWeight: Number((e.target as HTMLSelectElement).value) })}
+                onChange={(e) =>
+                  updateTypography({
+                    subtitleFontWeight: Number(
+                      (e.target as HTMLSelectElement).value,
+                    ),
+                  })}
                 className="w-full px-3 py-2 rounded text-sm"
               >
                 <option value="400">Regular (400)</option>
@@ -127,13 +143,17 @@ export function ScreenshotEditor({
               step={0.05}
             />
             <div>
-              <label className="text-xs text-zinc-500 block mb-1">Text Align</label>
+              <label className="text-xs text-zinc-500 block mb-1">
+                Text Align
+              </label>
               <div className="flex gap-1">
-                {(['left', 'center', 'right'] as const).map((align) => (
+                {(["left", "center", "right"] as const).map((align) => (
                   <button
                     onClick={() => updateTypography({ textAlign: align })}
                     className={`flex-1 px-2 py-1.5 rounded text-xs ${
-                      (typo.textAlign ?? 'center') === align ? 'bg-indigo-600' : 'bg-zinc-800 hover:bg-zinc-700'
+                      (typo.textAlign ?? "center") === align
+                        ? "bg-indigo-600"
+                        : "bg-zinc-800 hover:bg-zinc-700"
                     }`}
                   >
                     {align.charAt(0).toUpperCase() + align.slice(1)}
@@ -144,9 +164,11 @@ export function ScreenshotEditor({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs text-zinc-500 block mb-1">Text Color</label>
+              <label className="text-xs text-zinc-500 block mb-1">
+                Text Color
+              </label>
               <ColorInput
-                value={typo.textColor ?? '#ffffff'}
+                value={typo.textColor ?? "#ffffff"}
                 onChange={(v) => updateTypography({ textColor: v })}
               />
             </div>

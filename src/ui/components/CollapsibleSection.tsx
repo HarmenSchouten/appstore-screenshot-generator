@@ -1,10 +1,10 @@
 /**
  * CollapsibleSection Component
- * 
+ *
  * Collapsible section with header and content area.
  */
 
-import { useState, type ReactNode } from 'react';
+import { type ReactNode, useState } from "react";
 
 interface CollapsibleSectionProps {
   title: string;
@@ -28,7 +28,7 @@ export function CollapsibleSection({
         <h3 className="text-sm font-medium text-zinc-300">{title}</h3>
         <i
           className={`fa-solid fa-chevron-down text-zinc-400 text-xs transition-transform ${
-            isOpen ? 'rotate-180' : ''
+            isOpen ? "rotate-180" : ""
           }`}
         />
       </div>

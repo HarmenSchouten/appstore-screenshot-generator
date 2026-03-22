@@ -1,6 +1,6 @@
 /**
  * NumberInput Component
- * 
+ *
  * Number input with increment/decrement buttons.
  */
 
@@ -19,7 +19,7 @@ export function NumberInput({
   min = 0,
   max = 100,
   step = 1,
-  className = '',
+  className = "",
 }: NumberInputProps) {
   const decrement = () => {
     const newVal = Math.max(min, (value || 0) - step);

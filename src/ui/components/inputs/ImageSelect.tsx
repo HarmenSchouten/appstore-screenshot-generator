@@ -1,10 +1,10 @@
 /**
  * ImageSelect Component
- * 
+ *
  * Dropdown selector with upload button for selecting/uploading images.
  */
 
-import { useState, useRef } from 'react';
+import { useRef, useState } from "react";
 
 interface ImageSelectProps {
   value: string;
@@ -23,7 +23,7 @@ export function ImageSelect({
   category,
   onAssetsRefresh,
   label,
-  placeholder = 'Select image...',
+  placeholder = "Select image...",
 }: ImageSelectProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -34,12 +34,12 @@ export function ImageSelect({
 
     setUploading(true);
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('category', category || 'screenshots');
+    formData.append("file", file);
+    formData.append("category", category || "screenshots");
 
     try {
-      const res = await fetch('/api/assets/upload', {
-        method: 'POST',
+      const res = await fetch("/api/assets/upload", {
+        method: "POST",
         body: formData,
       });
       if (res.ok) {
@@ -49,27 +49,29 @@ export function ImageSelect({
         onChange(data.path);
       }
     } catch (err) {
-      console.error('Upload failed:', err);
+      console.error("Upload failed:", err);
     }
     setUploading(false);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   return (
     <div>
-      {label && <label className="text-xs text-zinc-500 block mb-1">{label}</label>}
+      {label && (
+        <label className="text-xs text-zinc-500 block mb-1">{label}</label>
+      )}
       <div className="flex gap-2">
         <select
-          value={value || ''}
+          value={value || ""}
           onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
           className="flex-1 px-3 py-2 rounded text-sm"
         >
           <option value="">{placeholder}</option>
           {options.map((p) => (
             <option key={p} value={p}>
-              {p.split('/').pop()}
+              {p.split("/").pop()}
             </option>
           ))}
         </select>

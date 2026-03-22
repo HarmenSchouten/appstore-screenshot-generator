@@ -1,11 +1,11 @@
 /**
  * MascotEditorInline Component
- * 
+ *
  * Inline editor for managing mascot images on screenshots.
  */
 
-import { Slider, ImageSelect } from '../inputs/index';
-import type { Mascot, Assets, Config } from '../../types';
+import { ImageSelect, Slider } from "../inputs/index";
+import type { Assets, Config, Mascot } from "../../types";
 
 interface MascotEditorInlineProps {
   mascot: Mascot | null;
@@ -16,10 +16,10 @@ interface MascotEditorInlineProps {
 }
 
 const POSITIONS = [
-  { value: 'top-left', rotation: '-45', label: 'Top Left' },
-  { value: 'top-right', rotation: '45', label: 'Top Right' },
-  { value: 'bottom-left', rotation: '-135', label: 'Bottom Left' },
-  { value: 'bottom-right', rotation: '135', label: 'Bottom Right' },
+  { value: "top-left", rotation: "-45", label: "Top Left" },
+  { value: "top-right", rotation: "45", label: "Top Right" },
+  { value: "bottom-left", rotation: "-135", label: "Bottom Left" },
+  { value: "bottom-right", rotation: "135", label: "Bottom Right" },
 ] as const;
 
 export function MascotEditorInline({
@@ -36,8 +36,8 @@ export function MascotEditorInline({
       onChange(null);
     } else {
       onChange({
-        position: 'bottom-right',
-        imagePath: config.app?.defaultMascotPath || '',
+        position: "bottom-right",
+        imagePath: config.app?.defaultMascotPath || "",
         size: 15,
         offset: 20,
         borderRadius: 0,
@@ -56,9 +56,11 @@ export function MascotEditorInline({
       <div className="flex justify-end">
         <button
           onClick={toggleMascot}
-          className={`text-xs px-3 py-1.5 rounded ${enabled ? 'bg-indigo-600' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+          className={`text-xs px-3 py-1.5 rounded ${
+            enabled ? "bg-indigo-600" : "bg-zinc-800 hover:bg-zinc-700"
+          }`}
         >
-          {enabled ? 'Enabled' : 'Add Mascot'}
+          {enabled ? "Enabled" : "Add Mascot"}
         </button>
       </div>
 
@@ -66,7 +68,7 @@ export function MascotEditorInline({
         <div className="space-y-3">
           <ImageSelect
             label="Image"
-            value={mascot.imagePath || config.app?.defaultMascotPath || ''}
+            value={mascot.imagePath || config.app?.defaultMascotPath || ""}
             onChange={(v) => updateMascot({ imagePath: v })}
             options={[...(assets.mascots || []), ...(assets.screenshots || [])]}
             category="mascots"
@@ -81,9 +83,9 @@ export function MascotEditorInline({
                 <button
                   onClick={() => updateMascot({ position: pos.value })}
                   className={`px-2 py-1.5 rounded text-xs flex items-center gap-1.5 ${
-                    (mascot.position || 'bottom-right') === pos.value
-                      ? 'bg-indigo-600'
-                      : 'bg-zinc-800 hover:bg-zinc-700'
+                    (mascot.position || "bottom-right") === pos.value
+                      ? "bg-indigo-600"
+                      : "bg-zinc-800 hover:bg-zinc-700"
                   }`}
                 >
                   <i

@@ -1,27 +1,27 @@
 /**
  * UI Component Types
- * 
+ *
  * Shared type definitions for the frontend UI components.
  */
 
 // Re-export from main types
 export type {
+  ColorPalette as Palette,
   DevicePresetId,
+  FeatureGraphic,
+  GlowEffect as Glow,
+  MascotOptions as Mascot,
+  PhoneFrameOptions as PhoneFrame,
   ProjectConfig,
   ProjectInfo,
   Screenshot,
-  FeatureGraphic,
-  ThemeConfig as Theme,
-  GlowEffect as Glow,
   Shape,
   ShapeType,
-  MascotOptions as Mascot,
-  PhoneFrameOptions as PhoneFrame,
-  ColorPalette as Palette,
-} from '../types/index';
+  ThemeConfig as Theme,
+} from "../types/index";
 
 // Re-export ProjectConfig as Config for component convenience
-export type { ProjectConfig as Config } from '../types/index';
+export type { ProjectConfig as Config } from "../types/index";
 
 /**
  * Glow color presets
@@ -42,8 +42,8 @@ export type DefaultPalettes = Record<string, Palette>;
  * App initial data injected by server
  */
 export interface AppData {
-  config: import('../types/index.ts').ProjectConfig;
-  projects: import('../types/index.ts').ProjectInfo[];
+  config: import("../types/index.ts").ProjectConfig;
+  projects: import("../types/index.ts").ProjectInfo[];
   projectId: string;
   glowColors: GlowColors;
   gradientTemplates: GradientTemplates;
@@ -63,8 +63,8 @@ export interface Assets {
  * Selected item in sidebar
  */
 export type SelectedItem =
-  | { type: 'screenshot'; id: string }
-  | { type: 'feature-graphic' }
+  | { type: "screenshot"; id: string }
+  | { type: "feature-graphic" }
   | null;
 
 /**
@@ -84,9 +84,9 @@ export interface GenerateProgress {
 export interface GenerateResult {
   path: string;
   relativePath: string;
-  status: 'success' | 'error';
+  status: "success" | "error";
   error?: string;
 }
 
 // Import Palette type
-import type { ColorPalette as Palette } from '../types/index';
+import type { ColorPalette as Palette } from "../types/index";

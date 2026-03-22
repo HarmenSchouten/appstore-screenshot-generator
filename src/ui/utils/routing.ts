@@ -11,7 +11,7 @@ export interface UrlParams {
 
 export function parseUrlParams(): UrlParams {
   const path = location.pathname;
-  const parts = path.split('/').filter(Boolean);
+  const parts = path.split("/").filter(Boolean);
   return {
     project: parts[0] || null,
     lang: parts[1] || null,
@@ -24,11 +24,11 @@ export function buildUrl(
   project: string,
   lang: string | null,
   platform: string | null,
-  screenshotId: string | null
+  screenshotId: string | null,
 ): string {
-  let url = '/' + project;
-  if (lang) url += '/' + lang;
-  if (platform) url += '/' + platform;
-  if (screenshotId) url += '/' + screenshotId;
+  let url = "/" + project;
+  if (lang) url += "/" + lang;
+  if (platform) url += "/" + platform;
+  if (screenshotId) url += "/" + screenshotId;
   return url;
 }

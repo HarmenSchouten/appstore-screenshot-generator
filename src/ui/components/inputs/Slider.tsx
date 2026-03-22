@@ -1,6 +1,6 @@
 /**
  * Slider Component
- * 
+ *
  * Range slider with label and value display.
  */
 
@@ -22,15 +22,12 @@ export function Slider({
   min,
   max,
   step = 1,
-  unit = '',
+  unit = "",
   showValue = true,
 }: SliderProps) {
-  const displayValue =
-    typeof value === 'number'
-      ? Number.isInteger(value)
-        ? value
-        : value.toFixed(step < 1 ? 2 : 0)
-      : value;
+  const displayValue = typeof value === "number"
+    ? Number.isInteger(value) ? value : value.toFixed(step < 1 ? 2 : 0)
+    : value;
 
   return (
     <div>
