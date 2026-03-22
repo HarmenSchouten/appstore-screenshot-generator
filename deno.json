@@ -18,12 +18,12 @@
     "types": ["npm:@types/react@^18.3.1"]
   },
   "lint": {
-    "exclude": ["src/ui/", "dist/", "node_modules/"]
+    "exclude": ["dist/", "node_modules/"]
   },
   "fmt": {
-    "exclude": ["src/ui/", "dist/", "node_modules/", "**/*.md"]
+    "exclude": ["dist/", "node_modules/", "**/*.md"]
   },
-  "exclude": ["src/ui/", "dist/", "node_modules/"],
+  "exclude": ["dist/", "node_modules/"],
   "imports": {
     "@std/path": "jsr:@std/path@^1.0.0",
     "@std/fs": "jsr:@std/fs@^1.0.0",
@@ -43,6 +43,8 @@
     "@ui/": "./src/ui/",
     "@lib": "./src/lib/index.ts",
     "@lib/": "./src/lib/",
+    "@device-presets": "./src/device-presets/index.ts",
+    "@device-presets/": "./src/device-presets/",
     "@renderer": "./src/renderer-components/index.ts",
     "@renderer/": "./src/renderer-components/"
   }

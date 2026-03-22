@@ -11,6 +11,7 @@
     "npm:@types/react@^18.3.12": "18.3.28",
     "npm:@vitejs/plugin-react@^4.3.4": "4.7.0_vite@6.4.1__picomatch@4.0.3_@babel+core@7.29.0",
     "npm:autoprefixer@^10.4.20": "10.4.27_postcss@8.5.8",
+    "npm:concurrently@9.2.1": "9.2.1",
     "npm:concurrently@^9.1.2": "9.2.1",
     "npm:hono@4": "4.12.5",
     "npm:postcss@^8.4.49": "8.5.8",
@@ -21,7 +22,8 @@
     "npm:sharp@0.33.5": "0.33.5",
     "npm:tailwindcss@^3.4.17": "3.4.19_postcss@8.5.8_jiti@1.21.7",
     "npm:typescript@^5.7.2": "5.9.3",
-    "npm:vite@^6.0.7": "6.4.1_picomatch@4.0.3"
+    "npm:vite@^6.0.7": "6.4.1_picomatch@4.0.3",
+    "npm:zustand@^5.0.12": "5.0.12_@types+react@18.3.28_react@18.3.1"
   },
   "jsr": {
     "@std/fs@1.0.22": {
@@ -1735,6 +1737,13 @@
     },
     "zod@3.25.76": {
       "integrity": "sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ=="
+    },
+    "zustand@5.0.12_@types+react@18.3.28_react@18.3.1": {
+      "integrity": "sha512-i77ae3aZq4dhMlRhJVCYgMLKuSiZAaUPAct2AksxQ+gOtimhGMdXljRT21P5BNpeT4kXlLIckvkPM029OljD7g==",
+      "dependencies": [
+        "@types/react",
+        "react"
+      ]
     }
   },
   "workspace": {
