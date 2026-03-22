@@ -22,6 +22,7 @@ export default defineConfig({
       "@ui": resolve(__dirname, "src/ui"),
       "@types": resolve(__dirname, "src/types"),
       "@renderer": resolve(__dirname, "src/renderer-components"),
+      "@device-presets": resolve(__dirname, "src/device-presets"),
     },
   },
 

@@ -26,9 +26,11 @@
       "@/*": ["src/*"],
       "@ui/*": ["src/ui/*"],
       "@types/*": ["src/types/*"],
-      "@renderer/*": ["src/renderer-components/*"]
+      "@renderer/*": ["src/renderer-components/*"],
+      "@device-presets": ["src/device-presets/index.ts"],
+      "@device-presets/*": ["src/device-presets/*"]
     }
   },
-  "include": ["src/ui/**/*", "src/renderer-components/**/*"],
+  "include": ["src/ui/**/*", "src/renderer-components/**/*", "src/types/**/*", "src/device-presets/**/*"],
   "exclude": ["node_modules", "dist"]
 }
