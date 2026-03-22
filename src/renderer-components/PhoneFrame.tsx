@@ -9,7 +9,6 @@ import React from "react";
 import {
   DEVICE_PRESET_REFERENCE_WIDTH,
   getDevicePreset,
-  resolveScreenshotDevicePresetId,
 } from "../device-presets/index.ts";
 import type { DevicePresetId, Platform, Screenshot } from "./types.ts";
 import { assetUrl } from "./utils.ts";
@@ -265,74 +264,75 @@ export function Phones({
   assetUrlPrefix = "/assets/",
   containerWidth = 1290,
 }: PhonesProps): React.ReactElement {
-  const isDual = Array.isArray(screenshot.imagePath);
-  const images = isDual
-    ? screenshot.imagePath as string[]
-    : [screenshot.imagePath as string];
+  return <div>Phone Frame</div>
+  // const isDual = Array.isArray(screenshot.imagePath);
+  // const images = isDual
+  //   ? screenshot.imagePath as string[]
+  //   : [screenshot.imagePath as string];
 
-  const phoneScale = screenshot.phoneFrame?.scale ?? (isDual ? 42 : 70);
-  const bottomOffset = screenshot.phoneFrame?.bottomOffset ?? 6;
-  const dualRotation = screenshot.phoneFrame?.dualRotation ?? 6;
-  const dualGap = screenshot.phoneFrame?.dualGap ?? 2;
-  const presetId = resolveScreenshotDevicePresetId(
-    platform,
-    defaultDevicePresetId,
-    screenshot.phoneFrame,
-  );
+  // const phoneScale = screenshot.phoneFrame?.scale ?? (isDual ? 42 : 70);
+  // const bottomOffset = screenshot.phoneFrame?.bottomOffset ?? 6;
+  // const dualRotation = screenshot.phoneFrame?.dualRotation ?? 6;
+  // const dualGap = screenshot.phoneFrame?.dualGap ?? 2;
+  // const presetId = resolveScreenshotDevicePresetId(
+  //   platform,
+  //   defaultDevicePresetId,
+  //   screenshot.phoneFrame,
+  // );
 
-  // Calculate actual phone width in pixels
-  const phonePixelWidth = Math.round(containerWidth * (phoneScale / 100));
+  // // Calculate actual phone width in pixels
+  // const phonePixelWidth = Math.round(containerWidth * (phoneScale / 100));
 
-  if (isDual) {
-    return (
-      <div className="phone-area" style={{ bottom: `${bottomOffset}%` }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "flex-end",
-            gap: `${dualGap}%`,
-            width: "100%",
-            padding: "0 3%",
-          }}
-        >
-          {images.map((img, i) => (
-            <PhoneFrame
-              key={i}
-              imageUrl={assetUrl(img, assetUrlPrefix)}
-              presetId={presetId}
-              widthPercent={phoneScale}
-              pixelWidth={phonePixelWidth}
-              rotation={i === 0 ? -dualRotation : dualRotation}
-              extraStyles={{
-                flexShrink: 0,
-                zIndex: i === 0 ? 1 : 2,
-                ...(i === 0 ? { marginRight: "-2%" } : { marginLeft: "-2%" }),
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  // if (isDual) {
+  //   return (
+  //     <div className="phone-area" style={{ bottom: `${bottomOffset}%` }}>
+  //       <div
+  //         style={{
+  //           display: "flex",
+  //           justifyContent: "center",
+  //           alignItems: "flex-end",
+  //           gap: `${dualGap}%`,
+  //           width: "100%",
+  //           padding: "0 3%",
+  //         }}
+  //       >
+  //         {images.map((img, i) => (
+  //           <PhoneFrame
+  //             key={i}
+  //             imageUrl={assetUrl(img, assetUrlPrefix)}
+  //             presetId={presetId}
+  //             widthPercent={phoneScale}
+  //             pixelWidth={phonePixelWidth}
+  //             rotation={i === 0 ? -dualRotation : dualRotation}
+  //             extraStyles={{
+  //               flexShrink: 0,
+  //               zIndex: i === 0 ? 1 : 2,
+  //               ...(i === 0 ? { marginRight: "-2%" } : { marginLeft: "-2%" }),
+  //             }}
+  //           />
+  //         ))}
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  const horizontalPadding = (100 - phoneScale) / 2;
+  // const horizontalPadding = (100 - phoneScale) / 2;
 
-  return (
-    <div
-      className="phone-area"
-      style={{
-        bottom: `${bottomOffset}%`,
-        paddingLeft: `${horizontalPadding}%`,
-        paddingRight: `${horizontalPadding}%`,
-      }}
-    >
-      <PhoneFrame
-        imageUrl={assetUrl(images[0], assetUrlPrefix)}
-        presetId={presetId}
-        widthPercent={100}
-        pixelWidth={phonePixelWidth}
-      />
-    </div>
-  );
+  // return (
+  //   <div
+  //     className="phone-area"
+  //     style={{
+  //       bottom: `${bottomOffset}%`,
+  //       paddingLeft: `${horizontalPadding}%`,
+  //       paddingRight: `${horizontalPadding}%`,
+  //     }}
+  //   >
+  //     <PhoneFrame
+  //       imageUrl={assetUrl(images[0], assetUrlPrefix)}
+  //       presetId={presetId}
+  //       widthPercent={100}
+  //       pixelWidth={phonePixelWidth}
+  //     />
+  //   </div>
+  // );
 }
