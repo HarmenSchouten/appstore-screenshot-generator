@@ -18,6 +18,13 @@ export interface ConfigSlice {
   saveConfig: (config: Config) => void;
   /** Flush any pending debounced save immediately. */
   flush: () => Promise<void>;
+  /** Add a new language, optionally copying from an existing one. */
+  addLanguage: (language: string, copyFrom: string | null) => Promise<void>;
+  /** Copy one platform's config to another within the selected language. */
+  copyPlatformConfig: (
+    sourcePlatform: "android" | "ios",
+    targetPlatform: "android" | "ios",
+  ) => Promise<void>;
 }
 
 export interface ProjectSlice {

@@ -16,17 +16,10 @@ import { selectScreenshots, useAppStore } from "../store/index.ts";
 
 interface SidebarProps {
   onGenerate: () => void;
-  onAddLanguage: (lang: string, copyFrom: string | null) => void;
-  onCopyPlatformConfig: (
-    source: "android" | "ios",
-    target: "android" | "ios",
-  ) => void;
 }
 
 export function Sidebar({
   onGenerate,
-  onAddLanguage,
-  onCopyPlatformConfig,
 }: SidebarProps) {
   // Store state (reactive selectors)
   const config = useAppStore((s) => s.config);
@@ -46,6 +39,8 @@ export function Sidebar({
     setSelectedPlatform,
     setSelectedItem,
     switchProject,
+    addLanguage,
+    copyPlatformConfig,
     addScreenshot,
     removeScreenshot,
     removeFeatureGraphic,
@@ -120,7 +115,7 @@ export function Sidebar({
                   confirm("Copy screenshots from current language?")
                     ? selectedLang
                     : null;
-                onAddLanguage(lang, copyFrom);
+                addLanguage(lang, copyFrom);
               }
             }}
             className="px-2 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded"
@@ -163,7 +158,7 @@ export function Sidebar({
                   `Copy all ${sourcePlatform} screenshots to ${targetPlatform}? This will replace existing ${targetPlatform} screenshots.`,
                 )
               ) {
-                onCopyPlatformConfig(sourcePlatform, targetPlatform);
+                copyPlatformConfig(sourcePlatform, targetPlatform);
               }
             }}
             className="px-2 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 rounded"

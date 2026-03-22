@@ -109,58 +109,10 @@ export function App() {
     closeProjectModal();
   };
 
-  const addLanguage = async (language: string, copyFrom: string | null) => {
-    const res = await fetch("/api/config/language", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ language, copyFrom }),
-    });
-    if (res.ok) {
-      const newLang = await res.json();
-      const { config } = useAppStore.getState();
-      const newConfig = { ...config };
-      if (!newConfig.languages) newConfig.languages = [];
-      newConfig.languages.push(newLang);
-      setConfig(newConfig);
-      setSelectedLang(language);
-    }
-  };
-
-  const copyPlatformConfig = async (
-    sourcePlatform: "android" | "ios",
-    targetPlatform: "android" | "ios",
-  ) => {
-    const res = await fetch("/api/config/copy-platform", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        language: useAppStore.getState().selectedLang,
-        sourcePlatform,
-        targetPlatform,
-      }),
-    });
-    if (res.ok) {
-      const updatedLang = await res.json();
-      const { config } = useAppStore.getState();
-      const newConfig = { ...config };
-      const langIndex = newConfig.languages?.findIndex(
-        (l) => l.language === useAppStore.getState().selectedLang,
-      ) ?? -1;
-      if (langIndex >= 0 && newConfig.languages) {
-        newConfig.languages[langIndex] = updatedLang;
-      }
-      setConfig(newConfig);
-      setSelectedPlatform(targetPlatform);
-      setSelectedItem(null);
-    }
-  };
-
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
       <Sidebar
         onGenerate={generateAll}
-        onAddLanguage={addLanguage}
-        onCopyPlatformConfig={copyPlatformConfig}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
