@@ -69,7 +69,6 @@ export function App() {
     closeProjectModal,
     closeThemeEditor,
     closeMediaManager,
-    setSelectedPlatform,
   } = useAppStore.getState();
 
   const selectedScreenshot = (() => {
@@ -143,13 +142,8 @@ export function App() {
       {selectedScreenshot && (
         <ScreenshotEditor
           screenshot={selectedScreenshot}
-          assets={assets}
-          config={config}
-          selectedPlatform={selectedPlatform}
           onUpdate={(updates) =>
             updateScreenshot(selectedScreenshot.id, updates)}
-          onUpdateConfig={saveConfig}
-          onAssetsRefresh={refreshAssets}
         />
       )}
 
