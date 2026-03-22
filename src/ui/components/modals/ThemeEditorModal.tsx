@@ -5,8 +5,8 @@
  */
 
 import { useState } from "react";
-import { ColorInput } from "../inputs/ColorInput";
-import type { Config } from "../../types";
+import { ColorInput } from "../inputs/ColorInput.tsx";
+import type { Config } from "../../types.ts";
 
 // Constants imported from lib
 const GRADIENT_TEMPLATES = [
