@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { devtools } from "zustand/middleware";
 import { createConfigSlice } from "./config.ts";
 import { createProjectSlice } from "./projects.ts";
 import { createSelectionSlice } from "./selection.ts";
@@ -12,16 +13,21 @@ import type { Screenshot } from "../types.ts";
 
 // ── Store ───────────────────────────────────────────────────────────
 
-export const useAppStore = create<AppState>()((...a) => ({
-  ...createConfigSlice(...a),
-  ...createProjectSlice(...a),
-  ...createSelectionSlice(...a),
-  ...createAssetsSlice(...a),
-  ...createScreenshotSlice(...a),
-  ...createDevicePresetSlice(...a),
-  ...createGenerationSlice(...a),
-  ...createUISlice(...a),
-}));
+export const useAppStore = create<AppState>()(
+  devtools(
+    (...a) => ({
+      ...createConfigSlice(...a),
+      ...createProjectSlice(...a),
+      ...createSelectionSlice(...a),
+      ...createAssetsSlice(...a),
+      ...createScreenshotSlice(...a),
+      ...createDevicePresetSlice(...a),
+      ...createGenerationSlice(...a),
+      ...createUISlice(...a),
+    }),
+    { name: "AppStore" },
+  ),
+);
 
 // ── Selectors ───────────────────────────────────────────────────────
 
