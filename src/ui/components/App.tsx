@@ -1,7 +1,8 @@
 /**
  * App Component
  *
- * Slim shell — all state lives in the Zustand store.
+ * Slim shell — all state lives in the Zustand store,
+ * URL is managed by React Router via useStoreRouteSync.
  */
 
 import { useEffect } from "react";
@@ -18,7 +19,7 @@ import {
   useAppStore,
 } from "../store/index.ts";
 import { activateProject, fetchAssets } from "../utils/api.ts";
-import { buildUrl, parseUrlParams } from "../utils/routing.ts";
+import { useStoreRouteSync } from "../utils/routing.ts";
 import type { AppData } from "../types.ts";
 
 declare global {
@@ -29,13 +30,12 @@ declare global {
 
 export function App() {
   const appData = window.__APP_DATA__;
-  const urlParams = parseUrlParams();
-  const validProject = appData.projects.find((p) => p.id === urlParams.project);
-  const initialProject = validProject ? urlParams.project : appData.projectId;
+
+  // Two-way sync: React Router params <-> Zustand store
+  useStoreRouteSync();
 
   const config = useAppStore((s) => s.config);
   const selectedItem = useAppStore((s) => s.selectedItem);
-  const selectedLang = useAppStore((s) => s.selectedLang);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
   const assets = useAppStore((s) => s.assets);
   const currentProject = useAppStore((s) => s.currentProject);
@@ -54,10 +54,8 @@ export function App() {
     generating,
     generateProgress,
     showGenerateModal,
-    lastGenerated,
     generateAll,
     closeGenerateModal,
-    viewLastGenerated,
     refreshLastGenerated,
     // Projects
     projects,
@@ -69,11 +67,8 @@ export function App() {
     projectModalOpen,
     themeEditorOpen,
     mediaManagerOpen,
-    openProjectModal,
     closeProjectModal,
-    openThemeEditor,
     closeThemeEditor,
-    openMediaManager,
     closeMediaManager,
     setSelectedPlatform,
   } = useAppStore.getState();
@@ -89,8 +84,8 @@ export function App() {
 
   // On mount, sync server to URL-specified project if they differ
   useEffect(() => {
-    if (initialProject !== appData.projectId) {
-      activateProject(initialProject).then((data) => {
+    if (currentProject !== appData.projectId) {
+      activateProject(currentProject).then((data) => {
         setConfig(data.config);
         setSelectedLang(data.config.languages?.[0]?.language || "en");
         setSelectedItem(null);
@@ -101,7 +96,7 @@ export function App() {
     }
     refreshAssets();
     refreshLastGenerated();
-  }, [currentProject]);
+  }, []);
 
   // Deselect missing feature-graphic
   useEffect(() => {
@@ -109,25 +104,6 @@ export function App() {
       setSelectedItem(null);
     }
   }, [selectedItem, selectedScreenshot]);
-
-  // URL sync
-  useEffect(() => {
-    if (!currentProject) return;
-    const screenshotId = selectedItem?.type === "feature-graphic"
-      ? "feature-graphic"
-      : selectedItem?.type === "screenshot"
-      ? selectedItem.id
-      : null;
-    const newUrl = buildUrl(
-      currentProject,
-      selectedLang,
-      selectedPlatform,
-      screenshotId,
-    );
-    if (location.pathname !== newUrl) {
-      history.pushState({}, "", newUrl);
-    }
-  }, [currentProject, selectedLang, selectedPlatform, selectedItem]);
 
   const handleCreateProject = async (name: string) => {
     await createProject(name);

@@ -7,38 +7,10 @@
 
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "./components/App";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { App } from "./components/App.tsx";
 import { useAppStore } from "./store/index.ts";
-import { parseUrlParams } from "./utils/routing.ts";
 import "./styles.css";
-
-// Type definitions for global utilities (AppData declared in App.tsx)
-declare global {
-  interface Window {
-    GRADIENT_TEMPLATES: Record<string, string>;
-    DEFAULT_PALETTES: Record<
-      string,
-      { primary: string; secondary: string; accent: string }
-    >;
-    applyPaletteToGradient: (
-      template: string,
-      palette: { primary: string; secondary: string; accent: string },
-    ) => string;
-  }
-}
-
-// Initialize global palette utilities
-window.GRADIENT_TEMPLATES = {};
-window.DEFAULT_PALETTES = {};
-window.applyPaletteToGradient = (
-  template: string,
-  palette: { primary: string; secondary: string; accent: string },
-) => {
-  return template
-    .replace(/\{primary\}/g, palette.primary)
-    .replace(/\{secondary\}/g, palette.secondary)
-    .replace(/\{accent\}/g, palette.accent);
-};
 
 // Fetch initial data and mount application
 async function init() {
@@ -51,52 +23,27 @@ async function init() {
 
     const appData = await response.json();
 
-    // Store global utilities for palette system
     window.__APP_DATA__ = appData;
-    window.GRADIENT_TEMPLATES = appData.gradientTemplates || {};
-    window.DEFAULT_PALETTES = appData.palettes || {};
 
-    // Hydrate Zustand store with server data
-    const urlParams = parseUrlParams();
-    const validProject = appData.projects.find(
-      (p: { id: string }) => p.id === urlParams.project,
-    );
-    const initialProject = validProject ? urlParams.project : appData.projectId;
-    const initialLang = (() => {
-      if (
-        urlParams.lang &&
-        appData.config.languages?.find(
-          (l: { language: string }) => l.language === urlParams.lang,
-        )
-      ) {
-        return urlParams.lang;
-      }
-      return appData.config.languages?.[0]?.language || "en";
-    })();
-    const initialPlatform = urlParams.platform &&
-        ["android", "ios"].includes(urlParams.platform)
-      ? urlParams.platform
-      : "android";
-    const initialItem = urlParams.screenshotId === "feature-graphic"
-      ? { type: "feature-graphic" as const }
-      : urlParams.screenshotId
-      ? { type: "screenshot" as const, id: urlParams.screenshotId }
-      : null;
-
+    // Hydrate Zustand store with server data (URL params handled by React Router)
     useAppStore.setState({
       config: appData.config,
       projects: appData.projects,
-      currentProject: initialProject,
-      selectedLang: initialLang,
-      selectedPlatform: initialPlatform as "android" | "ios",
-      selectedItem: initialItem,
+      currentProject: appData.projectId,
     });
 
-    // Mount application
+    // Mount application with React Router
     const root = createRoot(document.getElementById("root")!);
     root.render(
       <React.StrictMode>
-        <App />
+        <BrowserRouter>
+          <Routes>
+            <Route
+              path="/:project?/:lang?/:platform?/:screenshotId?"
+              element={<App />}
+            />
+          </Routes>
+        </BrowserRouter>
       </React.StrictMode>,
     );
   } catch (error) {
