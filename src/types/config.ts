@@ -3,7 +3,7 @@
  */
 
 import type { Dimensions, Language } from "./base.ts";
-import type { FeatureGraphic, Screenshot } from "./screenshot.ts";
+import type { Screenshot } from "./screenshot.ts";
 import type { AppBranding, ColorPalette, ThemeConfig } from "./theme.ts";
 import type { PlatformDefaults } from "./device.ts";
 
@@ -16,8 +16,6 @@ export interface PlatformConfig {
   dimensions: Dimensions;
   /** Screenshots for this platform */
   screenshots: Screenshot[];
-  /** Feature graphic (Google Play only) */
-  featureGraphic?: FeatureGraphic | null;
 }
 
 export interface LanguageConfig {

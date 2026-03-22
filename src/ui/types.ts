@@ -8,7 +8,6 @@
 export type {
   ColorPalette as Palette,
   DevicePresetId,
-  FeatureGraphic,
   GlowEffect as Glow,
   MascotOptions as Mascot,
   PhoneFrameOptions as PhoneFrame,
@@ -18,10 +17,10 @@ export type {
   Shape,
   ShapeType,
   ThemeConfig as Theme,
-} from "../types/index";
+} from "../types/index.ts";
 
 // Re-export ProjectConfig as Config for component convenience
-export type { ProjectConfig as Config } from "../types/index";
+export type { ProjectConfig as Config } from "../types/index.ts";
 
 /**
  * Glow color presets
@@ -89,4 +88,4 @@ export interface GenerateResult {
 }
 
 // Import Palette type
-import type { ColorPalette as Palette } from "../types/index";
+import type { ColorPalette as Palette } from "../types/index.ts";
