@@ -62,7 +62,6 @@ export function getBaseStylesCSS(
       height: 100%;
       position: relative;
       overflow: hidden;
-      background: ${theme.background.gradient};
     }
     
     ${selectorPrefix}.headline-area {

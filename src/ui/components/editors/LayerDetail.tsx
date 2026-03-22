@@ -7,6 +7,7 @@
 
 import type { Layer } from "@types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
+import { BackgroundEditor } from "./BackgroundEditor.tsx";
 
 interface LayerDetailProps {
   layer: Layer;
@@ -19,7 +20,7 @@ export function LayerDetail({
   layer,
   index,
   onBack,
-  onUpdate: _onUpdate,
+  onUpdate,
 }: LayerDetailProps) {
   const meta = LAYER_META[layer.type];
 
@@ -45,17 +46,21 @@ export function LayerDetail({
         </div>
       </div>
 
-      {/* Editor content area — placeholder for now */}
+      {/* Editor content area */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="text-center py-12 text-zinc-600">
-          <i className={`${meta.icon} text-3xl mb-3 block opacity-40`} />
-          <p className="text-sm">
-            {meta.label} editor coming soon
-          </p>
-          <p className="text-xs mt-1 text-zinc-700">
-            Layer-specific controls will appear here
-          </p>
-        </div>
+        {layer.type === "background"
+          ? <BackgroundEditor layer={layer} onUpdate={onUpdate} />
+          : (
+            <div className="text-center py-12 text-zinc-600">
+              <i className={`${meta.icon} text-3xl mb-3 block opacity-40`} />
+              <p className="text-sm">
+                {meta.label} editor coming soon
+              </p>
+              <p className="text-xs mt-1 text-zinc-700">
+                Layer-specific controls will appear here
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

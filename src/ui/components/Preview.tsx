@@ -7,6 +7,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ScreenshotContent } from "../../renderer-components/Screenshot.tsx";
+import { getBaseStylesCSS } from "../../renderer-components/BaseStyles.tsx";
 import type {
   AppConfig,
   DevicePresetId,
@@ -34,8 +35,6 @@ export function Preview(
 
   const frameResizeTransition =
     "width 120ms cubic-bezier(0.2, 0, 0, 1), height 120ms cubic-bezier(0.2, 0, 0, 1)";
-  const contentSettleTransition =
-    "transform 100ms cubic-bezier(0.2, 0, 0, 1), opacity 80ms linear";
 
   // Tiny settle effect when switching between screenshot and feature graphic.
   useLayoutEffect(() => {
@@ -88,6 +87,16 @@ export function Preview(
 
   const hasContent = !!screenshot;
 
+  // Scoped base CSS for the preview container (structural styles for
+  // .screenshot — width, height, position, overflow, font resets).
+  const scopeClass = screenshot?.role === "screenshot"
+    ? "screenshot-preview"
+    : "fg-preview";
+  const baseCSS = useMemo(
+    () => getBaseStylesCSS(theme, { scopeSelector: `.${scopeClass}` }),
+    [theme, scopeClass],
+  );
+
   if (!hasContent) {
     return (
       <div className="text-zinc-500">
@@ -101,6 +110,7 @@ export function Preview(
       ref={containerRef}
       className="w-full h-full flex items-center justify-center"
     >
+      <style dangerouslySetInnerHTML={{ __html: baseCSS }} />
       <div
         className="relative bg-black rounded-lg overflow-hidden shadow-2xl"
         style={{
@@ -109,7 +119,7 @@ export function Preview(
           transition: frameResizeTransition,
         }}
       >
-        {/* Isolated preview container */}
+        {/* Isolated preview container — uses zoom for resolution-independent scaling */}
         <div
           className={screenshot?.role === "screenshot"
             ? "screenshot-preview"
@@ -117,13 +127,9 @@ export function Preview(
           style={{
             width: width + "px",
             height: height + "px",
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-            position: "absolute",
-            top: 0,
-            left: 0,
+            zoom: scale,
             opacity: contentOpacity,
-            transition: contentSettleTransition,
+            transition: "opacity 80ms linear",
             // Reset inherited styles
             fontFamily: theme.fontFamily,
           }}

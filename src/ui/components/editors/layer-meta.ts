@@ -122,10 +122,6 @@ export function createDefaultLayer(type: Layer["type"]): Layer {
       return {
         ...base,
         type: "background",
-        posX: 0,
-        posY: 0,
-        rotation: 0,
-        gradient: "linear-gradient(180deg, #1e1b4b 0%, #312e81 100%)",
       };
   }
 }

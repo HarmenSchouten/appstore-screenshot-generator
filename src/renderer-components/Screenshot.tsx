@@ -8,8 +8,14 @@
 import React from "react";
 import type { RenderOptions } from "./types.ts";
 import { BaseStyles } from "./BaseStyles.tsx";
-import { TextLayer, TextBlockLayer, PhoneFrameLayer } from "@renderer/layers/index.tsx";
+import {
+  BackgroundLayer,
+  PhoneFrameLayer,
+  TextBlockLayer,
+  TextLayer,
+} from "@renderer/layers/index.tsx";
 import { Layer } from "../types.ts";
+import type { ThemeConfig } from "../types/theme.ts";
 
 interface ScreenshotProps {
   options: RenderOptions;
@@ -34,45 +40,63 @@ export function ScreenshotContent(
 
   return (
     <div className="screenshot">
-      { screenshot.layers.map(l => <ScreenshotLayer key={`${l.type}-${l.posX}-${l.posY}`} {...l} />) }
+      {screenshot.layers.map((l) => (
+        <ScreenshotLayer
+          key={l.id}
+          layer={l}
+          theme={options.theme}
+        />
+      ))}
       {/* Glow Effects */}
-      {/* {screenshot.glows.map((glow, index) => (
+      {
+        /* {screenshot.glows.map((glow, index) => (
         <Glow key={index} glow={glow} containerWidth={dimensions.width} />
-      ))} */}
+      ))} */
+      }
 
       {/* Decorative Shapes */}
       {/* <Shapes shapes={screenshot.shapes} /> */}
 
       {/* Headline */}
-      {/* <div
+      {
+        /* <div
         className="headline-area"
         style={{ top: `${screenshot.headlineOffset ?? 0}%` }}
       >
         <h1>{screenshot.headline}</h1>
         <p>{screenshot.subtitle}</p>
-      </div> */}
+      </div> */
+      }
 
       {/* Phone Mockups */}
-      {/* <Phones
+      {
+        /* <Phones
         screenshot={screenshot}
         platform={platform}
         defaultDevicePresetId={defaultDevicePresetId}
         assetUrlPrefix={assetUrlPrefix}
         containerWidth={dimensions.width}
-      /> */}
+      /> */
+      }
 
       {/* Mascot */}
-      {/* <Mascot
+      {
+        /* <Mascot
         mascot={screenshot.mascot}
         app={app}
         assetUrlPrefix={assetUrlPrefix}
-      /> */}
+      /> */
+      }
     </div>
   );
 }
 
-const ScreenshotLayer = (layer: Layer) => {
+const ScreenshotLayer = (
+  { layer, theme }: { layer: Layer; theme: ThemeConfig },
+) => {
   switch (layer.type) {
+    case "background":
+      return <BackgroundLayer {...layer} theme={theme} />;
     case "text":
       return <TextLayer {...layer} />;
     case "text-block":
@@ -82,7 +106,7 @@ const ScreenshotLayer = (layer: Layer) => {
     default:
       return null;
   }
-}
+};
 
 /**
  * Full Screenshot Document

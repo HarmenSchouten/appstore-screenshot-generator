@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
 import type { AppState, ScreenshotSlice } from "./types.ts";
 import type { Screenshot } from "../types.ts";
+import { generateLayerId } from "../components/editors/layer-meta.ts";
 
 export const createScreenshotSlice: StateCreator<
   AppState,
@@ -14,7 +15,11 @@ export const createScreenshotSlice: StateCreator<
     const newScreenshot: Screenshot = {
       id,
       role: "screenshot",
-      layers: [],
+      layers: [{
+        id: generateLayerId(),
+        type: "background",
+        opacity: 1,
+      }],
     };
 
     const newConfig = { ...config };
@@ -34,7 +39,11 @@ export const createScreenshotSlice: StateCreator<
     const newScreenshot: Screenshot = {
       id,
       role: "feature-graphic",
-      layers: [],
+      layers: [{
+        id: generateLayerId(),
+        type: "background",
+        opacity: 1,
+      }],
     };
 
     const newConfig = { ...config };

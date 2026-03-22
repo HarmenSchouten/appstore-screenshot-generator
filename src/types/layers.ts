@@ -3,9 +3,12 @@ import type { ShapeType, TypographyOptions } from "@types";
 
 interface BaseLayerProps {
   id: string;
+  opacity: number;
+}
+
+interface PositionalLayerProps {
   posX: number;
   posY: number;
-  opacity: number;
   rotation: number;
 }
 
@@ -14,14 +17,16 @@ interface BaseLayerProps {
 // ============================================================
 
 /** A single text element — labels, badges, callouts */
-export interface TextLayerProps extends BaseLayerProps, TypographyOptions {
+export interface TextLayerProps
+  extends BaseLayerProps, PositionalLayerProps, TypographyOptions {
   type: "text";
   /** The text to display */
   text: string;
 }
 
 /** A headline + subtitle pair — the common App Store pattern */
-export interface TextBlockLayerProps extends BaseLayerProps {
+export interface TextBlockLayerProps
+  extends BaseLayerProps, PositionalLayerProps {
   type: "text-block";
   headline: string;
   headlineTypography: TypographyOptions;
@@ -34,7 +39,8 @@ export interface TextBlockLayerProps extends BaseLayerProps {
 // ============================================================
 
 /** A device phone frame with a screenshot inside */
-export interface PhoneFrameLayerProps extends BaseLayerProps {
+export interface PhoneFrameLayerProps
+  extends BaseLayerProps, PositionalLayerProps {
   type: "phone-frame";
   /** Device preset to render */
   model: keyof typeof DEVICE_PRESETS;
@@ -45,7 +51,7 @@ export interface PhoneFrameLayerProps extends BaseLayerProps {
 }
 
 /** An image at any position and size — replaces the old fixed-corner mascot */
-export interface ImageLayerProps extends BaseLayerProps {
+export interface ImageLayerProps extends BaseLayerProps, PositionalLayerProps {
   type: "image";
   /** Path to image (relative to assets) */
   imagePath: string;
@@ -62,7 +68,7 @@ export interface ImageLayerProps extends BaseLayerProps {
 // ============================================================
 
 /** A colored blurred glow effect */
-export interface GlowLayerProps extends BaseLayerProps {
+export interface GlowLayerProps extends BaseLayerProps, PositionalLayerProps {
   type: "glow";
   /** Color — named color or hex value */
   color: string;
@@ -73,7 +79,7 @@ export interface GlowLayerProps extends BaseLayerProps {
 }
 
 /** A decorative SVG shape — carries all existing shape properties */
-export interface ShapeLayerProps extends BaseLayerProps {
+export interface ShapeLayerProps extends BaseLayerProps, PositionalLayerProps {
   type: "shape";
   /** Which shape to render */
   shapeType: ShapeType;
@@ -152,8 +158,10 @@ export interface ShapeLayerProps extends BaseLayerProps {
 /** Full-canvas gradient background — ignores posX/posY/rotation, always fills */
 export interface BackgroundLayerProps extends BaseLayerProps {
   type: "background";
-  /** CSS gradient string */
-  gradient: string;
+  /** CSS gradient string. Empty/undefined = inherit from project theme. */
+  gradient?: string;
+  /** Gradient type for visual editing */
+  gradientType?: "solid" | "linear" | "radial";
   /** Gradient color stops for visual editing */
   colors?: string[];
   /** Gradient direction in degrees (0 = top→bottom, 90 = left→right) */
