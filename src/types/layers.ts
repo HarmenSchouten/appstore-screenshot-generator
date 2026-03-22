@@ -1,10 +1,10 @@
-import { ALL_DEVICE_PRESETS } from "@device-presets";
+import { DEVICE_PRESETS } from "@device-presets";
 import type { ShapeType, TypographyOptions } from "@types";
 
 interface BaseLayerProps {
+  id: string;
   posX: number;
   posY: number;
-  zIndex: number;
   opacity: number;
   rotation: number;
 }
@@ -37,7 +37,7 @@ export interface TextBlockLayerProps extends BaseLayerProps {
 export interface PhoneFrameLayerProps extends BaseLayerProps {
   type: "phone-frame";
   /** Device preset to render */
-  model: keyof typeof ALL_DEVICE_PRESETS;
+  model: keyof typeof DEVICE_PRESETS;
   /** Path to the screenshot image shown inside the frame (relative to assets) */
   imagePath?: string;
   /** Phone size as percentage of container width (e.g. 70 for single, 42 for side-by-side) */
