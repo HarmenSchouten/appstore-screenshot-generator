@@ -44,18 +44,14 @@ export interface MascotOptions {
 // Typography
 // ============================================================
 
-/** Typography settings for headlines and subtitles */
+/** Typography settings for text values */
 export interface TypographyOptions {
-  /** Headline font size as percentage of screen width (3-8) */
-  headlineFontSize?: number;
-  /** Subtitle font size as percentage of screen width (1.5-4) */
-  subtitleFontSize?: number;
+  /** font size in pixels */
+  fontSize?: number;
   /** Headline font weight (400-900) */
-  headlineFontWeight?: number;
-  /** Subtitle font weight (400-700) */
-  subtitleFontWeight?: number;
-  /** Line height for headline (1-1.5) */
-  headlineLineHeight?: number;
+  fontWeight?: number;
+  /** Line height */
+  lineHeight?: number;
   /** Text color (hex) - defaults to white */
   textColor?: string;
   /** Text alignment */

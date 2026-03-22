@@ -24,32 +24,47 @@
           "screenshots": [
             {
               "id": "screenshot-1772901360697",
-              "headline": "Great title",
-              "subtitle": "Compelling subtitle",
-              "imagePath": "",
-              "glows": [],
-              "phoneFrame": {
-                "scale": 70,
-                "bottomOffset": 6
-              },
-              "typography": {
-                "headlineFontSize": 8,
-                "subtitleFontSize": 4,
-                "headlineLineHeight": 1.5,
-                "horizontalPadding": 15
-              },
-              "headlineOffset": 4
+              "role": "screenshot",
+              "layers": [
+                {
+                  "type": "text-block",
+                  "headline": "Great title",
+                  "headlineTypography": {
+                    "fontSize": 8,
+                    "lineHeight": 1.5,
+                    "horizontalPadding": 15
+                  },
+                  "subTitle": "Compelling subtitle",
+                  "subTitleTypography": {
+                    "fontSize": 4,
+                    "lineHeight": 1.5,
+                    "horizontalPadding": 15
+                  }
+                }
+              ]
+            },
+            {
+              "id": "screenshot-1772901360697",
+              "role": "feature-graphic",
+              "layers": [
+                {
+                  "type": "text-block",
+                  "headline": "Great title",
+                  "headlineTypography": {
+                    "fontSize": 8,
+                    "lineHeight": 1.5,
+                    "horizontalPadding": 15
+                  },
+                  "subTitle": "Compelling subtitle",
+                  "subTitleTypography": {
+                    "fontSize": 4,
+                    "lineHeight": 1.5,
+                    "horizontalPadding": 15
+                  }
+                }
+              ]
             }
-          ],
-          "featureGraphic": {
-            "headline": "My ",
-            "phoneRotation": 6,
-            "phoneScale": 110,
-            "glows": [],
-            "iconRadius": 9,
-            "iconScale": 100,
-            "subtitle": "A compelling subtitle"
-          }
+          ]
         },
         "ios": {
           "dimensions": {
@@ -59,14 +74,24 @@
           "screenshots": [
             {
               "id": "ee35de1b-e718-4603-b09c-f25f0610efb8",
-              "headline": "New Screenshot",
-              "subtitle": "Add a subtitle",
-              "imagePath": "",
-              "glows": [],
-              "phoneFrame": {
-                "scale": 70,
-                "bottomOffset": 6
-              }
+              "role": "screenshot",
+              "layers": [
+                {
+                  "type": "text-block",
+                  "headline": "New Screenshot",
+                  "headlineTypography": {
+                    "fontSize": 8,
+                    "lineHeight": 1.5,
+                    "horizontalPadding": 15
+                  },
+                  "subTitle": "Add a subtitle",
+                  "subTitleTypography": {
+                    "fontSize": 4,
+                    "lineHeight": 1.5,
+                    "horizontalPadding": 15
+                  }
+                }
+              ]
             }
           ]
         }

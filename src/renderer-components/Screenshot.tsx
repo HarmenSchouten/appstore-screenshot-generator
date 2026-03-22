@@ -8,10 +8,8 @@
 import React from "react";
 import type { RenderOptions } from "./types.ts";
 import { BaseStyles } from "./BaseStyles.tsx";
-import { Glow } from "./Glow.tsx";
-import { Shapes } from "./Shape.tsx";
-import { Phones } from "./PhoneFrame.tsx";
-import { Mascot } from "./Mascot.tsx";
+import { TextLayer, TextBlockLayer, PhoneFrameLayer } from "@renderer/layers/index.tsx";
+import { Layer } from "../types.ts";
 
 interface ScreenshotProps {
   options: RenderOptions;
@@ -36,40 +34,54 @@ export function ScreenshotContent(
 
   return (
     <div className="screenshot">
+      { screenshot.layers.map(l => <ScreenshotLayer key={`${l.type}-${l.posX}-${l.posY}`} {...l} />) }
       {/* Glow Effects */}
-      {screenshot.glows.map((glow, index) => (
+      {/* {screenshot.glows.map((glow, index) => (
         <Glow key={index} glow={glow} containerWidth={dimensions.width} />
-      ))}
+      ))} */}
 
       {/* Decorative Shapes */}
-      <Shapes shapes={screenshot.shapes} />
+      {/* <Shapes shapes={screenshot.shapes} /> */}
 
       {/* Headline */}
-      <div
+      {/* <div
         className="headline-area"
         style={{ top: `${screenshot.headlineOffset ?? 0}%` }}
       >
         <h1>{screenshot.headline}</h1>
         <p>{screenshot.subtitle}</p>
-      </div>
+      </div> */}
 
       {/* Phone Mockups */}
-      <Phones
+      {/* <Phones
         screenshot={screenshot}
         platform={platform}
         defaultDevicePresetId={defaultDevicePresetId}
         assetUrlPrefix={assetUrlPrefix}
         containerWidth={dimensions.width}
-      />
+      /> */}
 
       {/* Mascot */}
-      <Mascot
+      {/* <Mascot
         mascot={screenshot.mascot}
         app={app}
         assetUrlPrefix={assetUrlPrefix}
-      />
+      /> */}
     </div>
   );
+}
+
+const ScreenshotLayer = (layer: Layer) => {
+  switch (layer.type) {
+    case "text":
+      return <TextLayer {...layer} />;
+    case "text-block":
+      return <TextBlockLayer {...layer} />;
+    case "phone-frame":
+      return <PhoneFrameLayer {...layer} />;
+    default:
+      return null;
+  }
 }
 
 /**

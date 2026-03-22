@@ -42,3 +42,6 @@ export * from "./renderer.ts";
 
 // Generation and assets
 export * from "./generation.ts";
+
+// Layer types
+export * from "./layers.ts";
