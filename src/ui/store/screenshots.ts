@@ -10,10 +10,30 @@ export const createScreenshotSlice: StateCreator<
 > = (_set, get) => ({
   addScreenshot: () => {
     const { config, selectedLang, selectedPlatform, saveConfig } = get();
-    const id = "screenshot-" + Date.now();
+    const id = globalThis.crypto.randomUUID();
     const newScreenshot: Screenshot = {
       id,
       role: "screenshot",
+      layers: [],
+    };
+
+    const newConfig = { ...config };
+    const langConfig = newConfig.languages?.find(
+      (l) => l.language === selectedLang,
+    );
+    if (langConfig?.platforms?.[selectedPlatform]) {
+      langConfig.platforms[selectedPlatform].screenshots.push(newScreenshot);
+      saveConfig(newConfig);
+      get().setSelectedItem({ type: "screenshot", id });
+    }
+  },
+
+  addFeatureGraphic: () => {
+    const { config, selectedLang, selectedPlatform, saveConfig } = get();
+    const id = globalThis.crypto.randomUUID();
+    const newScreenshot: Screenshot = {
+      id,
+      role: "feature-graphic",
       layers: [],
     };
 
@@ -87,12 +107,19 @@ export const createScreenshotSlice: StateCreator<
       (l) => l.language === selectedLang,
     );
     if (langConfig?.platforms?.[selectedPlatform]) {
+      const fgId = langConfig.platforms[selectedPlatform].screenshots.find(
+        (s) => s.role === "feature-graphic",
+      )?.id;
       langConfig.platforms[selectedPlatform].screenshots = langConfig
         .platforms[selectedPlatform].screenshots.filter(
           (s) => s.role !== "feature-graphic",
         );
       saveConfig(newConfig);
-      if (selectedItem?.type === "feature-graphic") {
+      if (
+        fgId &&
+        selectedItem?.type === "screenshot" &&
+        selectedItem.id === fgId
+      ) {
         setSelectedItem(null);
       }
     }

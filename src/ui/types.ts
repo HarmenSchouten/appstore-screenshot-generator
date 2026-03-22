@@ -59,7 +59,6 @@ export interface Assets {
  */
 export type SelectedItem =
   | { type: "screenshot"; id: string }
-  | { type: "feature-graphic" }
   | null;
 
 /**

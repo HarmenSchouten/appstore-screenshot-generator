@@ -42,6 +42,7 @@ export function Sidebar({
     addLanguage,
     copyPlatformConfig,
     addScreenshot,
+    addFeatureGraphic,
     removeScreenshot,
     removeFeatureGraphic,
     getDefaultDevicePreset,
@@ -231,39 +232,44 @@ export function Sidebar({
         </button>
 
         {/* Feature Graphic (Android only) */}
-        {selectedPlatform === "android" && (
-          <>
-            <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-2">
-              Feature Graphic
-            </div>
-            {screenshots.find((x) => x.role === "feature-graphic")
-              ? (
-                <SidebarItemCard
-                  title={"Feature Graphic"}
-                  subtitle={"Feature Graphic details..."}
-                  isSelected={selectedItem?.type === "feature-graphic"}
-                  confirmingDelete={confirmDeleteKey === "__feature-graphic__"}
-                  onSelect={() => setSelectedItem({ type: "feature-graphic" })}
-                  onRequestDelete={() =>
-                    setConfirmDeleteKey("__feature-graphic__")}
-                  onConfirmDelete={() => {
-                    removeFeatureGraphic();
-                    setConfirmDeleteKey(null);
-                  }}
-                  onCancelDelete={() =>
-                    setConfirmDeleteKey(null)}
-                />
-              )
-              : (
-                <button
-                  onClick={addScreenshot}
-                  className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600"
-                >
-                  <i className="fa-solid fa-plus mr-1" /> Add Feature Graphic
-                </button>
-              )}
-          </>
-        )}
+        {selectedPlatform === "android" && (() => {
+          const fg = screenshots.find((x) => x.role === "feature-graphic");
+          return (
+            <>
+              <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-2">
+                Feature Graphic
+              </div>
+              {fg
+                ? (
+                  <SidebarItemCard
+                    title={"Feature Graphic"}
+                    subtitle={"Feature Graphic details..."}
+                    isSelected={selectedItem?.type === "screenshot" &&
+                      selectedItem.id === fg.id}
+                    confirmingDelete={confirmDeleteKey ===
+                      "__feature-graphic__"}
+                    onSelect={() =>
+                      setSelectedItem({ type: "screenshot", id: fg.id })}
+                    onRequestDelete={() =>
+                      setConfirmDeleteKey("__feature-graphic__")}
+                    onConfirmDelete={() => {
+                      removeFeatureGraphic();
+                      setConfirmDeleteKey(null);
+                    }}
+                    onCancelDelete={() => setConfirmDeleteKey(null)}
+                  />
+                )
+                : (
+                  <button
+                    onClick={addFeatureGraphic}
+                    className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600"
+                  >
+                    <i className="fa-solid fa-plus mr-1" /> Add Feature Graphic
+                  </button>
+                )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Theme & Colors */}

@@ -75,13 +75,8 @@ export function useStoreRouteSync() {
       state.setSelectedPlatform(params.platform as "android" | "ios");
     }
 
-    // Screenshot / feature-graphic
-    if (params.screenshotId === "feature-graphic") {
-      if (state.selectedItem?.type !== "feature-graphic") {
-        isRouteChange.current = true;
-        state.setSelectedItem({ type: "feature-graphic" });
-      }
-    } else if (params.screenshotId) {
+    // Screenshot (regular or feature-graphic — both use their id)
+    if (params.screenshotId) {
       if (
         state.selectedItem?.type !== "screenshot" ||
         state.selectedItem.id !== params.screenshotId
@@ -113,9 +108,7 @@ export function useStoreRouteSync() {
 
     if (!currentProject) return;
 
-    const screenshotId = selectedItem?.type === "feature-graphic"
-      ? "feature-graphic"
-      : selectedItem?.type === "screenshot"
+    const screenshotId = selectedItem?.type === "screenshot"
       ? selectedItem.id
       : null;
 

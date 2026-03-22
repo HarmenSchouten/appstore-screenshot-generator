@@ -71,12 +71,9 @@ export function App() {
     closeMediaManager,
   } = useAppStore.getState();
 
-  const selectedScreenshot = (() => {
-    if (selectedItem?.type === "screenshot") {
-      return screenshots.find((s) => s.id === selectedItem.id);
-    }
-    return screenshots.find((s) => s.role === "feature-graphic");
-  })();
+  const selectedScreenshot = selectedItem?.type === "screenshot"
+    ? screenshots.find((s) => s.id === selectedItem.id)
+    : undefined;
 
   const defaultDevicePresetId = getDefaultDevicePreset();
 
@@ -96,9 +93,9 @@ export function App() {
     refreshLastGenerated();
   }, []);
 
-  // Deselect missing feature-graphic
+  // Deselect if selected screenshot no longer exists
   useEffect(() => {
-    if (selectedItem?.type === "feature-graphic" && !selectedScreenshot) {
+    if (selectedItem?.type === "screenshot" && !selectedScreenshot) {
       setSelectedItem(null);
     }
   }, [selectedItem, selectedScreenshot]);
@@ -122,10 +119,11 @@ export function App() {
                 screenshot={selectedScreenshot}
                 theme={config.theme}
                 app={config.app}
-                platform={selectedItem?.type === "feature-graphic"
+                platform={selectedScreenshot?.role === "feature-graphic"
                   ? "android"
                   : selectedPlatform}
-                defaultDevicePresetId={selectedItem?.type === "feature-graphic"
+                defaultDevicePresetId={selectedScreenshot?.role ===
+                    "feature-graphic"
                   ? getDefaultDevicePreset("android")
                   : defaultDevicePresetId}
                 dimensions={dimensions}

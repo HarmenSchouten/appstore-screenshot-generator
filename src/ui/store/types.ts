@@ -53,6 +53,7 @@ export interface AssetsSlice {
 
 export interface ScreenshotSlice {
   addScreenshot: () => void;
+  addFeatureGraphic: () => void;
   removeScreenshot: (id: string) => void;
   updateScreenshot: (id: string, updates: Partial<Screenshot>) => void;
   removeFeatureGraphic: () => void;
