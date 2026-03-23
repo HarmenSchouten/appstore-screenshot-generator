@@ -32,6 +32,16 @@
                   "opacity": 1
                 },
                 {
+                  "id": "9caa7f26-92ed-488d-ba7f-963583206fca",
+                  "posX": 84,
+                  "posY": 50,
+                  "opacity": 1,
+                  "rotation": 3,
+                  "type": "phone-frame",
+                  "model": "ios-iphone-15-pro",
+                  "scale": 19
+                },
+                {
                   "id": "77c767eb-4b9d-4253-8c6a-21b360db0b04",
                   "posX": 50,
                   "posY": 14,
