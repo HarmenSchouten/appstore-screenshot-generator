@@ -34,12 +34,14 @@ export function SidebarItemCard({
             <p className="text-sm text-red-400 mb-2">Delete this item?</p>
             <div className="flex gap-2 justify-center">
               <button
+                type="button"
                 onClick={onConfirmDelete}
                 className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
               >
                 Delete
               </button>
               <button
+                type="button"
                 onClick={onCancelDelete}
                 className="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
               >
@@ -63,6 +65,7 @@ export function SidebarItemCard({
               )}
             </div>
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onRequestDelete();
