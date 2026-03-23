@@ -75,7 +75,7 @@ export function SortableLayerCard({
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") handleClick();
       }}
-      className={`group flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors cursor-pointer ${
+      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors cursor-pointer ${
         isDragging
           ? "bg-zinc-700/80 border-indigo-500/50 shadow-lg shadow-black/30"
           : "bg-zinc-800/60 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600"
@@ -103,63 +103,66 @@ export function SortableLayerCard({
       </div>
 
       {/* Opacity indicator (only when not full) */}
-      {!confirmingDelete && (layer.opacity ?? 1) < 1 && (
-        <span className="text-[10px] text-zinc-500 tabular-nums">
+      {(layer.opacity ?? 1) < 1 && (
+        <span
+          className={`text-[10px] text-zinc-500 tabular-nums ${
+            confirmingDelete ? "invisible" : ""
+          }`}
+        >
           {Math.round((layer.opacity ?? 1) * 100)}%
         </span>
       )}
 
-      {/* Actions — relative wrapper so confirm overlay doesn't shift height */}
+      {/* Actions */}
       <div
-        className="relative flex items-center"
+        className={`flex gap-0.5 transition-opacity ${
+          confirmingDelete ? "invisible" : "opacity-0 group-hover:opacity-100"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Icon buttons (always in flow to define size) */}
-        <div
-          className={`flex gap-0.5 transition-opacity ${
-            confirmingDelete
-              ? "opacity-0 pointer-events-none"
-              : "opacity-0 group-hover:opacity-100"
-          }`}
+        <button
+          type="button"
+          onClick={onDuplicate}
+          className="p-1 text-zinc-500 hover:text-zinc-300 rounded"
+          title="Duplicate layer"
         >
-          <button
-            type="button"
-            onClick={onDuplicate}
-            className="p-1 text-zinc-500 hover:text-zinc-300 rounded"
-            title="Duplicate layer"
-          >
-            <i className="fa-solid fa-clone text-xs" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirmingDelete(true)}
-            className="p-1 text-zinc-500 hover:text-red-400 rounded"
-            title="Delete layer"
-          >
-            <i className="fa-solid fa-trash-can text-xs" />
-          </button>
-        </div>
+          <i className="fa-solid fa-clone text-xs" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setConfirmingDelete(true)}
+          className="p-1 text-zinc-500 hover:text-red-400 rounded"
+          title="Delete layer"
+        >
+          <i className="fa-solid fa-trash-can text-xs" />
+        </button>
+      </div>
 
-        {/* Confirm overlay — absolutely positioned over icon buttons */}
-        {confirmingDelete && (
-          <div className="absolute right-0 inset-y-0 flex items-center gap-1 animate-[fadeIn_150ms_ease-out]">
+      {/* Confirm delete — full-width overlay */}
+      {confirmingDelete && (
+        <div
+          className="absolute inset-0 flex items-center justify-between rounded-lg bg-zinc-900/95 border border-red-500/30 px-3 animate-[fadeIn_150ms_ease-out]"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <span className="text-xs text-zinc-400">Delete this layer?</span>
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={() => setConfirmingDelete(false)}
-              className="px-1.5 text-[11px] text-zinc-400 hover:text-zinc-200 rounded whitespace-nowrap"
+              className="px-2.5 py-1 text-xs text-zinc-300 hover:text-white bg-zinc-700 hover:bg-zinc-600 rounded transition-colors"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={onDelete}
-              className="px-1.5 text-[11px] text-red-400 hover:text-red-300 font-medium rounded whitespace-nowrap"
+              className="px-2.5 py-1 text-xs text-white bg-red-600 hover:bg-red-500 rounded font-medium transition-colors"
             >
               Delete
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

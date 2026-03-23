@@ -156,9 +156,7 @@ export function ScreenshotEditor({
                       onClick={(e) => e.stopPropagation()}
                     >
                       {/* Arrow */}
-                      <div
-                        className="absolute -top-1.5 right-3 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 rotate-45"
-                      />
+                      <div className="absolute -top-1.5 right-3 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 rotate-45" />
                       <p className="text-sm text-zinc-200 font-medium mb-2">
                         Layer Composition
                       </p>

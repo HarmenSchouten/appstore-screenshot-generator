@@ -87,7 +87,11 @@ export function createGenerateRoutes(
               dimensions,
             );
 
-            results.push({ path: pngPath, status: "success", role: screenshot.role });
+            results.push({
+              path: pngPath,
+              status: "success",
+              role: screenshot.role,
+            });
           } catch (error) {
             results.push({
               path: pngPath,
@@ -97,7 +101,6 @@ export function createGenerateRoutes(
             });
           }
         }
-
       }
     }
 
@@ -177,7 +180,8 @@ export function createGenerateRoutes(
                 type: "progress",
                 current: completed + 1,
                 total: totalItems,
-                item: `${langConfig.language}/${platformName}: ${screenshot.id}`,
+                item:
+                  `${langConfig.language}/${platformName}: ${screenshot.id}`,
               });
 
               try {
@@ -217,7 +221,6 @@ export function createGenerateRoutes(
               }
               completed++;
             }
-
           }
         }
 

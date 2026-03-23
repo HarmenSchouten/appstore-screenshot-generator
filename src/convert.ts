@@ -120,7 +120,9 @@ const readScreenshotRole = async (
   htmlPath: string,
 ): Promise<string> => {
   const html = await Deno.readTextFile(htmlPath);
-  const match = html.match(/<meta\s+name="screenshot-role"\s+content="([^"]+)"/);
+  const match = html.match(
+    /<meta\s+name="screenshot-role"\s+content="([^"]+)"/,
+  );
   return match?.[1] ?? "screenshot";
 };
 
