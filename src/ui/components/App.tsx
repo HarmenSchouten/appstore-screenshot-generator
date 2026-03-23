@@ -21,6 +21,7 @@ import {
 import { activateProject, fetchAssets } from "../utils/api.ts";
 import { useStoreRouteSync } from "../utils/routing.ts";
 import type { AppData } from "../types.ts";
+import { EmptyState } from "@ui/components/EmptyState.tsx";
 
 declare global {
   interface Window {
@@ -119,11 +120,7 @@ export function App() {
                 dimensions={dimensions}
               />
             )
-            : (
-              <div className="text-zinc-500">
-                Select a screenshot or feature graphic to preview
-              </div>
-            )}
+            : <EmptyState />}
         </div>
       </div>
 

@@ -107,7 +107,7 @@ export function GenerateModal(
 
         {data.screenshots.length > 0 && (
           <div className="grid grid-cols-4 gap-2">
-            {data.screenshots.map((r) => (
+            {data.screenshots.map((r: GenerateResult) => (
               <div
                 key={r.relativePath}
                 className="bg-zinc-800 rounded overflow-hidden"
