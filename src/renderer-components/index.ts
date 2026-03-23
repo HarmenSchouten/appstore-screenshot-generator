@@ -18,13 +18,11 @@ export { GLOW_COLORS } from "./constants.ts";
 export { assetUrl } from "./utils.ts";
 
 // Server-side rendering (for Deno generate.ts)
-export { renderFeatureGraphic, renderScreenshot } from "./server.ts";
+export { renderScreenshot } from "./server.ts";
 
 // Re-export types
 export type {
   AppConfig,
-  FeatureGraphic as FeatureGraphicData,
-  FeatureGraphicRenderOptions,
   RenderOptions,
   Screenshot as ScreenshotData,
   ShapeType,
