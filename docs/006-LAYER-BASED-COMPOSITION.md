@@ -31,8 +31,6 @@ A screenshot becomes a canvas with an ordered list of layers. Each layer has a t
 interface Screenshot {
   id: string
   role: 'screenshot' | 'feature-graphic'
-  width: number
-  height: number
   layers: Layer[]
 }
 ```
@@ -60,30 +58,20 @@ All visual elements — text, phone frames, images, glows, shapes — become lay
 
 ### Feature Graphic Unification
 
-Feature Graphics become screenshots with dimensions `1024×500` and a different default layer preset. No separate type, renderer, editor, or API routes. The current parallel code path is deleted entirely.
-
-A Feature Graphic "preset" is defined as a layer combination:
-- Two `text` layers (headline + subtitle, left area)
-- `image` layer (app icon, top-left)
-- `phone-frame` layer (right side, rotated)
+Feature Graphics become screenshots with a specific role `feature-graphhic`. No separate type, renderer, editor, or API routes. The current parallel code path is deleted entirely.
 
 ### Screenshot Role & Dimensions
 
-Every screenshot entry carries `width`, `height`, and a `role` field:
+Every screenshot entry carries a `role` field:
 
 ```
 role: 'screenshot' | 'feature-graphic'
-width: number   // e.g. 1290 (from device preset) or 1024 (feature graphic)
-height: number  // e.g. 2796 (from device preset) or 500 (feature graphic)
 ```
 
-**`role` is a UI-only concern.** It has zero effect on rendering, the layer system, or export. Its purpose is sidebar presentation:
-
+**What the meaning of `role` is:**
+- Determines the output size of the image. If role is `feature-graphic`, the output will be the appropiate size
 - The left sidebar groups entries per platform into **"Screenshots"** and **"Feature Graphic"** sections.
 - Feature Graphic is constrained to one per platform. Screenshots are N per platform.
-- "Add Screenshot" offers device-preset-based dimensions. "Add Feature Graphic" sets 1024×500 automatically and applies the Feature Graphic layer preset.
-
-For regular screenshots, `width`/`height` come from the selected device preset (e.g. iPhone 15 Pro Max → 1290×2796, Galaxy S24 Ultra → 1440×3120). iOS and Android screenshots naturally have different dimensions because they belong to different platforms, each with their own device presets. Layers use percentage-based positioning, so they adapt to any canvas size without adjustment.
 
 ### Presets
 
@@ -106,12 +94,12 @@ Layers are displayed as an ordered list in the sidebar. List order matches z-ind
 Clicking a layer card navigates into a **focused detail view** for that layer. The detail view shows:
 
 - Back button to return to the layer list
-- Layer name (editable)
+- Layer name
 - Full type-specific editor (positioning, appearance, type-specific properties)
 
 This drill-down pattern avoids cluttering the sidebar with many expanded editors simultaneously. Each layer gets the full sidebar width for its controls. The layer list stays clean and scannable.
 
-An **"Add Layer"** button opens a type picker. This is the primary way to add elements. New layers get a default name based on their type (e.g. "Text", "Phone Frame", "Glow 2"). Names are user-editable in the detail view.
+An **"Add Layer"** button opens a type picker. This is the primary way to add elements. New layers get a default name based on their type (e.g. "Text", "Phone Frame", "Glow 2").
 
 All interactions remain sidebar-based. No drag-and-drop on the canvas in this phase. Positioning via percentage sliders (`posX`, `posY`) in the layer editor. Canvas interactions can be added as a future enhancement once the model is proven.
 
