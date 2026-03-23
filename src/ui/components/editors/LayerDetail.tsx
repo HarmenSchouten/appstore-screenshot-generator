@@ -9,6 +9,7 @@ import type { Layer } from "@types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
 import { BackgroundEditor } from "./BackgroundEditor.tsx";
 import { TextEditor } from "./TextEditor.tsx";
+import { PhoneFrameEditor } from "./PhoneFrameEditor.tsx";
 
 interface LayerDetailProps {
   layer: Layer;
@@ -54,6 +55,8 @@ export function LayerDetail({
           ? <BackgroundEditor layer={layer} onUpdate={onUpdate} />
           : layer.type === "text"
           ? <TextEditor layer={layer} onUpdate={onUpdate} />
+          : layer.type === "phone-frame"
+          ? <PhoneFrameEditor layer={layer} onUpdate={onUpdate} />
           : (
             <div className="text-center py-12 text-zinc-600">
               <i className={`${meta.icon} text-3xl mb-3 block opacity-40`} />

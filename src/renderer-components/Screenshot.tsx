@@ -30,6 +30,7 @@ export function ScreenshotContent(
 ): React.ReactElement {
   const {
     screenshot,
+    assetUrlPrefix = "/assets/",
   } = options;
 
   return (
@@ -39,6 +40,8 @@ export function ScreenshotContent(
           key={l.id}
           layer={l}
           theme={options.theme}
+          assetUrlPrefix={assetUrlPrefix}
+          containerWidth={options.dimensions.width}
         />
       ))}
       {/* Glow Effects */}
@@ -50,28 +53,6 @@ export function ScreenshotContent(
 
       {/* Decorative Shapes */}
       {/* <Shapes shapes={screenshot.shapes} /> */}
-
-      {/* Headline */}
-      {
-        /* <div
-        className="headline-area"
-        style={{ top: `${screenshot.headlineOffset ?? 0}%` }}
-      >
-        <h1>{screenshot.headline}</h1>
-        <p>{screenshot.subtitle}</p>
-      </div> */
-      }
-
-      {/* Phone Mockups */}
-      {
-        /* <Phones
-        screenshot={screenshot}
-        platform={platform}
-        defaultDevicePresetId={defaultDevicePresetId}
-        assetUrlPrefix={assetUrlPrefix}
-        containerWidth={dimensions.width}
-      /> */
-      }
 
       {/* Mascot */}
       {
@@ -86,7 +67,12 @@ export function ScreenshotContent(
 }
 
 const ScreenshotLayer = (
-  { layer, theme }: { layer: Layer; theme: ThemeConfig },
+  { layer, theme, assetUrlPrefix, containerWidth }: {
+    layer: Layer;
+    theme: ThemeConfig;
+    assetUrlPrefix: string;
+    containerWidth: number;
+  },
 ) => {
   switch (layer.type) {
     case "background":
@@ -94,7 +80,13 @@ const ScreenshotLayer = (
     case "text":
       return <TextLayer {...layer} />;
     case "phone-frame":
-      return <PhoneFrameLayer {...layer} />;
+      return (
+        <PhoneFrameLayer
+          {...layer}
+          assetUrlPrefix={assetUrlPrefix}
+          containerWidth={containerWidth}
+        />
+      );
     default:
       return null;
   }

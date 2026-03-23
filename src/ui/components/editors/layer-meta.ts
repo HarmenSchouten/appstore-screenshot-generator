@@ -97,7 +97,12 @@ export function createDefaultLayer(type: Layer["type"]): Layer {
         lineHeight: 1.2,
       };
     case "phone-frame":
-      return { ...base, type: "phone-frame", model: "ios-iphone-15-pro" };
+      return {
+        ...base,
+        type: "phone-frame",
+        model: "ios-iphone-15-pro",
+        scale: 70,
+      };
     case "image":
       return { ...base, type: "image", imagePath: "", size: 20 };
     case "glow":
