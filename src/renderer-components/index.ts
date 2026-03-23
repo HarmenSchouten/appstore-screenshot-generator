@@ -12,7 +12,6 @@ export { Screenshot, ScreenshotContent } from "./Screenshot.tsx";
 export { Glow, Glows } from "./Glow.tsx";
 export { Shape, Shapes } from "./Shape.tsx";
 export { PhoneFrame } from "./layers/PhoneFrameLayer.tsx";
-export { Mascot } from "./Mascot.tsx";
 export { BaseStyles, getBaseStylesCSS } from "./BaseStyles.tsx";
 export { GLOW_COLORS } from "./constants.ts";
 export { assetUrl } from "./utils.ts";

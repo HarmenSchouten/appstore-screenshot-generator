@@ -40,7 +40,7 @@ export interface PhoneFrameLayerProps
   scale?: number;
 }
 
-/** An image at any position and size — replaces the old fixed-corner mascot */
+/** An image at any position and size */
 export interface ImageLayerProps extends BaseLayerProps, PositionalLayerProps {
   type: "image";
   /** Path to image (relative to assets) */

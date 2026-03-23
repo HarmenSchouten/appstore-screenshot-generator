@@ -10,6 +10,7 @@ import type { RenderOptions } from "./types.ts";
 import { BaseStyles } from "./BaseStyles.tsx";
 import {
   BackgroundLayer,
+  ImageLayer,
   PhoneFrameLayer,
   TextLayer,
 } from "@renderer/layers/index.tsx";
@@ -54,14 +55,6 @@ export function ScreenshotContent(
       {/* Decorative Shapes */}
       {/* <Shapes shapes={screenshot.shapes} /> */}
 
-      {/* Mascot */}
-      {
-        /* <Mascot
-        mascot={screenshot.mascot}
-        app={app}
-        assetUrlPrefix={assetUrlPrefix}
-      /> */
-      }
     </div>
   );
 }
@@ -87,6 +80,8 @@ const ScreenshotLayer = (
           containerWidth={containerWidth}
         />
       );
+    case "image":
+      return <ImageLayer {...layer} assetUrlPrefix={assetUrlPrefix} />;
     default:
       return null;
   }
