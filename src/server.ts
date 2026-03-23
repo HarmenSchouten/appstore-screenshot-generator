@@ -179,33 +179,6 @@ app.get("/output/:path{.+}", async (c) => {
   }
 });
 
-// Get previously generated images
-app.get("/api/generated", async (c) => {
-  const outputDir = getProjectOutputDir(currentProjectId);
-  const results: { relativePath: string; status: string }[] = [];
-
-  async function scanDir(dir: string, prefix: string = "") {
-    try {
-      for await (const entry of Deno.readDir(dir)) {
-        const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
-        if (entry.isDirectory) {
-          await scanDir(join(dir, entry.name), relativePath);
-        } else if (
-          entry.isFile &&
-          (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
-        ) {
-          results.push({ relativePath, status: "success" });
-        }
-      }
-    } catch {
-      // Directory doesn't exist or can't be read
-    }
-  }
-
-  await scanDir(outputDir);
-  return c.json({ results, outputDir });
-});
-
 // ============================================================
 // Main UI (Static build from dist/ if available)
 // ============================================================

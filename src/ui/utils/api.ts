@@ -2,7 +2,7 @@
  * API Client Utilities
  */
 
-import type { Assets, ProjectConfig, ProjectInfo } from "../types";
+import type { Assets, ProjectConfig, ProjectInfo } from "../types.ts";
 
 /**
  * Save config to server
@@ -114,7 +114,7 @@ export async function fetchGenerated(): Promise<
   { results: unknown[]; outputDir: string } | null
 > {
   try {
-    const res = await fetch("/api/generated");
+    const res = await fetch("/api/generate/generated");
     const data = await res.json();
     if (data.results && data.results.length > 0) {
       return data;

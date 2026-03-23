@@ -29,6 +29,7 @@ export const createProjectSlice: StateCreator<
     });
     const newAssets = await fetchAssets();
     set({ assets: newAssets });
+    await get().refreshLastGenerated();
   },
 
   createProject: async (name) => {

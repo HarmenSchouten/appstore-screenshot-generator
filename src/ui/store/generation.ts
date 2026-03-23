@@ -96,6 +96,7 @@ export const createGenerationSlice: StateCreator<
 
   viewLastGenerated: () => {
     const { lastGenerated } = get();
+    console.log(lastGenerated)
     if (lastGenerated) {
       set({
         generateProgress: {

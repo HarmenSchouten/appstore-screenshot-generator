@@ -268,7 +268,28 @@ export function createGenerateRoutes(
    */
   routes.get("/generated", async (c) => {
     const outputDir = getProjectOutputDir(getCurrentProjectId());
-    const results: { relativePath: string; status: string }[] = [];
+
+    const results: {
+      relativePath: string;
+      status: string;
+      role: "screenshot" | "feature-graphic";
+    }[] = [];
+
+    /** Read PNG width/height from the IHDR chunk (bytes 16-23). */
+    async function readPngDimensions(
+      path: string,
+    ): Promise<{ width: number; height: number } | null> {
+      try {
+        const file = await Deno.open(path);
+        const buf = new Uint8Array(24);
+        await file.read(buf);
+        file.close();
+        const view = new DataView(buf.buffer);
+        return { width: view.getUint32(16), height: view.getUint32(20) };
+      } catch {
+        return null;
+      }
+    }
 
     async function scanDir(dir: string, prefix: string = "") {
       try {
@@ -280,7 +301,13 @@ export function createGenerateRoutes(
             entry.isFile &&
             (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
           ) {
-            results.push({ relativePath, status: "success" });
+            const dims = await readPngDimensions(join(dir, entry.name));
+            const isLandscape = dims ? dims.width > dims.height : false;
+            results.push({
+              relativePath,
+              status: "success",
+              role: isLandscape ? "feature-graphic" : "screenshot",
+            });
           }
         }
       } catch {
