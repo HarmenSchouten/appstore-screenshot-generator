@@ -153,9 +153,7 @@ function PhoneFrameCore({
       ? {
         position: "absolute",
         inset: `${innerInset}px`,
-        borderRadius: `${
-          Math.max((preset.outerRadius * s) - innerInset, 0)
-        }px`,
+        borderRadius: `${Math.max((preset.outerRadius * s) - innerInset, 0)}px`,
         background: preset.material.innerFill,
         border: preset.material.innerBorderColor
           ? `${innerBorderWidth}px solid ${preset.material.innerBorderColor}`
@@ -169,9 +167,7 @@ function PhoneFrameCore({
       ? {
         position: "absolute",
         inset: `${innerInset}px`,
-        borderRadius: `${
-          Math.max((preset.outerRadius * s) - innerInset, 0)
-        }px`,
+        borderRadius: `${Math.max((preset.outerRadius * s) - innerInset, 0)}px`,
         background: preset.material.topHighlight,
         pointerEvents: "none",
       }

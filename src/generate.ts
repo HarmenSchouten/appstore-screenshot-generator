@@ -12,9 +12,7 @@
 
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import {
-  renderScreenshot,
-} from "./renderer-components/server.ts";
+import { renderScreenshot } from "./renderer-components/server.ts";
 import type { Language, Platform, ScreenshotConfig } from "./types.ts";
 
 // Parse command line arguments

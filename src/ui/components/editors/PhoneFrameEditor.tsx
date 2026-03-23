@@ -44,7 +44,10 @@ export function PhoneFrameEditor(
           <select
             value={layer.model}
             onChange={(e) =>
-              set("model", (e.target as HTMLSelectElement).value as DevicePresetId)}
+              set(
+                "model",
+                (e.target as HTMLSelectElement).value as DevicePresetId,
+              )}
             className="w-full px-3 py-2 rounded-lg text-sm bg-zinc-800 border border-zinc-700/60 text-zinc-200 focus:outline-none focus:border-zinc-500"
           >
             <optgroup label="iOS">
