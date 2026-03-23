@@ -10,6 +10,7 @@ import type { RenderOptions } from "./types.ts";
 import { BaseStyles } from "./BaseStyles.tsx";
 import {
   BackgroundLayer,
+  GlowLayer,
   ImageLayer,
   PhoneFrameLayer,
   TextLayer,
@@ -45,12 +46,6 @@ export function ScreenshotContent(
           containerWidth={options.dimensions.width}
         />
       ))}
-      {/* Glow Effects */}
-      {
-        /* {screenshot.glows.map((glow, index) => (
-        <Glow key={index} glow={glow} containerWidth={dimensions.width} />
-      ))} */
-      }
 
       {/* Decorative Shapes */}
       {/* <Shapes shapes={screenshot.shapes} /> */}
@@ -81,6 +76,13 @@ const ScreenshotLayer = (
       );
     case "image":
       return <ImageLayer {...layer} assetUrlPrefix={assetUrlPrefix} />;
+    case "glow":
+      return (
+        <GlowLayer
+          {...layer}
+          containerWidth={containerWidth}
+        />
+      );
     default:
       return null;
   }

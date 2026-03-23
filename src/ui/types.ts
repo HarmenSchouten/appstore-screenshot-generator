@@ -19,11 +19,6 @@ export type {
 export type { ProjectConfig as Config } from "../types/index.ts";
 
 /**
- * Glow color presets
- */
-export type GlowColors = Record<string, string>;
-
-/**
  * Gradient template strings with {primary}, {secondary}, {accent} placeholders
  */
 export type GradientTemplates = Record<string, string>;
@@ -40,7 +35,6 @@ export interface AppData {
   config: import("../types/index.ts").ProjectConfig;
   projects: import("../types/index.ts").ProjectInfo[];
   projectId: string;
-  glowColors: GlowColors;
   gradientTemplates: GradientTemplates;
   palettes: DefaultPalettes;
 }

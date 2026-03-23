@@ -8,9 +8,6 @@
 import type { ColorPalette, GradientTemplate } from "../types/index.ts";
 import { DEFAULT_PLATFORM_DEFAULTS } from "../device-presets/index.ts";
 
-// Re-export GLOW_COLORS from renderer-components (single source of truth)
-export { GLOW_COLORS } from "../renderer-components/constants.ts";
-
 // ============================================================
 // Gradient Templates
 // ============================================================

@@ -11,6 +11,7 @@ import { BackgroundEditor } from "./BackgroundEditor.tsx";
 import { TextEditor } from "./TextEditor.tsx";
 import { PhoneFrameEditor } from "./PhoneFrameEditor.tsx";
 import { ImageEditor } from "./ImageEditor.tsx";
+import { GlowEditor } from "./GlowEditor.tsx";
 
 interface LayerDetailProps {
   layer: Layer;
@@ -60,6 +61,8 @@ export function LayerDetail({
           ? <PhoneFrameEditor layer={layer} onUpdate={onUpdate} />
           : layer.type === "image"
           ? <ImageEditor layer={layer} onUpdate={onUpdate} />
+          : layer.type === "glow"
+          ? <GlowEditor layer={layer} onUpdate={onUpdate} />
           : (
             <div className="text-center py-12 text-zinc-600">
               <i className={`${meta.icon} text-3xl mb-3 block opacity-40`} />

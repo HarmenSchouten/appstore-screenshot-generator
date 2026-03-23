@@ -7,7 +7,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { join } from "@std/path";
-import { GLOW_COLORS } from "./renderer-components/constants.ts";
 import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "./lib/index.ts";
 import {
   getProjectOutputDir,
@@ -119,7 +118,6 @@ app.get("/api/init", async (c) => {
     config,
     projects,
     projectId: currentProjectId,
-    glowColors: GLOW_COLORS,
     gradientTemplates: gradientTemplatesObj,
     palettes: palettesObj,
   });
@@ -161,11 +159,6 @@ app.route(
     getConfig,
   ),
 );
-
-// Glow colors API (for UI color picker)
-app.get("/api/glow-colors", (c) => {
-  return c.json(GLOW_COLORS);
-});
 
 // Serve generated output files
 app.get("/output/:path{.+}", async (c) => {

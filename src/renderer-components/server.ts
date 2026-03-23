@@ -26,4 +26,3 @@ export function renderScreenshot(options: RenderOptions): string {
 
 // Re-export types for convenience
 export type { RenderOptions } from "./types.ts";
-export { GLOW_COLORS } from "./constants.ts";
