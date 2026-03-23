@@ -89,7 +89,7 @@ export function SortableLayerCard({
         className="text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing touch-none"
         aria-label="Drag to reorder"
       >
-        <i className="fa-solid fa-grip-vertical text-xs" />
+        <i className="fa-solid fa-grip-vertical text-sm" />
       </button>
 
       {/* Label area */}
