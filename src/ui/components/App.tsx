@@ -62,11 +62,6 @@ export function App() {
     generateAll,
     closeGenerateModal,
     refreshLastGenerated,
-    switchProject,
-    createProject,
-    removeProject,
-    renameProject,
-    closeProjectModal,
     closeThemeEditor,
     closeMediaManager,
   } = useAppStore.getState();
@@ -99,11 +94,6 @@ export function App() {
       setSelectedItem(null);
     }
   }, [selectedItem, selectedScreenshot]);
-
-  const handleCreateProject = async (name: string) => {
-    await createProject(name);
-    closeProjectModal();
-  };
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
@@ -149,11 +139,6 @@ export function App() {
         <ProjectModal
           projects={projects}
           currentProject={currentProject}
-          onClose={closeProjectModal}
-          onCreate={handleCreateProject}
-          onSwitch={switchProject}
-          onDelete={removeProject}
-          onRename={renameProject}
         />
       )}
 

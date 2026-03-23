@@ -5,49 +5,57 @@
  */
 
 import { useState } from "react";
-import type { ProjectInfo } from "../../types";
+import type { ProjectInfo } from "../../types.ts";
+import { useAppStore } from "../../store/index.ts";
 
 interface ProjectModalProps {
   projects: ProjectInfo[];
   currentProject: string | null;
-  onClose: () => void;
-  onCreate: (name: string) => Promise<void>;
-  onSwitch: (projectId: string) => void;
-  onDelete: (projectId: string) => Promise<void>;
-  onRename: (projectId: string, newName: string) => Promise<void>;
 }
 
 export function ProjectModal({
   projects,
   currentProject,
-  onClose,
-  onCreate,
-  onSwitch,
-  onDelete,
-  onRename,
 }: ProjectModalProps) {
   const [newName, setNewName] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
+  const {
+    createProject,
+    renameProject,
+    switchProject,
+    removeProject,
+    closeProjectModal,
+  } = useAppStore.getState();
+
   const handleCreate = async () => {
     if (!newName.trim()) return;
-    await onCreate(newName.trim());
-    setNewName("");
-  };
 
-  const handleDelete = async (projectId: string) => {
-    await onDelete(projectId);
-    setConfirmDelete(null);
+    await createProject(newName.trim());
+
+    setNewName("");
+    closeProjectModal();
   };
 
   const handleRename = async (projectId: string) => {
     if (editName.trim()) {
-      await onRename(projectId, editName.trim());
+      await renameProject(projectId, editName.trim());
       setEditingProject(null);
       setEditName("");
+      closeProjectModal();
     }
+  };
+
+  const handleSwitchProjct = async (projectId: string) => {
+    await switchProject(projectId);
+    closeProjectModal();
+  }
+
+   const handleDelete = async (projectId: string) => {
+    await removeProject(projectId);
+    setConfirmDelete(null);
   };
 
   const startEditing = (project: ProjectInfo) => {
@@ -58,7 +66,7 @@ export function ProjectModal({
   return (
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={onClose}
+      onClick={closeProjectModal}
     >
       <div
         className="bg-zinc-900 rounded-lg p-6 w-96 max-h-[80vh] overflow-y-auto"
@@ -67,7 +75,7 @@ export function ProjectModal({
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-lg">Projects</h2>
           <button
-            onClick={onClose}
+            onClick={closeProjectModal}
             className="text-zinc-500 hover:text-white text-xl"
           >
             <i className="fa-solid fa-xmark" />
@@ -168,10 +176,7 @@ export function ProjectModal({
                   <div className="flex items-center justify-between">
                     <div
                       className="cursor-pointer flex-1"
-                      onClick={() => {
-                        onSwitch(p.id);
-                        onClose();
-                      }}
+                      onClick={() => handleSwitchProjct(p.id)}
                     >
                       <div className="font-medium">{p.name}</div>
                       <div className="text-xs text-zinc-500">{p.id}</div>
