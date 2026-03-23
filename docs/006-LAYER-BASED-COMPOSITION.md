@@ -44,14 +44,13 @@ All visual elements — text, phone frames, images, glows, shapes — become lay
 | Type | Replaces | Properties |
 |------|----------|------------|
 | `text` | Single text element | text, fontSize, fontWeight, lineHeight, color, align, padding |
-| `text-block` | Headline + subtitle pair | headline, subtitle, typography config |
 | `phone-frame` | PhoneFrame + imagePath | imagePath, scale, devicePresetId |
 | `image` | Mascot | imagePath, size, borderRadius, objectFit |
 | `glow` | GlowEffect | color, size, blur |
 | `shape` | Shape | All existing shape properties (proven model) |
 | `background` | Theme gradient | gradient, colors, direction (defaults to project theme) |
 
-**Text vs Text Block:** Both will exist. `text` is a single text string — maximum flexibility for labels, badges, callouts. `text-block` is a headline + subtitle pair — the common App Store pattern where 90%+ of screenshots use this pairing. This is a shorthand, not a compromise. Either can be used, and both are just layers.
+**Text layers are flexible enough to cover all text needs.** A `text` layer handles single labels, headlines, subtitles, badges, and callouts. For the common App Store "headline + subtitle" pattern, users simply add two `text` layers and position them independently. This avoids a dedicated `text-block` type that would require a complex dual-typography editor (16+ controls) for marginal convenience. Two layers give the same visual result with more flexibility and zero additional code.
 
 **Image replaces Mascot:** The mascot was an image locked to 4 corners. An image layer is an image at any position and size. Strict superset.
 
@@ -64,7 +63,7 @@ All visual elements — text, phone frames, images, glows, shapes — become lay
 Feature Graphics become screenshots with dimensions `1024×500` and a different default layer preset. No separate type, renderer, editor, or API routes. The current parallel code path is deleted entirely.
 
 A Feature Graphic "preset" is defined as a layer combination:
-- `text-block` layer (left area, with headline + subtitle)
+- Two `text` layers (headline + subtitle, left area)
 - `image` layer (app icon, top-left)
 - `phone-frame` layer (right side, rotated)
 
@@ -90,10 +89,10 @@ For regular screenshots, `width`/`height` come from the selected device preset (
 
 Presets are saved layer combinations applied when creating a new screenshot. Examples:
 
-- **Classic** — background + text-block (top-center) + phone-frame (center-bottom)
-- **Side by Side** — background + text-block (left) + phone-frame (right)
-- **Feature Graphic** — background + text-block (left) + image/icon (top-left) + phone-frame (right, rotated)
-- **Comparison** — background + text-block (top) + 2× phone-frame (side by side)
+- **Classic** — background + two text layers (headline + subtitle, top-center) + phone-frame (center-bottom)
+- **Side by Side** — background + two text layers (left) + phone-frame (right)
+- **Feature Graphic** — background + two text layers (left) + image/icon (top-left) + phone-frame (right, rotated)
+- **Comparison** — background + two text layers (top) + 2× phone-frame (side by side)
 - **Blank** — background only
 
 Presets are for new screenshots only. Applying to existing screenshots replaces all layers.
@@ -198,7 +197,7 @@ Implementation order: **Types → Renderer → UI → API → Presets.** Types a
 - **Layer list view** — ordered, reorderable layer cards with drag handles. Compact: type icon + name + actions
 - **Layer detail view** — drill-down editor for a single layer. Back button returns to list. Full sidebar width for controls
 - **Shared position editor** — reusable component for posX/posY/zIndex/opacity/rotation (rendered in every layer's detail view)
-- **Per-type editors** — `TextLayerEditor`, `TextBlockLayerEditor`, `PhoneFrameLayerEditor`, `ImageLayerEditor`, `GlowLayerEditor`, `ShapeLayerEditor`, `BackgroundLayerEditor`
+- **Per-type editors** — `TextLayerEditor`, `PhoneFrameLayerEditor`, `ImageLayerEditor`, `GlowLayerEditor`, `ShapeLayerEditor`, `BackgroundLayerEditor`
 - "Add Layer" type picker
 - Layer duplicate/delete/reorder actions
 - Delete `ScreenshotEditor`, `FeatureGraphicEditor`, `MascotEditorInline` (replaced by layer system)

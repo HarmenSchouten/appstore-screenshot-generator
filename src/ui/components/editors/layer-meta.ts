@@ -20,11 +20,6 @@ export const LAYER_META: Record<
     label: "Text",
     color: "text-sky-400",
   },
-  "text-block": {
-    icon: "fa-solid fa-align-left",
-    label: "Text Block",
-    color: "text-sky-400",
-  },
   "phone-frame": {
     icon: "fa-solid fa-mobile-screen-button",
     label: "Phone Frame",
@@ -52,8 +47,6 @@ export function layerDisplayName(layer: Layer, index: number): string {
   switch (layer.type) {
     case "text":
       return layer.text || `${meta.label} ${index + 1}`;
-    case "text-block":
-      return layer.headline || `${meta.label} ${index + 1}`;
     default:
       return `${meta.label} ${index + 1}`;
   }
@@ -75,7 +68,6 @@ export const ADDABLE_LAYERS: {
   },
   { type: "shape", icon: "fa-solid fa-shapes", label: "Shape" },
   { type: "text", icon: "fa-solid fa-font", label: "Text" },
-  { type: "text-block", icon: "fa-solid fa-align-left", label: "Text Block" },
 ];
 
 let _nextLayerId = 1;
@@ -103,15 +95,6 @@ export function createDefaultLayer(type: Layer["type"]): Layer {
         textAlign: "center" as const,
         textColor: "#ffffff",
         lineHeight: 1.2,
-      };
-    case "text-block":
-      return {
-        ...base,
-        type: "text-block",
-        headline: "Headline",
-        headlineTypography: {},
-        subTitle: "Subtitle",
-        subTitleTypography: {},
       };
     case "phone-frame":
       return { ...base, type: "phone-frame", model: "ios-iphone-15-pro" };

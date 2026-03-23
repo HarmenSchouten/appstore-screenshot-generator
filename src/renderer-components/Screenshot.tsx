@@ -11,7 +11,6 @@ import { BaseStyles } from "./BaseStyles.tsx";
 import {
   BackgroundLayer,
   PhoneFrameLayer,
-  TextBlockLayer,
   TextLayer,
 } from "@renderer/layers/index.tsx";
 import { Layer } from "../types.ts";
@@ -94,8 +93,6 @@ const ScreenshotLayer = (
       return <BackgroundLayer {...layer} theme={theme} />;
     case "text":
       return <TextLayer {...layer} />;
-    case "text-block":
-      return <TextBlockLayer {...layer} />;
     case "phone-frame":
       return <PhoneFrameLayer {...layer} />;
     default:

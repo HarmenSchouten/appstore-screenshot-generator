@@ -24,16 +24,6 @@ export interface TextLayerProps
   text: string;
 }
 
-/** A headline + subtitle pair — the common App Store pattern */
-export interface TextBlockLayerProps
-  extends BaseLayerProps, PositionalLayerProps {
-  type: "text-block";
-  headline: string;
-  headlineTypography: TypographyOptions;
-  subTitle: string;
-  subTitleTypography: TypographyOptions;
-}
-
 // ============================================================
 // Device & Image Layers
 // ============================================================
@@ -175,7 +165,6 @@ export interface BackgroundLayerProps extends BaseLayerProps {
 /** A layer can be one of several layer types, discriminated by the `type` property */
 export type Layer =
   | TextLayerProps
-  | TextBlockLayerProps
   | PhoneFrameLayerProps
   | ImageLayerProps
   | GlowLayerProps
