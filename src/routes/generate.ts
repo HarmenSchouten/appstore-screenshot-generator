@@ -10,7 +10,6 @@ import { ensureDir } from "@std/fs";
 import type { ProjectConfig } from "../types/index.ts";
 import { getProjectAssetsDir, getProjectOutputDir } from "../projects.ts";
 import {
-  renderFeatureGraphic,
   renderScreenshot,
 } from "../renderer-components/server.ts";
 

@@ -10,8 +10,7 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Screenshot as ScreenshotComponent } from "./Screenshot.tsx";
-import { FeatureGraphic as FeatureGraphicComponent } from "./FeatureGraphic.tsx";
-import type { FeatureGraphicRenderOptions, RenderOptions } from "./types.ts";
+import type { RenderOptions } from "./types.ts";
 
 // Ensure React is available globally for JSX
 // @ts-ignore - needed for Deno JSX support
@@ -25,16 +24,6 @@ export function renderScreenshot(options: RenderOptions): string {
   return "<!DOCTYPE html>\n" + renderToStaticMarkup(element);
 }
 
-/**
- * Render a feature graphic to a complete HTML document string
- */
-export function renderFeatureGraphic(
-  options: FeatureGraphicRenderOptions,
-): string {
-  const element = React.createElement(FeatureGraphicComponent, { options });
-  return "<!DOCTYPE html>\n" + renderToStaticMarkup(element);
-}
-
 // Re-export types for convenience
-export type { FeatureGraphicRenderOptions, RenderOptions } from "./types.ts";
+export type { RenderOptions } from "./types.ts";
 export { GLOW_COLORS } from "./constants.ts";

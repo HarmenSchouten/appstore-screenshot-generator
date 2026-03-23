@@ -13,7 +13,6 @@
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import {
-  renderFeatureGraphic,
   renderScreenshot,
 } from "./renderer-components/server.ts";
 import type { Language, Platform, ScreenshotConfig } from "./types.ts";
@@ -108,25 +107,25 @@ const generate = async (config: ScreenshotConfig) => {
       }
 
       // Generate feature graphic for Android
-      if (platform === "android" && platformConfig.featureGraphic) {
-        const filename = "feature-graphic.html";
-        const filepath = join(outputDir, filename);
+      // if (platform === "android" && platformConfig.featureGraphic) {
+      //   const filename = "feature-graphic.html";
+      //   const filepath = join(outputDir, filename);
 
-        // Use shared renderer
-        const html = renderFeatureGraphic({
-          featureGraphic: platformConfig.featureGraphic,
-          theme: config.theme,
-          app: config.app,
-          platform: "android",
-          defaultDevicePresetId:
-            config.platformDefaults.android.defaultDevicePresetId,
-          assetUrlPrefix,
-        });
+      //   // Use shared renderer
+      //   const html = renderFeatureGraphic({
+      //     featureGraphic: platformConfig.featureGraphic,
+      //     theme: config.theme,
+      //     app: config.app,
+      //     platform: "android",
+      //     defaultDevicePresetId:
+      //       config.platformDefaults.android.defaultDevicePresetId,
+      //     assetUrlPrefix,
+      //   });
 
-        await Deno.writeTextFile(filepath, html);
-        console.log(`   ✅ ${filename}`);
-        totalGenerated++;
-      }
+      //   await Deno.writeTextFile(filepath, html);
+      //   console.log(`   ✅ ${filename}`);
+      //   totalGenerated++;
+      // }
 
       console.log();
     }
