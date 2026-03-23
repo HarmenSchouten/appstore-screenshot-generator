@@ -57,6 +57,7 @@ export function ScreenshotEditor({
 }: ScreenshotEditorProps) {
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   const layers = ensureLayerIds(screenshot.layers);
   const itemIds = layers.map((l) => l.id);
@@ -127,12 +128,51 @@ export function ScreenshotEditor({
         >
           {/* Header */}
           <div className="px-4 pt-4 pb-3 border-b border-zinc-800/60">
-            <h2 className="font-semibold text-sm text-zinc-200 tracking-wide uppercase">
-              Layers
-            </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
-              {layers.length} layer{layers.length !== 1 ? "s" : ""}
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-sm text-zinc-200 tracking-wide uppercase">
+                  Layers
+                </h2>
+                <p className="text-xs text-zinc-500 mt-0.5">
+                  {layers.length} layer{layers.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowInfo(!showInfo)}
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors p-1"
+                >
+                  <i className="fa-solid fa-circle-info text-m" />
+                </button>
+                {showInfo && (
+                  <div
+                    className="fixed inset-0 z-50"
+                    onClick={() => setShowInfo(false)}
+                  >
+                    <div
+                      className="absolute right-3 mt-1 w-72 bg-zinc-800 border border-zinc-700 rounded-lg p-4 shadow-xl"
+                      style={{ top: "3.5rem" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Arrow */}
+                      <div
+                        className="absolute -top-1.5 right-3 w-3 h-3 bg-zinc-800 border-l border-t border-zinc-700 rotate-45"
+                      />
+                      <p className="text-sm text-zinc-200 font-medium mb-2">
+                        Layer Composition
+                      </p>
+                      <p className="text-xs text-zinc-400 leading-relaxed">
+                        Layers are rendered bottom-to-top. Drag to reorder,
+                        click to edit properties. Combine backgrounds, text,
+                        phone frames, images, glows, and shapes to compose your
+                        screenshot.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Layer list */}
