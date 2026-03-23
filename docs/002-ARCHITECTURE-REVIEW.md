@@ -1,222 +1,96 @@
-# 002 - Architecture Review and Direction
+# ADR-002: Incremental Modularization over Full Rewrite
 
-Date: 2026-03-07 Status: Accepted (for next iteration) Supersedes:
-`docs/001-UI_OPTIONS.md`
+| | |
+| --- | --- |
+| **Date** | 2026-03-07
+| **Status** | Accepted — executed in [ADR-003](003-TSX-REFACTOR.md)
+| **Supersedes** | [ADR-001](001-UI_OPTIONS.md) (partially — same runtime, new frontend approach)
 
-## Why this doc exists
+## Context
 
-`docs/001-UI_OPTIONS.md` captured broad technology options when the project was
-younger. This document revisits that decision based on the current repository
-shape, recent UI complexity, and maintenance concerns.
+The technology choice from [ADR-001](001-UI_OPTIONS.md) — Deno + Hono +
+Preact — was effective for early development, but the implementation had grown
+into a monolith:
 
-## Current state (repo-specific)
+- `src/server.ts`: **4,372 lines** — API routes, UI shell, CSS, and all
+  frontend state/components in a single file.
+- **33 route handlers** and **23 component functions** co-located in that file.
+- Core domain interfaces duplicated across `renderer.ts`, `types.ts`, and
+  `projects.ts`.
+- No test files.
 
-### Runtime and stack
+The inline Preact + HTM approach was productive early on but was hitting a
+tooling ceiling as component count and interaction complexity grew.
 
-- Runtime: Deno 2.x
-- HTTP framework: Hono
-- Frontend rendering: Preact + HTM in an inline script inside `server.ts`
-- Styling: Tailwind CDN + custom CSS in HTML string
-- Conversion: Puppeteer + Sharp
+### What was working
 
-### Module layout
+- Single Deno runtime — fast to run and reason about.
+- Preview and generation shared rendering logic, avoiding visual drift.
+- Product velocity was high for small-to-medium changes.
 
-- `src/server.ts`: web server + API routes + UI shell + full client app logic
-- `src/renderer.ts`: canonical screenshot/feature graphic rendering
-- `src/projects.ts`: project config + filesystem management
-- `src/generate.ts`: HTML generation using shared renderer
-- `src/convert.ts`: HTML to PNG conversion
+### Pressure points
 
-### Key metrics observed
+- Medium/large changes to `server.ts` carried merge risk and review difficulty.
+- Duplicate interfaces risked subtle contract mismatches.
+- No tests meant refactoring was riskier than necessary.
 
-- `src/server.ts`: 4372 lines
-- Route handlers in `src/server.ts`: 33 (`app.get/post/put/patch/delete`)
-- Component-style functions in `src/server.ts`: 23
-- No test files detected (`*.test.ts` / `*.spec.ts`)
-- Core domain interfaces are duplicated in multiple files:
-  - `src/renderer.ts`
-  - `src/types.ts`
-  - `src/projects.ts`
+## Options Considered
 
-## What is working well
+### Option A: Keep current architecture as-is
 
-1. Single-runtime simplicity
+No migration effort, but `server.ts` complexity would continue to grow
+unchecked. **Not recommended.**
 
-- Deno-centric workflow is fast to run and easy to reason about.
-- Local file operations and generation scripts fit this runtime well.
+### Option B: Keep Deno/Hono, modularize incrementally
 
-2. Rendering consistency
+Preserve the runtime and generation pipeline. Split routes into domain modules,
+extract UI into component files, introduce a build step (Vite), and consolidate
+types. Migrate in phases without a feature freeze. **Recommended.**
 
-- Preview and generation share rendering logic, reducing visual drift:
-  - preview endpoints in `src/server.ts`
-  - generation in `src/generate.ts`
-  - rendering in `src/renderer.ts`
+### Option C: Full React + Deno API rewrite
 
-3. Product velocity
-
-- Recent UI work (shape controls, custom color input, preset menu, debounce
-  behavior) was shipped quickly without framework migration overhead.
-
-## Architectural pressure points
-
-1. Monolithic server/UI file
-
-- `src/server.ts` now holds backend routes, app shell, CSS, and extensive
-  frontend state/components.
-- Small changes are easy, but medium/large changes raise merge risk and review
-  difficulty.
-
-2. Type drift risk
-
-- Duplicate interfaces across modules increase maintenance overhead and can
-  cause subtle contract mismatches.
-
-3. Limited test safety net
-
-- Refactoring high-change code (editor interactions, config mutations) is
-  riskier without targeted tests.
-
-4. Tooling ceiling for frontend scale
-
-- Inline script + template string architecture is productive early on, but
-  harder to maintain as component count and interaction complexity grows.
-
-## Options considered now
-
-### Option A: Keep current architecture exactly as-is
-
-Pros:
-
-- Zero migration effort
-- No short-term disruption
-
-Cons:
-
-- `server.ts` complexity continues to rise
-- Increasing maintenance and onboarding friction
-
-Verdict:
-
-- Not recommended.
-
-### Option B: Keep Deno/Hono backend, modularize frontend and routes incrementally
-
-Pros:
-
-- Preserves runtime and existing generation pipeline
-- Lowest risk path with immediate maintainability wins
-- Allows gradual migration without feature freeze
-
-Cons:
-
-- Requires disciplined refactor phases
-- Temporary mixed structure during transition
-
-Verdict:
-
-- Recommended.
-
-### Option C: Full move to React + Deno API (or React + Node stack)
-
-Pros:
-
-- Mature frontend ecosystem and conventions
-- Better long-term ergonomics if many contributors
-
-Cons:
-
-- Significant migration cost now
-- Limited near-term business/product benefit for current scope
-- Risk of regressions during rewrite
-
-Verdict:
-
-- Defer unless team/roadmap conditions change.
+Mature ecosystem and conventions, but significant migration cost with limited
+near-term benefit for a single-developer project. **Deferred.**
 
 ## Decision
 
-Adopt Option B:
+**Chosen: Option B — Incremental modularization.**
 
-- Keep Deno + Hono backend and generation pipeline.
-- Refactor architecture in place with clear boundaries.
-- Avoid full stack rewrite at this stage.
+Split the monolith into:
 
-## Target architecture (next stage)
+1. **Backend**: `server.ts` reduced to bootstrap/composition. Routes split by
+   domain into `src/routes/`.
+2. **Frontend**: UI extracted from inline monolith into `src/ui/` component
+   tree. Preact retained initially; build step via Vite.
+3. **Types**: Consolidated into `src/types/` as the single canonical source.
+4. **Tests**: Focused coverage for config merges, key endpoints, and renderer
+   output.
 
-1. Backend
+### Phased execution
 
-- `src/server.ts` becomes bootstrap/composition only.
-- Route modules split by domain, for example:
-  - `src/routes/config.ts`
-  - `src/routes/projects.ts`
-  - `src/routes/assets.ts`
-  - `src/routes/generate.ts`
-  - `src/routes/preview.ts`
+| Phase | Scope                          | Done criteria                          |
+| ----- | ------------------------------ | -------------------------------------- |
+| 1     | Split API routes               | `server.ts` has no route handlers      |
+| 2     | Extract frontend to components | UI no longer embedded as template      |
+| 3     | Consolidate types, add tests   | Single type source, basic test safety  |
 
-2. Frontend
+## Consequences
 
-- Move client UI from inline monolith into component files under `src/ui/`.
-- Keep Preact (minimal cognitive/migration cost from current implementation).
-- Introduce a build step (recommended: Vite + Preact) while still serving
-  through Hono.
+- **Positive**: Each phase delivers immediate maintainability wins. No feature
+  freeze needed. Existing API contracts and output format remain unchanged.
+- **Negative**: Temporary mixed structure during transition. Requires discipline
+  to avoid half-migrated code stalling.
+- **Outcome**: All three phases were completed in [ADR-003](003-TSX-REFACTOR.md),
+  reducing `server.ts` to ~280 lines and establishing the current module
+  structure.
 
-3. Shared contracts
+### Migration trigger for Option C
 
-- Consolidate canonical types into a single source (`src/types.ts`) and import
-  from there.
-- Remove duplicate interface definitions from `renderer.ts` and `projects.ts`
-  over time.
+Re-open the full React rewrite if at least two of these become true:
 
-4. Testing
-
-- Add focused tests around:
-  - config update merge behavior
-  - route-level contract sanity for key endpoints
-  - renderer output invariants for representative scenarios
-
-## Phased execution plan
-
-### Phase 1 (low risk, immediate value)
-
-- Split API routes from `server.ts` into domain files.
-- Keep UI behavior unchanged.
-- Introduce shared utility modules where obvious duplication exists.
-
-Done criteria:
-
-- `server.ts` no longer contains all route handlers.
-- Routes are grouped and easier to navigate.
-
-### Phase 2 (frontend extraction)
-
-- Move editor components to `src/ui/components/*`.
-- Keep same UX and API contracts.
-- Add minimal frontend build pipeline.
-
-Done criteria:
-
-- Main UI is no longer embedded as one large template string.
-- Component boundaries are explicit and reusable.
-
-### Phase 3 (type and test hardening)
-
-- Consolidate type definitions.
-- Add smoke tests for generation and key API flows.
-- Add regression tests for high-change controls.
-
-Done criteria:
-
-- Single canonical type source.
-- Basic safety net for refactors.
-
-## Migration trigger conditions (when to reconsider React rewrite)
-
-Re-open Option C if at least two are true:
-
-1. Team grows and multiple frontend contributors need stronger
-   conventions/tooling.
-2. UI complexity grows to where Preact + HTM ergonomics become a bottleneck.
-3. You need ecosystem-heavy integrations that are substantially easier in React.
+1. Team grows and multiple frontend contributors need stronger conventions.
+2. UI complexity makes Preact ergonomics a bottleneck.
+3. Ecosystem integrations become substantially easier in React.
 4. Refactor cost to maintain current structure exceeds migration cost.
 
 ## Summary
