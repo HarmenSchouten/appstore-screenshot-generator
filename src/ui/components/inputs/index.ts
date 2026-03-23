@@ -4,8 +4,9 @@
  * Re-exports all input components.
  */
 
-export { NumberInput } from "./NumberInput";
-export { ColorInput } from "./ColorInput";
-export { Slider } from "./Slider";
-export { LabeledColorInput } from "./LabeledColorInput";
-export { ImageSelect } from "./ImageSelect";
+export { NumberInput } from "./NumberInput.tsx";
+export { ColorInput } from "./ColorInput.tsx";
+export { Slider } from "./Slider.tsx";
+export { LabeledColorInput } from "./LabeledColorInput.tsx";
+export { ImageSelect } from "./ImageSelect.tsx";
+export { SegmentedControl } from "./SegmentedControl.tsx";
