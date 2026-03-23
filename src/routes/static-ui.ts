@@ -5,10 +5,7 @@
  */
 
 import { type Context, Hono } from "hono";
-import {
-  DEFAULT_PALETTES,
-  GRADIENT_TEMPLATES,
-} from "../lib/index.ts";
+import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "../lib/index.ts";
 import type { ProjectConfig, ProjectInfo } from "../types/index.ts";
 
 export function createStaticUIRoutes(

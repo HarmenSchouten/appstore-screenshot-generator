@@ -13,7 +13,6 @@ export const GlowLayer = ({
   rotation,
   opacity,
 }: GlowLayerRenderProps) => {
-
   return (
     <div
       style={{
