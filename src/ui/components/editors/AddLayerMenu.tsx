@@ -13,7 +13,7 @@ export function AddLayerMenu({
   onClose: () => void;
 }) {
   return (
-    <div className="absolute bottom-full left-1 right-1 mb-3 z-20">
+    <div className="absolute bottom-full left-1 right-1 z-20">
       <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl shadow-black/40 overflow-hidden">
         <div className="p-1.5 grid grid-cols-2 gap-1">
           {ADDABLE_LAYERS.map(({ type, icon, label }) => (
