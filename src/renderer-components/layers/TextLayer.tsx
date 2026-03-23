@@ -21,7 +21,9 @@ export const TextLayer = ({
         position: "absolute",
         left: `${posX}%`,
         top: `${posY}%`,
-        transform: `translate(-50%, -50%)${rotation ? ` rotate(${rotation}deg)` : ""}`,
+        transform: `translate(-50%, -50%)${
+          rotation ? ` rotate(${rotation}deg)` : ""
+        }`,
         width: `${100 - horizontalPadding * 2}%`,
         opacity,
         fontSize: `${fontSize}px`,

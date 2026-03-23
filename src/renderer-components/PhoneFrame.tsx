@@ -264,7 +264,7 @@ export function Phones({
   assetUrlPrefix = "/assets/",
   containerWidth = 1290,
 }: PhonesProps): React.ReactElement {
-  return <div>Phone Frame</div>
+  return <div>Phone Frame</div>;
   // const isDual = Array.isArray(screenshot.imagePath);
   // const images = isDual
   //   ? screenshot.imagePath as string[]

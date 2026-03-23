@@ -51,9 +51,9 @@ export function ProjectModal({
   const handleSwitchProjct = async (projectId: string) => {
     await switchProject(projectId);
     closeProjectModal();
-  }
+  };
 
-   const handleDelete = async (projectId: string) => {
+  const handleDelete = async (projectId: string) => {
     await removeProject(projectId);
     setConfirmDelete(null);
   };

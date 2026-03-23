@@ -52,16 +52,24 @@ function parseGradientCSS(
   const linearMatch = trimmed.match(linearRe);
   if (linearMatch) {
     const direction = Math.round(Number(linearMatch[1])) % 360;
-    const colors = linearMatch[2].split(",").map((c) => c.trim()).filter(Boolean);
-    if (colors.length >= 1) return { gradientType: "linear", colors, direction };
+    const colors = linearMatch[2].split(",").map((c) => c.trim()).filter(
+      Boolean,
+    );
+    if (colors.length >= 1) {
+      return { gradientType: "linear", colors, direction };
+    }
   }
 
   // radial-gradient(circle, <color>, ...)
   const radialRe = /^radial-gradient\(\s*circle\s*,\s*(.+)\)$/i;
   const radialMatch = trimmed.match(radialRe);
   if (radialMatch) {
-    const colors = radialMatch[1].split(",").map((c) => c.trim()).filter(Boolean);
-    if (colors.length >= 1) return { gradientType: "radial", colors, direction: 180 };
+    const colors = radialMatch[1].split(",").map((c) => c.trim()).filter(
+      Boolean,
+    );
+    if (colors.length >= 1) {
+      return { gradientType: "radial", colors, direction: 180 };
+    }
   }
 
   // Bare color value (hex, rgb, hsl, named)
@@ -107,7 +115,9 @@ function SortableColorStop({
 
   const style = {
     transform: transform
-      ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)`
+      ? `translate3d(${Math.round(transform.x)}px, ${
+        Math.round(transform.y)
+      }px, 0)`
       : undefined,
     transition,
     zIndex: isDragging ? 50 : undefined,
@@ -118,9 +128,7 @@ function SortableColorStop({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 ${
-        isDragging ? "opacity-80" : ""
-      }`}
+      className={`flex items-center gap-2 ${isDragging ? "opacity-80" : ""}`}
     >
       <button
         type="button"
@@ -239,7 +247,13 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
       return layer.gradient || "transparent";
     }
     return cssFromVisual;
-  }, [isCustomized, isCSSDriven, layer.gradient, cssFromVisual, themeBackground?.gradient]);
+  }, [
+    isCustomized,
+    isCSSDriven,
+    layer.gradient,
+    cssFromVisual,
+    themeBackground?.gradient,
+  ]);
 
   // ── CSS field handlers ────────────────────────────────────
   const commitCSS = useCallback(() => {
@@ -473,8 +487,13 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
               <textarea
                 value={cssDraft}
                 onChange={(e) => setCssDraft(e.target.value)}
-                onFocus={() => { isFocused.current = true; }}
-                onBlur={() => { isFocused.current = false; commitCSS(); }}
+                onFocus={() => {
+                  isFocused.current = true;
+                }}
+                onBlur={() => {
+                  isFocused.current = false;
+                  commitCSS();
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
