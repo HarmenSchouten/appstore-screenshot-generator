@@ -50,14 +50,50 @@ export function PhoneFrameEditor(
               )}
             className="w-full px-3 py-2 rounded-lg text-sm bg-zinc-800 border border-zinc-700/60 text-zinc-200 focus:outline-none focus:border-zinc-500"
           >
-            <optgroup label="iOS">
+            <optgroup
+              label="iOS"
+              style={{
+                fontStyle: "normal",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontSize: "11px",
+              }}
+            >
               {iosPresets.map((p) => (
-                <option key={p.id} value={p.id}>{p.label}</option>
+                <option
+                  key={p.id}
+                  value={p.id}
+                  style={{
+                    textTransform: "none",
+                    letterSpacing: "normal",
+                    fontSize: "14px",
+                  }}
+                >
+                  {p.label}
+                </option>
               ))}
             </optgroup>
-            <optgroup label="Android">
+            <optgroup
+              label="Android"
+              style={{
+                fontStyle: "normal",
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                fontSize: "11px",
+              }}
+            >
               {androidPresets.map((p) => (
-                <option key={p.id} value={p.id}>{p.label}</option>
+                <option
+                  key={p.id}
+                  value={p.id}
+                  style={{
+                    textTransform: "none",
+                    letterSpacing: "normal",
+                    fontSize: "14px",
+                  }}
+                >
+                  {p.label}
+                </option>
               ))}
             </optgroup>
           </select>
