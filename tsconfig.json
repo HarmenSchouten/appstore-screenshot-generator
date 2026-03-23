@@ -26,6 +26,8 @@
       "@/*": ["src/*"],
       "@ui/*": ["src/ui/*"],
       "@types/*": ["src/types/*"],
+      "@lib": ["src/lib/index.ts"],
+      "@lib/*": ["src/lib/*"],
       "@renderer/*": ["src/renderer-components/*"],
       "@device-presets": ["src/device-presets/index.ts"],
       "@device-presets/*": ["src/device-presets/*"]
