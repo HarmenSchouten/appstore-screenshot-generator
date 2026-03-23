@@ -54,7 +54,6 @@ export function ScreenshotContent(
 
       {/* Decorative Shapes */}
       {/* <Shapes shapes={screenshot.shapes} /> */}
-
     </div>
   );
 }

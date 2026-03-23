@@ -109,7 +109,8 @@ export function MediaManagerModal(
               <i className="fa-solid fa-images mr-2" />
               Media Manager
               <span className="ml-2 text-sm font-normal text-zinc-500">
-                {currentAssets.length} {currentAssets.length === 1 ? "image" : "images"}
+                {currentAssets.length}{" "}
+                {currentAssets.length === 1 ? "image" : "images"}
               </span>
             </h2>
             <button
