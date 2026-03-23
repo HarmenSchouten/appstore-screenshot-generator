@@ -5,7 +5,7 @@
  */
 
 import { useRef, useState } from "react";
-import type { Assets } from "../../types";
+import type { Assets } from "@ui/types.ts";
 
 interface MediaManagerModalProps {
   assets: Assets;
@@ -129,6 +129,7 @@ export function MediaManagerModal(
               Media Manager
             </h2>
             <button
+              type="button"
               onClick={onClose}
               className="text-zinc-500 hover:text-white text-xl"
             >
@@ -141,6 +142,7 @@ export function MediaManagerModal(
         <div className="flex border-b border-zinc-800">
           {tabs.map((tab) => (
             <button
+              type="button"
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 px-4 py-3 text-sm flex items-center justify-center gap-2 border-b-2 transition-colors ${
@@ -190,6 +192,7 @@ export function MediaManagerModal(
                         {/* Overlay actions */}
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                           <button
+                            type="button"
                             onClick={() => startEditing(path)}
                             className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
                             title="Rename"
@@ -197,6 +200,7 @@ export function MediaManagerModal(
                             <i className="fa-solid fa-pen" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDelete(path)}
                             className="p-2 bg-red-900/80 hover:bg-red-800 rounded"
                             title="Delete"
@@ -228,12 +232,14 @@ export function MediaManagerModal(
                             />
                             <div className="flex gap-1 mt-1">
                               <button
+                                type="button"
                                 onClick={() => handleRename(path)}
                                 className="flex-1 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded"
                               >
                                 Save
                               </button>
                               <button
+                                type="button"
                                 onClick={() => {
                                   setEditingItem(null);
                                   setNewName("");
@@ -271,6 +277,7 @@ export function MediaManagerModal(
             className="hidden"
           />
           <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
             className={`w-full py-2 rounded text-sm flex items-center justify-center gap-2 ${

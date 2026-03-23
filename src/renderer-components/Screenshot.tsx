@@ -31,11 +31,6 @@ export function ScreenshotContent(
 ): React.ReactElement {
   const {
     screenshot,
-    app,
-    dimensions,
-    assetUrlPrefix = "/assets/",
-    platform,
-    defaultDevicePresetId,
   } = options;
 
   return (

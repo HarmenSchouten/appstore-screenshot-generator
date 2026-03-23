@@ -70,6 +70,7 @@ export function Sidebar({
             {currentProjectInfo?.name || "Screenshot Editor"}
           </h1>
           <button
+            type="button"
             onClick={openProjectModal}
             className="p-2 hover:bg-zinc-800 rounded"
             title="Manage Projects"
@@ -97,6 +98,7 @@ export function Sidebar({
         <div className="flex gap-1 flex-wrap">
           {languages.map((lang) => (
             <button
+              type="button"
               key={lang.language}
               onClick={() => setSelectedLang(lang.language)}
               className={`px-3 py-1.5 rounded text-xs uppercase font-medium ${
@@ -109,6 +111,7 @@ export function Sidebar({
             </button>
           ))}
           <button
+            type="button"
             onClick={() => {
               const lang = prompt("Enter language code (e.g., fr, de, es):");
               if (lang) {
@@ -132,6 +135,7 @@ export function Sidebar({
         <div className="flex gap-2">
           {(["android", "ios"] as const).map((platform) => (
             <button
+              type="button"
               key={platform}
               onClick={() => setSelectedPlatform(platform)}
               className={`flex-1 py-2 rounded text-sm font-medium flex items-center justify-center gap-2 ${
@@ -149,6 +153,7 @@ export function Sidebar({
             </button>
           ))}
           <button
+            type="button"
             onClick={() => {
               const sourcePlatform = selectedPlatform;
               const targetPlatform = sourcePlatform === "android"
@@ -208,7 +213,7 @@ export function Sidebar({
           <SidebarItemCard
             key={screenshot.id}
             title={`Screenshot ${index + 1}`}
-            subtitle={"Screenshot details..."}
+            subtitle="Screenshot details..."
             index={index}
             isSelected={selectedItem?.type === "screenshot" &&
               selectedItem.id === screenshot.id}
@@ -225,6 +230,7 @@ export function Sidebar({
         ))}
 
         <button
+          type="button"
           onClick={addScreenshot}
           className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600"
         >
@@ -242,8 +248,8 @@ export function Sidebar({
               {fg
                 ? (
                   <SidebarItemCard
-                    title={"Feature Graphic"}
-                    subtitle={"Feature Graphic details..."}
+                    title="Feature Graphic"
+                    subtitle="Feature Graphic details..."
                     isSelected={selectedItem?.type === "screenshot" &&
                       selectedItem.id === fg.id}
                     confirmingDelete={confirmDeleteKey ===
@@ -261,6 +267,7 @@ export function Sidebar({
                 )
                 : (
                   <button
+                    type="button"
                     onClick={addFeatureGraphic}
                     className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600"
                   >
@@ -275,6 +282,7 @@ export function Sidebar({
       {/* Theme & Colors */}
       <div className="p-3 border-t border-zinc-800">
         <button
+          type="button"
           onClick={openThemeEditor}
           className="w-full p-3 rounded bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 text-left group"
         >
@@ -296,6 +304,7 @@ export function Sidebar({
       {/* Media Library */}
       <div className="p-3 border-t border-zinc-800">
         <button
+          type="button"
           onClick={openMediaManager}
           className="w-full p-3 rounded bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 text-left group"
         >
@@ -315,6 +324,7 @@ export function Sidebar({
       {/* Generate Button */}
       <div className="p-4 border-t border-zinc-800 space-y-2">
         <button
+          type="button"
           onClick={onGenerate}
           disabled={generating}
           className={`w-full py-3 rounded font-medium flex items-center justify-center gap-2 ${
@@ -339,6 +349,7 @@ export function Sidebar({
         </button>
         {lastGenerated && (
           <button
+            type="button"
             onClick={viewLastGenerated}
             className="w-full py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm font-medium flex items-center justify-center gap-2"
           >

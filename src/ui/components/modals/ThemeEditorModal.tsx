@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { ColorInput } from "../inputs/ColorInput.tsx";
-import type { Config } from "../../types.ts";
+import type { Config } from "@ui/types.ts";
 
 // Constants imported from lib
 const GRADIENT_TEMPLATES = [
@@ -191,6 +191,7 @@ export function ThemeEditorModal(
             Theme & Colors
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="text-zinc-500 hover:text-white text-xl"
           >
@@ -241,6 +242,7 @@ export function ThemeEditorModal(
               <div className="flex flex-wrap gap-2">
                 {DEFAULT_PALETTES.map((preset) => (
                   <button
+                    type="button"
                     key={preset.name}
                     onClick={() => applyPreset(preset.palette)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded text-xs bg-zinc-800 hover:bg-zinc-700"
@@ -273,6 +275,7 @@ export function ThemeEditorModal(
             <div className="grid grid-cols-4 gap-2 mb-3">
               {gradients.map((g) => (
                 <button
+                  type="button"
                   key={g.id}
                   onClick={() => setSelectedGradient(g.id)}
                   className={`p-1 rounded border-2 ${
@@ -288,6 +291,7 @@ export function ThemeEditorModal(
                 </button>
               ))}
               <button
+                type="button"
                 onClick={() => setSelectedGradient("custom")}
                 className={`p-1 rounded border-2 ${
                   selectedGradient === "custom"
@@ -371,12 +375,14 @@ export function ThemeEditorModal(
         {/* Footer */}
         <div className="flex gap-3 p-4 border-t border-zinc-800">
           <button
+            type="button"
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={handleSave}
             className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm"
           >

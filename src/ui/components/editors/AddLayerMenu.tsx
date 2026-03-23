@@ -2,7 +2,7 @@
  * AddLayerMenu — dropdown picker for adding a new layer type.
  */
 
-import type { Layer } from "../../../types/layers.ts";
+import type { Layer } from "@types";
 import { ADDABLE_LAYERS, LAYER_META } from "./layer-meta.ts";
 
 export function AddLayerMenu({
@@ -18,6 +18,7 @@ export function AddLayerMenu({
         <div className="p-1.5 grid grid-cols-2 gap-1">
           {ADDABLE_LAYERS.map(({ type, icon, label }) => (
             <button
+              type="button"
               key={type}
               onClick={() => {
                 onAdd(type);

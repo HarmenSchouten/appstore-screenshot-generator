@@ -75,6 +75,7 @@ export function ProjectModal({
         <div className="flex justify-between items-center mb-4">
           <h2 className="font-bold text-lg">Projects</h2>
           <button
+            type="button"
             onClick={closeProjectModal}
             className="text-zinc-500 hover:text-white text-xl"
           >
@@ -95,6 +96,7 @@ export function ProjectModal({
               className="flex-1 px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700"
             />
             <button
+              type="button"
               onClick={handleCreate}
               disabled={!newName.trim()}
               className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm disabled:opacity-50"
@@ -132,12 +134,14 @@ export function ProjectModal({
                       autoFocus
                     />
                     <button
+                      type="button"
                       onClick={() => handleRename(p.id)}
                       className="px-2 py-1 bg-green-600 hover:bg-green-500 rounded text-sm"
                     >
                       <i className="fa-solid fa-check" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setEditingProject(null)}
                       className="px-2 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
                     >
@@ -157,12 +161,14 @@ export function ProjectModal({
                     </p>
                     <div className="flex gap-2 justify-center">
                       <button
+                        type="button"
                         onClick={() => handleDelete(p.id)}
                         className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
                       >
                         Yes, Delete
                       </button>
                       <button
+                        type="button"
                         onClick={() => setConfirmDelete(null)}
                         className="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
                       >
@@ -183,6 +189,7 @@ export function ProjectModal({
                     </div>
                     <div className="flex gap-1 ml-2">
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           startEditing(p);
@@ -193,6 +200,7 @@ export function ProjectModal({
                         <i className="fa-solid fa-pen text-xs" />
                       </button>
                       <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setConfirmDelete(p.id);
