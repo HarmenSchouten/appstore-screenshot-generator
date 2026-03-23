@@ -73,7 +73,7 @@ export interface ShapeLayerProps extends BaseLayerProps, PositionalLayerProps {
   type: "shape";
   /** Which shape to render */
   shapeType: ShapeType;
-  /** Size as percentage of container width (1–500) */
+  /** Size of the shape in pixels */
   size: number;
   /** Color (hex) */
   color: string;

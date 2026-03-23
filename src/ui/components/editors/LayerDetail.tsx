@@ -1,8 +1,7 @@
 /**
  * LayerDetail — detail/edit view for a single layer.
  *
- * Shows the layer name, type badge, and a placeholder area
- * where type-specific editors will be added later.
+ * Shows the layer name, type badge, and the type-specific editor.
  */
 
 import type { Layer } from "@types";
@@ -12,6 +11,24 @@ import { TextEditor } from "./TextEditor.tsx";
 import { PhoneFrameEditor } from "./PhoneFrameEditor.tsx";
 import { ImageEditor } from "./ImageEditor.tsx";
 import { GlowEditor } from "./GlowEditor.tsx";
+import { ShapeEditor } from "./ShapeEditor/index.ts";
+
+// ── Editor registry ─────────────────────────────────────────
+
+const LAYER_EDITORS: Record<
+  Layer["type"],
+  React.ComponentType<{ layer: never; onUpdate: (u: Partial<Layer>) => void }>
+> = {
+  background: BackgroundEditor,
+  text: TextEditor,
+  "phone-frame": PhoneFrameEditor,
+  image: ImageEditor,
+  glow: GlowEditor,
+  shape: ShapeEditor,
+  // deno-lint-ignore no-explicit-any
+} as any;
+
+// ── Component ───────────────────────────────────────────────
 
 interface LayerDetailProps {
   layer: Layer;
@@ -27,6 +44,7 @@ export function LayerDetail({
   onUpdate,
 }: LayerDetailProps) {
   const meta = LAYER_META[layer.type];
+  const Editor = LAYER_EDITORS[layer.type];
 
   return (
     <div className="flex flex-col h-full">
@@ -53,16 +71,8 @@ export function LayerDetail({
 
       {/* Editor content area */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {layer.type === "background"
-          ? <BackgroundEditor layer={layer} onUpdate={onUpdate} />
-          : layer.type === "text"
-          ? <TextEditor layer={layer} onUpdate={onUpdate} />
-          : layer.type === "phone-frame"
-          ? <PhoneFrameEditor layer={layer} onUpdate={onUpdate} />
-          : layer.type === "image"
-          ? <ImageEditor layer={layer} onUpdate={onUpdate} />
-          : layer.type === "glow"
-          ? <GlowEditor layer={layer} onUpdate={onUpdate} />
+        {Editor
+          ? <Editor layer={layer as never} onUpdate={onUpdate} />
           : (
             <div className="text-center py-12 text-zinc-600">
               <i className={`${meta.icon} text-3xl mb-3 block opacity-40`} />

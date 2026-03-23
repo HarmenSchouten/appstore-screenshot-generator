@@ -9,7 +9,6 @@
  */
 
 export { Screenshot, ScreenshotContent } from "./Screenshot.tsx";
-export { Shape, Shapes } from "./Shape.tsx";
 export { PhoneFrame } from "./layers/PhoneFrameLayer.tsx";
 export { BaseStyles, getBaseStylesCSS } from "./BaseStyles.tsx";
 export { assetUrl } from "./utils.ts";
@@ -22,7 +21,6 @@ export type {
   AppConfig,
   RenderOptions,
   Screenshot as ScreenshotData,
-  ShapeType,
   ThemeConfig,
   TypographyOptions,
 } from "./types.ts";

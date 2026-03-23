@@ -112,7 +112,7 @@ export function createDefaultLayer(type: Layer["type"]): Layer {
         ...base,
         type: "shape",
         shapeType: "circle",
-        size: 30,
+        size: 200,
         color: "#ffffff",
       };
     case "background":

@@ -3,8 +3,6 @@ export type {
   DeviceMode,
   DevicePreset,
   DevicePresetId,
-  FeatureGraphic,
-  FeatureGraphicRenderOptions,
   Platform,
   RenderOptions,
   Screenshot,

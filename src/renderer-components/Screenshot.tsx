@@ -13,6 +13,7 @@ import {
   GlowLayer,
   ImageLayer,
   PhoneFrameLayer,
+  ShapeLayer,
   TextLayer,
 } from "@renderer/layers/index.tsx";
 import { Layer } from "../types.ts";
@@ -46,9 +47,6 @@ export function ScreenshotContent(
           containerWidth={options.dimensions.width}
         />
       ))}
-
-      {/* Decorative Shapes */}
-      {/* <Shapes shapes={screenshot.shapes} /> */}
     </div>
   );
 }
@@ -83,6 +81,8 @@ const ScreenshotLayer = (
           containerWidth={containerWidth}
         />
       );
+    case "shape":
+      return <ShapeLayer {...layer} />;
     default:
       return null;
   }
