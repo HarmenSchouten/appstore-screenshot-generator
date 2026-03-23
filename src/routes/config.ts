@@ -121,32 +121,6 @@ export function createConfigRoutes(
   });
 
   /**
-   * Update feature graphic
-   */
-  routes.put("/feature-graphic/:lang", async (c) => {
-    const { lang } = c.req.param();
-    const updates = await c.req.json();
-    const config = await getConfig();
-
-    const langIndex = config.languages.findIndex((l) => l.language === lang);
-    if (langIndex === -1) return c.json({ error: "Language not found" }, 404);
-
-    const androidConfig = config.languages[langIndex].platforms.android;
-    if (!androidConfig) {
-      return c.json({ error: "Android platform not found" }, 404);
-    }
-
-    androidConfig.featureGraphic = {
-      ...(androidConfig.featureGraphic || {}),
-      ...updates,
-    };
-
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
-    return c.json(androidConfig.featureGraphic);
-  });
-
-  /**
    * Add new language
    */
   routes.post("/language", async (c) => {
@@ -174,7 +148,6 @@ export function createConfigRoutes(
           android: {
             dimensions: { width: 1242, height: 2688 },
             screenshots: [],
-            featureGraphic: null,
           },
           ios: {
             dimensions: { width: 1242, height: 2688 },
@@ -228,11 +201,13 @@ export function createConfigRoutes(
       return c.json({ error: "Source platform not found" }, 404);
     }
 
-    // Deep clone source screenshots with new IDs
-    const copiedScreenshots = source.screenshots.map((s) => ({
-      ...JSON.parse(JSON.stringify(s)),
-      id: crypto.randomUUID(),
-    }));
+    // Deep clone source screenshots with new IDs, excluding feature graphics
+    const copiedScreenshots = source.screenshots
+      .filter((s) => s.role !== "feature-graphic")
+      .map((s) => ({
+        ...JSON.parse(JSON.stringify(s)),
+        id: crypto.randomUUID(),
+      }));
 
     // Initialize target platform if needed
     if (!langConfig.platforms[targetPlatform]) {

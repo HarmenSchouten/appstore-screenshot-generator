@@ -70,6 +70,7 @@ export interface GenerateProgress {
 export interface GenerateResult {
   path: string;
   relativePath: string;
+  role: "screenshot" | "feature-graphic";
   status: "success" | "error";
   error?: string;
 }

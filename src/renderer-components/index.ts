@@ -10,7 +10,7 @@
 
 export { Screenshot, ScreenshotContent } from "./Screenshot.tsx";
 export { PhoneFrame } from "./layers/PhoneFrameLayer.tsx";
-export { BaseStyles, getBaseStylesCSS } from "./BaseStyles.tsx";
+export { getBaseStylesCSS } from "./BaseStyles.tsx";
 export { assetUrl } from "./utils.ts";
 
 // Server-side rendering (for Deno generate.ts)

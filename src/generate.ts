@@ -87,6 +87,11 @@ const generate = async (config: ScreenshotConfig) => {
         }-${screenshot.id}.html`;
         const filepath = join(outputDir, filename);
 
+        // Feature graphics use fixed 1024x500, screenshots use platform dimensions
+        const dimensions = screenshot.role === "feature-graphic"
+          ? { width: 1024, height: 500 }
+          : platformConfig.dimensions;
+
         // Use shared renderer
         const html = renderScreenshot({
           screenshot,
@@ -95,7 +100,7 @@ const generate = async (config: ScreenshotConfig) => {
           platform,
           defaultDevicePresetId:
             config.platformDefaults[platform].defaultDevicePresetId,
-          dimensions: platformConfig.dimensions,
+          dimensions,
           assetUrlPrefix,
         });
 
@@ -103,27 +108,6 @@ const generate = async (config: ScreenshotConfig) => {
         console.log(`   ✅ ${filename}`);
         totalGenerated++;
       }
-
-      // Generate feature graphic for Android
-      // if (platform === "android" && platformConfig.featureGraphic) {
-      //   const filename = "feature-graphic.html";
-      //   const filepath = join(outputDir, filename);
-
-      //   // Use shared renderer
-      //   const html = renderFeatureGraphic({
-      //     featureGraphic: platformConfig.featureGraphic,
-      //     theme: config.theme,
-      //     app: config.app,
-      //     platform: "android",
-      //     defaultDevicePresetId:
-      //       config.platformDefaults.android.defaultDevicePresetId,
-      //     assetUrlPrefix,
-      //   });
-
-      //   await Deno.writeTextFile(filepath, html);
-      //   console.log(`   ✅ ${filename}`);
-      //   totalGenerated++;
-      // }
 
       console.log();
     }

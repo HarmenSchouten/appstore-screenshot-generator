@@ -114,6 +114,17 @@ const convertHTMLtoPNG = async (
 };
 
 /**
+ * Read the screenshot role from an HTML file's meta tag
+ */
+const readScreenshotRole = async (
+  htmlPath: string,
+): Promise<string> => {
+  const html = await Deno.readTextFile(htmlPath);
+  const match = html.match(/<meta\s+name="screenshot-role"\s+content="([^"]+)"/);
+  return match?.[1] ?? "screenshot";
+};
+
+/**
  * Main conversion function
  */
 const convert = async (config: ScreenshotConfig) => {
@@ -207,7 +218,9 @@ const convert = async (config: ScreenshotConfig) => {
           const outputFilename = filename.replace(".html", ".png");
           const outputPath = join(outputDir, outputFilename);
 
-          const isFeatureGraphic = filename === "feature-graphic.html";
+          // Read role from embedded meta tag to determine dimensions
+          const role = await readScreenshotRole(htmlPath);
+          const isFeatureGraphic = role === "feature-graphic";
           const width = isFeatureGraphic
             ? 1024
             : platformConfig.dimensions.width;

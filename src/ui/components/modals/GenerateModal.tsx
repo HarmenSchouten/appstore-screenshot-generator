@@ -48,10 +48,9 @@ export function GenerateModal(
       .forEach((r) => {
         const parts = r.relativePath.split("/");
         const platform = parts[1]; // lang/platform/filename
-        const filename = parts[parts.length - 1];
 
         if (platform === "android" || platform === "ios") {
-          if (filename.includes("feature-graphic")) {
+          if (r.role === "feature-graphic") {
             grouped[platform].feature = r;
           } else {
             grouped[platform].screenshots.push(r);

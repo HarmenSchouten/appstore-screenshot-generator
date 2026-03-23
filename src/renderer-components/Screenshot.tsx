@@ -7,7 +7,7 @@
 
 import React from "react";
 import type { RenderOptions } from "./types.ts";
-import { BaseStyles } from "./BaseStyles.tsx";
+import { getBaseStylesCSS } from "./BaseStyles.tsx";
 import {
   BackgroundLayer,
   GlowLayer,
@@ -105,12 +105,9 @@ export function Screenshot({ options }: ScreenshotProps): React.ReactElement {
           name="viewport"
           content={`width=${dimensions.width}, height=${dimensions.height}`}
         />
+        <meta name="screenshot-role" content={screenshot.role} />
         <title>{`${app.name} - ${screenshot.id}`}</title>
-        <BaseStyles
-          theme={theme}
-          typography={screenshot.typography}
-          dimensions={dimensions}
-        />
+        <style dangerouslySetInnerHTML={{ __html: getBaseStylesCSS(theme) }} />
       </head>
       <body>
         <ScreenshotContent options={options} />

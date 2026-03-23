@@ -150,7 +150,6 @@ export function getDefaultConfig(appName: string = "My App") {
           android: {
             dimensions: { width: 1242, height: 2688 },
             screenshots: [],
-            featureGraphic: null,
           },
           ios: {
             dimensions: { width: 1242, height: 2688 },
