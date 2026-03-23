@@ -23,44 +23,55 @@
           },
           "screenshots": [
             {
-              "id": "screenshot-1772901360697",
-              "role": "screenshot",
+              "id": "de4a9ed3-b2cd-451b-86b0-8afc72e7a331",
+              "role": "feature-graphic",
               "layers": [
                 {
-                  "type": "text-block",
-                  "headline": "Great title",
-                  "headlineTypography": {
-                    "fontSize": 8,
-                    "lineHeight": 1.5,
-                    "horizontalPadding": 15
-                  },
-                  "subTitle": "Compelling subtitle",
-                  "subTitleTypography": {
-                    "fontSize": 4,
-                    "lineHeight": 1.5,
-                    "horizontalPadding": 15
-                  }
+                  "id": "5f8fbda9-a86e-4fbf-94c3-977d80fc31ef",
+                  "type": "background",
+                  "opacity": 1
+                },
+                {
+                  "id": "77c767eb-4b9d-4253-8c6a-21b360db0b04",
+                  "posX": 50,
+                  "posY": 14,
+                  "opacity": 0.62,
+                  "rotation": 0,
+                  "type": "text",
+                  "text": "Captivating",
+                  "textAlign": "center",
+                  "horizontalPadding": 7,
+                  "fontWeight": 800,
+                  "fontSize": 120,
+                  "letterSpacing": 0,
+                  "textTransform": "uppercase",
+                  "textColor": "#ffffff"
                 }
               ]
             },
             {
-              "id": "screenshot-1772901360697",
-              "role": "feature-graphic",
+              "id": "77d06538-4ffd-4e0d-8d07-fcd90eb66144",
+              "role": "screenshot",
               "layers": [
                 {
-                  "type": "text-block",
-                  "headline": "Great title",
-                  "headlineTypography": {
-                    "fontSize": 8,
-                    "lineHeight": 1.5,
-                    "horizontalPadding": 15
-                  },
-                  "subTitle": "Compelling subtitle",
-                  "subTitleTypography": {
-                    "fontSize": 4,
-                    "lineHeight": 1.5,
-                    "horizontalPadding": 15
-                  }
+                  "id": "d7456eba-6fa8-46e9-8763-8b5404f8913e",
+                  "type": "background",
+                  "opacity": 1
+                },
+                {
+                  "id": "68237428-cd4c-4780-a2e5-bde740c17af7",
+                  "posX": 50,
+                  "posY": 8,
+                  "opacity": 1,
+                  "rotation": 0,
+                  "type": "text",
+                  "text": "Captivating",
+                  "fontSize": 150,
+                  "fontWeight": 800,
+                  "textAlign": "center",
+                  "textColor": "#ffffff",
+                  "lineHeight": 1.2,
+                  "textTransform": "none"
                 }
               ]
             }
