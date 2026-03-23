@@ -8,7 +8,7 @@ export const createAssetsSlice: StateCreator<
   [],
   AssetsSlice
 > = (set) => ({
-  assets: { screenshots: [], icons: [], mascots: [] },
+  assets: { images: [] },
   setAssets: (assets) => set({ assets }),
   refreshAssets: async () => {
     const assets = await fetchAssets();

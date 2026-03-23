@@ -1,7 +1,7 @@
 /**
  * MediaManager Modal Component
  *
- * Modal for managing media assets (screenshots, mascots, icons).
+ * Modal for managing image assets.
  */
 
 import { useRef, useState } from "react";
@@ -16,21 +16,12 @@ interface MediaManagerModalProps {
 export function MediaManagerModal(
   { assets, onClose, onRefresh }: MediaManagerModalProps,
 ) {
-  const [activeTab, setActiveTab] = useState<
-    "screenshots" | "mascots" | "icons"
-  >("screenshots");
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
-  const allAssets = {
-    screenshots: assets.screenshots || [],
-    mascots: assets.mascots || [],
-    icons: assets.icons || [],
-  };
-
-  const currentAssets = allAssets[activeTab] || [];
+  const currentAssets = assets.images || [];
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -40,7 +31,7 @@ export function MediaManagerModal(
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("category", activeTab);
+      formData.append("category", "images");
 
       try {
         await fetch("/api/assets/upload", {
@@ -102,16 +93,6 @@ export function MediaManagerModal(
     setNewName(nameWithoutExt);
   };
 
-  const tabs = [
-    {
-      id: "screenshots" as const,
-      label: "Screenshots",
-      icon: "fa-mobile-screen",
-    },
-    { id: "mascots" as const, label: "Mascots", icon: "fa-user-astronaut" },
-    { id: "icons" as const, label: "Icons", icon: "fa-icons" },
-  ];
-
   return (
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
@@ -127,6 +108,9 @@ export function MediaManagerModal(
             <h2 className="font-bold text-lg">
               <i className="fa-solid fa-images mr-2" />
               Media Manager
+              <span className="ml-2 text-sm font-normal text-zinc-500">
+                {currentAssets.length} {currentAssets.length === 1 ? "image" : "images"}
+              </span>
             </h2>
             <button
               type="button"
@@ -138,35 +122,13 @@ export function MediaManagerModal(
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-zinc-800">
-          {tabs.map((tab) => (
-            <button
-              type="button"
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-3 text-sm flex items-center justify-center gap-2 border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? "border-indigo-500 text-white bg-zinc-800/50"
-                  : "border-transparent text-zinc-400 hover:text-white hover:bg-zinc-800/30"
-              }`}
-            >
-              <i className={`fa-solid ${tab.icon}`} />
-              {tab.label}
-              <span className="text-xs px-1.5 py-0.5 rounded bg-zinc-700">
-                {allAssets[tab.id].length}
-              </span>
-            </button>
-          ))}
-        </div>
-
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {currentAssets.length === 0
             ? (
               <div className="text-center py-12 text-zinc-500">
                 <i className="fa-solid fa-folder-open text-4xl mb-3" />
-                <div>No {activeTab} yet</div>
+                <div>No images yet</div>
                 <div className="text-sm mt-1">
                   Upload some files to get started
                 </div>

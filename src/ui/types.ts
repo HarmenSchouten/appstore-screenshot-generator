@@ -49,9 +49,7 @@ export interface AppData {
  * Asset lists from server
  */
 export interface Assets {
-  screenshots: string[];
-  icons: string[];
-  mascots: string[];
+  images: string[];
 }
 
 /**

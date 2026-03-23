@@ -72,8 +72,7 @@ export function PhoneFrameEditor(
           label="Image"
           value={layer.imagePath ?? ""}
           onChange={(v: string) => set("imagePath", v)}
-          options={assets.screenshots}
-          category="screenshots"
+          options={assets.images}
           onAssetsRefresh={refreshAssets}
           placeholder="Select screenshot…"
         />

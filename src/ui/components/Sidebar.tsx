@@ -56,8 +56,7 @@ export function Sidebar({
   const [confirmDeleteKey, setConfirmDeleteKey] = useState<string | null>(null);
   const currentProjectInfo = projects.find((p) => p.id === currentProject);
   const languages = config.languages || [];
-  const assetCount = assets.screenshots.length + assets.mascots.length +
-    assets.icons.length;
+  const assetCount = assets.images.length;
   const platformPresets = getDevicePresetsForPlatform(selectedPlatform);
   const platformDefaultDevicePresetId = getDefaultDevicePreset();
 

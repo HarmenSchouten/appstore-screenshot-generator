@@ -19,9 +19,7 @@ export function createAssetRoutes(
    */
   routes.get("/", async (c) => {
     const assetsDir = getProjectAssetsDir(getCurrentProjectId());
-    const screenshots: string[] = [];
-    const icons: string[] = [];
-    const mascots: string[] = [];
+    const images: string[] = [];
 
     async function scanDir(dir: string, prefix = "") {
       try {
@@ -30,19 +28,7 @@ export function createAssetRoutes(
           if (entry.isDirectory) {
             await scanDir(join(dir, entry.name), path);
           } else if (entry.name.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
-            if (
-              path.toLowerCase().includes("screenshot") ||
-              path.startsWith("screenshots/")
-            ) {
-              screenshots.push(`assets/${path}`);
-            } else if (path.toLowerCase().includes("icon")) {
-              icons.push(`assets/${path}`);
-            } else if (path.toLowerCase().includes("mascot")) {
-              mascots.push(`assets/${path}`);
-            } else {
-              // Put in screenshots by default for selection
-              screenshots.push(`assets/${path}`);
-            }
+            images.push(`assets/${path}`);
           }
         }
       } catch {
@@ -52,7 +38,7 @@ export function createAssetRoutes(
 
     await scanDir(assetsDir);
 
-    return c.json({ screenshots, icons, mascots });
+    return c.json({ images });
   });
 
   /**
@@ -61,7 +47,7 @@ export function createAssetRoutes(
   routes.post("/upload", async (c) => {
     const formData = await c.req.formData();
     const file = formData.get("file") as File;
-    const category = formData.get("category") as string || "screenshots";
+    const category = "images";
 
     if (!file) {
       return c.json({ error: "No file provided" }, 400);

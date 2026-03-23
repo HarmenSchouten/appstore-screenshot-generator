@@ -10,7 +10,6 @@ interface ImageSelectProps {
   value: string;
   onChange: (value: string) => void;
   options: string[];
-  category?: string;
   onAssetsRefresh?: () => Promise<void>;
   label?: string;
   placeholder?: string;
@@ -20,7 +19,6 @@ export function ImageSelect({
   value,
   onChange,
   options,
-  category,
   onAssetsRefresh,
   label,
   placeholder = "Select image...",
@@ -35,7 +33,7 @@ export function ImageSelect({
     setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("category", category || "screenshots");
+    formData.append("category", "images");
 
     try {
       const res = await fetch("/api/assets/upload", {
@@ -83,6 +81,7 @@ export function ImageSelect({
           className="hidden"
         />
         <button
+          type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
           className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm disabled:opacity-50"
