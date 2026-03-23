@@ -184,6 +184,7 @@ export function ScreenshotEditor({
               />
             )}
             <button
+              type="button"
               onClick={() => setShowAddMenu(!showAddMenu)}
               className="w-full py-2.5 rounded-lg text-sm font-medium bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
             >

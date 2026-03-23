@@ -94,7 +94,16 @@ export function createDefaultLayer(type: Layer["type"]): Layer {
   };
   switch (type) {
     case "text":
-      return { ...base, type: "text", text: "New Text" };
+      return {
+        ...base,
+        type: "text",
+        text: "New Text",
+        fontSize: 48,
+        fontWeight: 700,
+        textAlign: "center" as const,
+        textColor: "#ffffff",
+        lineHeight: 1.2,
+      };
     case "text-block":
       return {
         ...base,
