@@ -20,18 +20,9 @@ import {
 } from "../store/index.ts";
 import { activateProject, fetchAssets } from "../utils/api.ts";
 import { useStoreRouteSync } from "../utils/routing.ts";
-import type { AppData } from "../types.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 
-declare global {
-  interface Window {
-    __APP_DATA__: AppData;
-  }
-}
-
 export function App() {
-  const appData = window.__APP_DATA__;
-
   // Two-way sync: React Router params <-> Zustand store
   useStoreRouteSync();
 
@@ -40,6 +31,7 @@ export function App() {
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
   const assets = useAppStore((s) => s.assets);
   const currentProject = useAppStore((s) => s.currentProject);
+  const initialProjectId = useAppStore((s) => s.initialProjectId);
   const screenshots = useAppStore(selectScreenshots);
   const dimensions = useAppStore(selectDimensions);
 
@@ -75,7 +67,7 @@ export function App() {
 
   // On mount, sync server to URL-specified project if they differ
   useEffect(() => {
-    if (currentProject !== appData.projectId) {
+    if (currentProject !== initialProjectId) {
       activateProject(currentProject).then((data) => {
         setConfig(data.config);
         setSelectedLang(data.config.languages?.[0]?.language || "en");

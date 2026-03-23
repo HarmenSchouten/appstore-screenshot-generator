@@ -16,6 +16,7 @@ export const createProjectSlice: StateCreator<
 > = (set, get) => ({
   projects: [],
   currentProject: "",
+  initialProjectId: "",
 
   switchProject: async (projectId) => {
     await get().flush();

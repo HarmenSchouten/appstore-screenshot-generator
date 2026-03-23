@@ -23,13 +23,12 @@ async function init() {
 
     const appData = await response.json();
 
-    window.__APP_DATA__ = appData;
-
     // Hydrate Zustand store with server data (URL params handled by React Router)
     useAppStore.setState({
       config: appData.config,
       projects: appData.projects,
       currentProject: appData.projectId,
+      initialProjectId: appData.projectId,
     });
 
     // Mount application with React Router

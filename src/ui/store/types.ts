@@ -30,6 +30,7 @@ export interface ConfigSlice {
 export interface ProjectSlice {
   projects: ProjectInfo[];
   currentProject: string;
+  initialProjectId: string;
   switchProject: (projectId: string) => Promise<void>;
   createProject: (name: string) => Promise<void>;
   removeProject: (projectId: string) => Promise<void>;
