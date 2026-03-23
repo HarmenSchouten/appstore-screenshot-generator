@@ -26,13 +26,17 @@ export function resolveBackground(
   layer: BackgroundLayerProps,
   theme: ThemeConfig,
 ): string {
-  return layer.colors && layer.colors.length > 0
-    ? buildGradientCSS(
+  // Raw CSS gradient takes priority (set in CSS edit mode)
+  if (layer.gradient) return layer.gradient;
+  // Structured visual data
+  if (layer.colors && layer.colors.length > 0) {
+    return buildGradientCSS(
       layer.gradientType ?? "linear",
       layer.colors,
       layer.direction ?? 180,
-    )
-    : theme.background.gradient;
+    );
+  }
+  return theme.background.gradient;
 }
 
 /** BackgroundLayer renderer. */
