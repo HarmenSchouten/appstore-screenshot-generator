@@ -1,5 +1,4 @@
-import type { BackgroundLayerProps } from "../../types/layers.ts";
-import type { ThemeConfig } from "../../types/theme.ts";
+import type { BackgroundLayerProps, ThemeConfig } from "@types";
 
 export type GradientType = "solid" | "linear" | "radial";
 

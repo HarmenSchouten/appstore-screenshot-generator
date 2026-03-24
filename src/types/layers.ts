@@ -1,5 +1,6 @@
 import { DEVICE_PRESETS } from "@device-presets";
-import type { ShapeType, TypographyOptions } from "@types";
+import type { ShapeType } from "./effects.ts";
+import type { TypographyOptions } from "./typography.ts";
 
 interface BaseLayerProps {
   id: string;

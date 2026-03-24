@@ -7,7 +7,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { join } from "@std/path";
-import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "./lib/index.ts";
+import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "@lib";
 import {
   getProjectOutputDir,
   initializeProjects,

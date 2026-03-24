@@ -2,7 +2,7 @@
  * Screenshot type
  */
 
-import type { Layer } from "@types";
+import type { Layer } from "./layers.ts";
 
 export interface Screenshot {
   /** Unique identifier for this screenshot */

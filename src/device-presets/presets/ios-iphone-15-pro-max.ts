@@ -1,4 +1,4 @@
-import type { DevicePreset } from "../../types/device.ts";
+import type { DevicePreset } from "@types";
 
 export const IOS_IPHONE_15_PRO_MAX_PRESET = {
   id: "ios-iphone-15-pro-max",

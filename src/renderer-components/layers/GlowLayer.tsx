@@ -1,4 +1,4 @@
-import type { GlowLayerProps } from "../../types.ts";
+import type { GlowLayerProps } from "@types";
 
 export interface GlowLayerRenderProps extends GlowLayerProps {
   containerWidth: number;

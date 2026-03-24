@@ -13,10 +13,10 @@ export type {
   Screenshot,
   ShapeType,
   ThemeConfig as Theme,
-} from "../types/index.ts";
+} from "@types";
 
 // Re-export ProjectConfig as Config for component convenience
-export type { ProjectConfig as Config } from "../types/index.ts";
+export type { ProjectConfig as Config } from "@types";
 
 /**
  * Gradient template strings with {primary}, {secondary}, {accent} placeholders
@@ -32,8 +32,8 @@ export type DefaultPalettes = Record<string, Palette>;
  * App initial data injected by server
  */
 export interface AppData {
-  config: import("../types/index.ts").ProjectConfig;
-  projects: import("../types/index.ts").ProjectInfo[];
+  config: import("@types").ProjectConfig;
+  projects: import("@types").ProjectInfo[];
   projectId: string;
   gradientTemplates: GradientTemplates;
   palettes: DefaultPalettes;
@@ -76,4 +76,4 @@ export interface GenerateResult {
 }
 
 // Import Palette type
-import type { ColorPalette as Palette } from "../types/index.ts";
+import type { ColorPalette as Palette } from "@types";

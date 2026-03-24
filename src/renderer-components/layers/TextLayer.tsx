@@ -1,4 +1,4 @@
-import type { TextLayerProps } from "../../types.ts";
+import type { TextLayerProps } from "@types";
 
 export const TextLayer = ({
   text,

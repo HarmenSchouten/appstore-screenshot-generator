@@ -21,8 +21,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { Screenshot } from "../../types.ts";
-import type { Layer } from "../../../types/layers.ts";
+import type { Screenshot } from "@ui/types.ts";
+import type { Layer } from "@types";
 import { createDefaultLayer, generateLayerId } from "./layer-meta.ts";
 import { SortableLayerCard } from "./SortableLayerCard.tsx";
 import { AddLayerMenu } from "./AddLayerMenu.tsx";

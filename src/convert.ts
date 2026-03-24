@@ -13,7 +13,7 @@ import puppeteer, { type Browser, type Page } from "puppeteer";
 import sharp from "sharp";
 import { join } from "@std/path";
 import { ensureDir, walk } from "@std/fs";
-import type { Language, Platform, ScreenshotConfig } from "./types.ts";
+import type { Language, Platform, ScreenshotConfig } from "@types";
 
 // Parse command line arguments
 const parseArgs = () => {

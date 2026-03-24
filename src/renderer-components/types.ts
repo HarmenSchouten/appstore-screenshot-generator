@@ -9,4 +9,4 @@ export type {
   ShapeType,
   ThemeConfig,
   TypographyOptions,
-} from "../types/index.ts";
+} from "@types";

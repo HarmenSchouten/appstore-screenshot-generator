@@ -1,9 +1,9 @@
 import type {
   DevicePreset,
   DevicePresetId,
+  Platform,
   PlatformDefaults,
-} from "../types/device.ts";
-import type { Platform } from "../types/base.ts";
+} from "@types";
 import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from "./presets/index.ts";
 
 export * from "./presets/index.ts";

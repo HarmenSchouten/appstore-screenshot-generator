@@ -12,12 +12,8 @@ import {
   DEFAULT_PLATFORM_DEFAULTS,
   isDevicePresetId,
   LEGACY_PLATFORM_DEFAULTS,
-} from "./device-presets/index.ts";
-import type {
-  ColorPalette,
-  ProjectConfig,
-  ProjectInfo,
-} from "./types/index.ts";
+} from "@device-presets";
+import type { ColorPalette, ProjectConfig, ProjectInfo } from "@types";
 
 /**
  * Predefined gradient templates - use {primary}, {secondary}, {accent} as placeholders

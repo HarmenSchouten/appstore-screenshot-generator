@@ -10,9 +10,8 @@ import React from "react";
 import {
   DEVICE_PRESET_REFERENCE_WIDTH,
   getDevicePreset,
-} from "../../device-presets/index.ts";
-import type { DevicePresetId } from "../../types/device.ts";
-import type { PhoneFrameLayerProps } from "../../types.ts";
+} from "@device-presets";
+import type { DevicePresetId, PhoneFrameLayerProps } from "@types";
 import { assetUrl } from "../utils.ts";
 
 interface PhoneFrameLayerRenderProps extends PhoneFrameLayerProps {

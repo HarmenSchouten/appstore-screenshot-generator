@@ -6,15 +6,15 @@
  */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { ScreenshotContent } from "../../renderer-components/Screenshot.tsx";
-import { getBaseStylesCSS } from "../../renderer-components/BaseStyles.tsx";
+import { ScreenshotContent } from "@renderer/Screenshot.tsx";
+import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import type {
   AppConfig,
   DevicePresetId,
   Platform,
   Screenshot,
   ThemeConfig,
-} from "../../renderer-components/types.ts";
+} from "@renderer/types.ts";
 
 interface PreviewProps {
   screenshot?: Screenshot;

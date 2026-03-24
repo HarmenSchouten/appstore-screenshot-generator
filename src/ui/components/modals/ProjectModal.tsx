@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import type { ProjectInfo } from "../../types.ts";
+import type { ProjectInfo } from "@ui/types.ts";
 import { useAppStore } from "../../store/index.ts";
 
 interface ProjectModalProps {

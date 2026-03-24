@@ -7,9 +7,9 @@
 import { Hono } from "hono";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { ProjectConfig } from "../types/index.ts";
+import type { ProjectConfig } from "@types";
 import { getProjectAssetsDir, getProjectOutputDir } from "../projects.ts";
-import { renderScreenshot } from "../renderer-components/server.ts";
+import { renderScreenshot } from "@renderer/server.ts";
 
 export function createGenerateRoutes(
   getCurrentProjectId: () => string,

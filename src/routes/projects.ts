@@ -5,7 +5,7 @@
  */
 
 import { Hono } from "hono";
-import type { ProjectConfig } from "../types/index.ts";
+import type { ProjectConfig } from "@types";
 import {
   createProject,
   deleteProject,

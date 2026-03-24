@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import type { Palette } from "../../types.ts";
+import type { Palette } from "@ui/types.ts";
 
 interface ColorInputProps {
   value: string;

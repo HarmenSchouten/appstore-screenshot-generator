@@ -15,9 +15,9 @@ import {
   PhoneFrameLayer,
   ShapeLayer,
   TextLayer,
-} from "@renderer/layers/index.tsx";
-import { Layer } from "../types.ts";
-import type { ThemeConfig } from "../types/theme.ts";
+} from "./layers/index.tsx";
+import { Layer } from "@types";
+import type { ThemeConfig } from "@types";
 
 interface ScreenshotProps {
   options: RenderOptions;

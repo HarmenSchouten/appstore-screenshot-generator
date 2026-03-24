@@ -5,8 +5,8 @@
  * used throughout the application.
  */
 
-import type { ColorPalette, GradientTemplate } from "../types/index.ts";
-import { DEFAULT_PLATFORM_DEFAULTS } from "../device-presets/index.ts";
+import type { ColorPalette, GradientTemplate } from "@types";
+import { DEFAULT_PLATFORM_DEFAULTS } from "@device-presets";
 
 // ============================================================
 // Gradient Templates
