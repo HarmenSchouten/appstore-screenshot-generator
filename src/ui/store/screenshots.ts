@@ -39,7 +39,11 @@ export const createScreenshotSlice: StateCreator<
       }],
     };
 
-    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
     if (result) {
       result.platformConfig.screenshots.push(newScreenshot);
       saveConfig(result.newConfig);
@@ -50,7 +54,11 @@ export const createScreenshotSlice: StateCreator<
   addFeatureGraphic: () => {
     const { config, selectedLang, selectedPlatform, saveConfig } = get();
 
-    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
     if (!result) return;
 
     // Enforce uniqueness: only one feature-graphic per platform
@@ -85,7 +93,11 @@ export const createScreenshotSlice: StateCreator<
       setSelectedItem,
     } = get();
 
-    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
     if (result) {
       result.platformConfig.screenshots = result.platformConfig.screenshots
         .filter((s) => s.id !== id);
@@ -99,7 +111,11 @@ export const createScreenshotSlice: StateCreator<
   updateScreenshot: (id, updates) => {
     const { config, selectedLang, selectedPlatform, saveConfig } = get();
 
-    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
     if (result) {
       const idx = result.platformConfig.screenshots.findIndex((s) =>
         s.id === id
@@ -124,7 +140,11 @@ export const createScreenshotSlice: StateCreator<
       setSelectedItem,
     } = get();
 
-    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
     if (result) {
       const fgId = result.platformConfig.screenshots.find(
         (s) => s.role === "feature-graphic",
