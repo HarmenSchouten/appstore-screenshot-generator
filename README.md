@@ -13,16 +13,12 @@ and a shared render pipeline for preview and export.
 ## What It Does
 
 - Visual editor with live preview
+- Layer-based composition — freely position text, phones, images, shapes, and effects
+- Device presets for iPhone and Android models
 - iOS and Android output support
 - Multi-language project setup
 - Shared renderer for browser preview and PNG export
 - Project-based asset and config management
-
-> [!NOTE]
-> This project started as a script-first screenshot generator. Later on a
-> generated frontend was attached to it. The frontend has been iteratively
-> refined over time, and the history is documented in
-> [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md).
 
 ## Quick Start
 
@@ -63,13 +59,17 @@ npm run verify
 
 - API and orchestration: src/server.ts and src/routes/
 - Screenshot generation: src/generate.ts and src/convert.ts
-- Shared renderer components: src/renderer-components/
+- Shared renderer and layers: src/renderer-components/
+- Device presets: src/device-presets/
+- Type definitions: src/types/
+- Utilities: src/lib/
 - Editor UI: src/ui/ (React + Vite)
 
-For project evolution and technical decisions, see:
-
-- [docs/README.md](docs/README.md)
-- [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md)
+> [!NOTE]
+> For project evolution and technical decisions, see:
+> 
+> - [docs/README.md](docs/README.md)
+> - [docs/PROJECT_HISTORY.md](docs/PROJECT_HISTORY.md)
 
 ## Contributing
 
