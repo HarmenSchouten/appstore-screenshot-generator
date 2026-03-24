@@ -1,4 +1,4 @@
-import type { DevicePreset } from "../../types/device.ts";
+import type { DevicePreset } from "@types";
 
 export const ANDROID_PIXEL_9_PRO_PRESET = {
   id: "android-pixel-9-pro",

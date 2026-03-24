@@ -5,11 +5,8 @@
  * used throughout the application.
  */
 
-import type { ColorPalette, GradientTemplate } from "../types/index.ts";
-import { DEFAULT_PLATFORM_DEFAULTS } from "../device-presets/index.ts";
-
-// Re-export GLOW_COLORS from renderer-components (single source of truth)
-export { GLOW_COLORS } from "../renderer-components/constants.ts";
+import type { ColorPalette, GradientTemplate } from "@types";
+import { DEFAULT_PLATFORM_DEFAULTS } from "@device-presets";
 
 // ============================================================
 // Gradient Templates
@@ -153,7 +150,6 @@ export function getDefaultConfig(appName: string = "My App") {
           android: {
             dimensions: { width: 1242, height: 2688 },
             screenshots: [],
-            featureGraphic: null,
           },
           ios: {
             dimensions: { width: 1242, height: 2688 },

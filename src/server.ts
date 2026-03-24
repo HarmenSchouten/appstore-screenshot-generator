@@ -7,8 +7,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { join } from "@std/path";
-import { GLOW_COLORS } from "./renderer-components/constants.ts";
-import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "./lib/index.ts";
+import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "@lib";
 import {
   getProjectOutputDir,
   initializeProjects,
@@ -119,7 +118,6 @@ app.get("/api/init", async (c) => {
     config,
     projects,
     projectId: currentProjectId,
-    glowColors: GLOW_COLORS,
     gradientTemplates: gradientTemplatesObj,
     palettes: palettesObj,
   });
@@ -162,11 +160,6 @@ app.route(
   ),
 );
 
-// Glow colors API (for UI color picker)
-app.get("/api/glow-colors", (c) => {
-  return c.json(GLOW_COLORS);
-});
-
 // Serve generated output files
 app.get("/output/:path{.+}", async (c) => {
   const filePath = c.req.param("path");
@@ -184,33 +177,6 @@ app.get("/output/:path{.+}", async (c) => {
   } catch {
     return c.notFound();
   }
-});
-
-// Get previously generated images
-app.get("/api/generated", async (c) => {
-  const outputDir = getProjectOutputDir(currentProjectId);
-  const results: { relativePath: string; status: string }[] = [];
-
-  async function scanDir(dir: string, prefix: string = "") {
-    try {
-      for await (const entry of Deno.readDir(dir)) {
-        const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
-        if (entry.isDirectory) {
-          await scanDir(join(dir, entry.name), relativePath);
-        } else if (
-          entry.isFile &&
-          (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
-        ) {
-          results.push({ relativePath, status: "success" });
-        }
-      }
-    } catch {
-      // Directory doesn't exist or can't be read
-    }
-  }
-
-  await scanDir(outputDir);
-  return c.json({ results, outputDir });
 });
 
 // ============================================================

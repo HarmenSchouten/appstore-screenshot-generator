@@ -7,11 +7,17 @@
 
 import React from "react";
 import type { RenderOptions } from "./types.ts";
-import { BaseStyles } from "./BaseStyles.tsx";
-import { Glow } from "./Glow.tsx";
-import { Shapes } from "./Shape.tsx";
-import { Phones } from "./PhoneFrame.tsx";
-import { Mascot } from "./Mascot.tsx";
+import { getBaseStylesCSS } from "./BaseStyles.tsx";
+import {
+  BackgroundLayer,
+  GlowLayer,
+  ImageLayer,
+  PhoneFrameLayer,
+  ShapeLayer,
+  TextLayer,
+} from "./layers/index.tsx";
+import { Layer } from "@types";
+import type { ThemeConfig } from "@types";
 
 interface ScreenshotProps {
   options: RenderOptions;
@@ -27,50 +33,60 @@ export function ScreenshotContent(
 ): React.ReactElement {
   const {
     screenshot,
-    app,
-    dimensions,
     assetUrlPrefix = "/assets/",
-    platform,
-    defaultDevicePresetId,
   } = options;
 
   return (
     <div className="screenshot">
-      {/* Glow Effects */}
-      {screenshot.glows.map((glow, index) => (
-        <Glow key={index} glow={glow} containerWidth={dimensions.width} />
+      {screenshot.layers.map((l) => (
+        <ScreenshotLayer
+          key={l.id}
+          layer={l}
+          theme={options.theme}
+          assetUrlPrefix={assetUrlPrefix}
+          containerWidth={options.dimensions.width}
+        />
       ))}
-
-      {/* Decorative Shapes */}
-      <Shapes shapes={screenshot.shapes} />
-
-      {/* Headline */}
-      <div
-        className="headline-area"
-        style={{ top: `${screenshot.headlineOffset ?? 0}%` }}
-      >
-        <h1>{screenshot.headline}</h1>
-        <p>{screenshot.subtitle}</p>
-      </div>
-
-      {/* Phone Mockups */}
-      <Phones
-        screenshot={screenshot}
-        platform={platform}
-        defaultDevicePresetId={defaultDevicePresetId}
-        assetUrlPrefix={assetUrlPrefix}
-        containerWidth={dimensions.width}
-      />
-
-      {/* Mascot */}
-      <Mascot
-        mascot={screenshot.mascot}
-        app={app}
-        assetUrlPrefix={assetUrlPrefix}
-      />
     </div>
   );
 }
+
+const ScreenshotLayer = (
+  { layer, theme, assetUrlPrefix, containerWidth }: {
+    layer: Layer;
+    theme: ThemeConfig;
+    assetUrlPrefix: string;
+    containerWidth: number;
+  },
+) => {
+  switch (layer.type) {
+    case "background":
+      return <BackgroundLayer {...layer} theme={theme} />;
+    case "text":
+      return <TextLayer {...layer} />;
+    case "phone-frame":
+      return (
+        <PhoneFrameLayer
+          {...layer}
+          assetUrlPrefix={assetUrlPrefix}
+          containerWidth={containerWidth}
+        />
+      );
+    case "image":
+      return <ImageLayer {...layer} assetUrlPrefix={assetUrlPrefix} />;
+    case "glow":
+      return (
+        <GlowLayer
+          {...layer}
+          containerWidth={containerWidth}
+        />
+      );
+    case "shape":
+      return <ShapeLayer {...layer} />;
+    default:
+      return null;
+  }
+};
 
 /**
  * Full Screenshot Document
@@ -89,12 +105,9 @@ export function Screenshot({ options }: ScreenshotProps): React.ReactElement {
           name="viewport"
           content={`width=${dimensions.width}, height=${dimensions.height}`}
         />
+        <meta name="screenshot-role" content={screenshot.role} />
         <title>{`${app.name} - ${screenshot.id}`}</title>
-        <BaseStyles
-          theme={theme}
-          typography={screenshot.typography}
-          dimensions={dimensions}
-        />
+        <style dangerouslySetInnerHTML={{ __html: getBaseStylesCSS(theme) }} />
       </head>
       <body>
         <ScreenshotContent options={options} />

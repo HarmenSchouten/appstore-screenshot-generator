@@ -1,6 +1,6 @@
 /**
  * LabeledColorInput Component
- * 
+ *
  * Simple color/gradient input with label and preview swatch.
  * Supports any CSS color value (including rgba, gradients).
  */
@@ -16,7 +16,7 @@ export function LabeledColorInput({
   label,
   value,
   onChange,
-  placeholder = 'rgba(255,255,255,0.15)',
+  placeholder = "rgba(255,255,255,0.15)",
 }: LabeledColorInputProps) {
   return (
     <div>
@@ -28,7 +28,7 @@ export function LabeledColorInput({
         />
         <input
           type="text"
-          value={value || ''}
+          value={value || ""}
           onInput={(e) => onChange((e.target as HTMLInputElement).value)}
           className="flex-1 px-3 py-2 rounded text-sm font-mono"
           placeholder={placeholder}

@@ -7,9 +7,7 @@
 // ============================================================
 
 export interface AssetLists {
-  screenshots: string[];
-  icons: string[];
-  mascots: string[];
+  images: string[];
 }
 
 // ============================================================

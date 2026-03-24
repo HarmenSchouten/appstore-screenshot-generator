@@ -12,12 +12,8 @@ import {
   DEFAULT_PLATFORM_DEFAULTS,
   isDevicePresetId,
   LEGACY_PLATFORM_DEFAULTS,
-} from "./device-presets/index.ts";
-import type {
-  ColorPalette,
-  ProjectConfig,
-  ProjectInfo,
-} from "./types/index.ts";
+} from "@device-presets";
+import type { ColorPalette, ProjectConfig, ProjectInfo } from "@types";
 
 /**
  * Predefined gradient templates - use {primary}, {secondary}, {accent} as placeholders
@@ -192,7 +188,6 @@ export function getDefaultConfig(appName: string = "My App"): ProjectConfig {
           android: {
             dimensions: { width: 1242, height: 2688 },
             screenshots: [],
-            featureGraphic: null,
           },
           ios: {
             dimensions: { width: 1242, height: 2688 },
@@ -278,7 +273,7 @@ export async function createProject(name: string): Promise<ProjectInfo> {
 
   // Create project directories
   await ensureDir(projectDir);
-  await ensureDir(join(projectDir, "assets", "screenshots"));
+  await ensureDir(join(projectDir, "assets", "images"));
   await ensureDir(join(projectDir, "output"));
 
   // Create project info
@@ -500,7 +495,7 @@ export async function initializeProjects(): Promise<string> {
 
     // Create default project
     await ensureDir(defaultDir);
-    await ensureDir(join(defaultDir, "assets", "screenshots"));
+    await ensureDir(join(defaultDir, "assets", "images"));
     await ensureDir(join(defaultDir, "output"));
 
     // Copy legacy assets if they exist

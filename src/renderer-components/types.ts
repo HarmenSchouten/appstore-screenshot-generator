@@ -3,16 +3,10 @@ export type {
   DeviceMode,
   DevicePreset,
   DevicePresetId,
-  FeatureGraphic,
-  FeatureGraphicRenderOptions,
-  GlowEffect,
-  MascotOptions,
-  PhoneFrameOptions,
   Platform,
   RenderOptions,
   Screenshot,
-  Shape,
   ShapeType,
   ThemeConfig,
   TypographyOptions,
-} from "../types/index.ts";
+} from "@types";

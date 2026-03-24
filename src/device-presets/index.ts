@@ -1,11 +1,9 @@
 import type {
-  DeviceMode,
   DevicePreset,
   DevicePresetId,
+  Platform,
   PlatformDefaults,
-} from "../types/device.ts";
-import type { PhoneFrameOptions } from "../types/components.ts";
-import type { Platform } from "../types/base.ts";
+} from "@types";
 import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from "./presets/index.ts";
 
 export * from "./presets/index.ts";
@@ -50,29 +48,6 @@ export function getDevicePresetsForPlatform(
 
 export function isDevicePresetId(value: string): value is DevicePresetId {
   return Object.hasOwn(DEVICE_PRESETS, value);
-}
-
-export function resolveDeviceMode(phoneFrame?: PhoneFrameOptions): DeviceMode {
-  return phoneFrame?.deviceMode ?? "inherit";
-}
-
-export function resolveScreenshotDevicePresetId(
-  platform: Platform,
-  defaultDevicePresetId: DevicePresetId,
-  phoneFrame?: PhoneFrameOptions,
-): DevicePresetId {
-  if (
-    resolveDeviceMode(phoneFrame) === "override" &&
-    phoneFrame?.devicePresetId &&
-    isDevicePresetId(phoneFrame.devicePresetId)
-  ) {
-    const overridePreset = getDevicePreset(phoneFrame.devicePresetId);
-    if (overridePreset.platform === platform) {
-      return overridePreset.id;
-    }
-  }
-
-  return defaultDevicePresetId;
 }
 
 export function getDevicePresetSummary(id: DevicePresetId): string {

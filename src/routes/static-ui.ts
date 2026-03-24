@@ -5,12 +5,8 @@
  */
 
 import { type Context, Hono } from "hono";
-import {
-  DEFAULT_PALETTES,
-  GLOW_COLORS,
-  GRADIENT_TEMPLATES,
-} from "../lib/index.ts";
-import type { ProjectConfig, ProjectInfo } from "../types/index.ts";
+import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "@lib";
+import type { ProjectConfig, ProjectInfo } from "@types";
 
 export function createStaticUIRoutes(
   getConfig: () => Promise<ProjectConfig>,
@@ -54,7 +50,6 @@ export function createStaticUIRoutes(
       config,
       projects,
       projectId,
-      glowColors: GLOW_COLORS,
       gradientTemplates: gradientTemplatesObj,
       palettes: palettesObj,
     });

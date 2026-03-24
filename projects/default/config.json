@@ -23,33 +23,94 @@
           },
           "screenshots": [
             {
-              "id": "screenshot-1772901360697",
-              "headline": "Great title",
-              "subtitle": "Compelling subtitle",
-              "imagePath": "",
-              "glows": [],
-              "phoneFrame": {
-                "scale": 70,
-                "bottomOffset": 6
-              },
-              "typography": {
-                "headlineFontSize": 8,
-                "subtitleFontSize": 4,
-                "headlineLineHeight": 1.5,
-                "horizontalPadding": 15
-              },
-              "headlineOffset": 4
+              "id": "de4a9ed3-b2cd-451b-86b0-8afc72e7a331",
+              "role": "feature-graphic",
+              "layers": [
+                {
+                  "id": "5f8fbda9-a86e-4fbf-94c3-977d80fc31ef",
+                  "type": "background",
+                  "opacity": 1
+                },
+                {
+                  "id": "9caa7f26-92ed-488d-ba7f-963583206fca",
+                  "posX": 84,
+                  "posY": 50,
+                  "opacity": 1,
+                  "rotation": 3,
+                  "type": "phone-frame",
+                  "model": "ios-iphone-15-pro",
+                  "scale": 19
+                },
+                {
+                  "id": "77c767eb-4b9d-4253-8c6a-21b360db0b04",
+                  "posX": 50,
+                  "posY": 14,
+                  "opacity": 0.62,
+                  "rotation": 0,
+                  "type": "text",
+                  "text": "Captivating",
+                  "textAlign": "center",
+                  "horizontalPadding": 7,
+                  "fontWeight": 800,
+                  "fontSize": 120,
+                  "letterSpacing": 0,
+                  "textTransform": "uppercase",
+                  "textColor": "#ffffff"
+                }
+              ]
+            },
+            {
+              "id": "77d06538-4ffd-4e0d-8d07-fcd90eb66144",
+              "role": "screenshot",
+              "layers": [
+                {
+                  "id": "d7456eba-6fa8-46e9-8763-8b5404f8913e",
+                  "type": "background",
+                  "opacity": 1
+                },
+                {
+                  "id": "68237428-cd4c-4780-a2e5-bde740c17af7",
+                  "posX": 50,
+                  "posY": 8,
+                  "opacity": 1,
+                  "rotation": 0,
+                  "type": "text",
+                  "text": "Captivating",
+                  "fontSize": 150,
+                  "fontWeight": 800,
+                  "textAlign": "center",
+                  "textColor": "#ffffff",
+                  "lineHeight": 1.2,
+                  "textTransform": "none"
+                },
+                {
+                  "id": "27ec39d8-42ff-48ce-bebc-f6e72021f0c7",
+                  "posX": 50,
+                  "posY": 14,
+                  "opacity": 1,
+                  "rotation": 0,
+                  "type": "text",
+                  "text": "Interesting headline",
+                  "fontSize": 99,
+                  "fontWeight": 400,
+                  "textAlign": "center",
+                  "textColor": "#ffffff",
+                  "lineHeight": 1.2,
+                  "textTransform": "none"
+                },
+                {
+                  "id": "4ebbd127-22e1-44c2-9004-f6b4ffeb2bed",
+                  "posX": 50,
+                  "posY": 59,
+                  "opacity": 1,
+                  "rotation": 0,
+                  "type": "phone-frame",
+                  "model": "android-pixel-9-pro",
+                  "scale": 70
+                }
+              ]
             }
-          ],
-          "featureGraphic": {
-            "headline": "My ",
-            "phoneRotation": 6,
-            "phoneScale": 110,
-            "glows": [],
-            "iconRadius": 9,
-            "iconScale": 100,
-            "subtitle": "A compelling subtitle"
-          }
+          ]
         },
         "ios": {
           "dimensions": {
@@ -59,14 +120,29 @@
           "screenshots": [
             {
               "id": "ee35de1b-e718-4603-b09c-f25f0610efb8",
-              "headline": "New Screenshot",
-              "subtitle": "Add a subtitle",
-              "imagePath": "",
-              "glows": [],
-              "phoneFrame": {
-                "scale": 70,
-                "bottomOffset": 6
-              }
+              "role": "screenshot",
+              "layers": [
+                {
+                  "id": "a1b2c3d4-0001-4000-8000-000000000001",
+                  "type": "background",
+                  "opacity": 1
+                },
+                {
+                  "id": "a1b2c3d4-0001-4000-8000-000000000002",
+                  "posX": 50,
+                  "posY": 8,
+                  "opacity": 1,
+                  "rotation": 0,
+                  "type": "text",
+                  "text": "New Screenshot",
+                  "fontSize": 150,
+                  "fontWeight": 800,
+                  "textAlign": "center",
+                  "textColor": "#ffffff",
+                  "lineHeight": 1.2,
+                  "textTransform": "none"
+                }
+              ]
             }
           ]
         }

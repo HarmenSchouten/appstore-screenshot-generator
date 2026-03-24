@@ -1,32 +1,22 @@
 /**
  * UI Component Types
- * 
+ *
  * Shared type definitions for the frontend UI components.
  */
 
 // Re-export from main types
 export type {
+  ColorPalette as Palette,
   DevicePresetId,
   ProjectConfig,
   ProjectInfo,
   Screenshot,
-  FeatureGraphic,
-  ThemeConfig as Theme,
-  GlowEffect as Glow,
-  Shape,
   ShapeType,
-  MascotOptions as Mascot,
-  PhoneFrameOptions as PhoneFrame,
-  ColorPalette as Palette,
-} from '../types/index';
+  ThemeConfig as Theme,
+} from "@types";
 
 // Re-export ProjectConfig as Config for component convenience
-export type { ProjectConfig as Config } from '../types/index';
-
-/**
- * Glow color presets
- */
-export type GlowColors = Record<string, string>;
+export type { ProjectConfig as Config } from "@types";
 
 /**
  * Gradient template strings with {primary}, {secondary}, {accent} placeholders
@@ -42,10 +32,9 @@ export type DefaultPalettes = Record<string, Palette>;
  * App initial data injected by server
  */
 export interface AppData {
-  config: import('../types/index.ts').ProjectConfig;
-  projects: import('../types/index.ts').ProjectInfo[];
+  config: import("@types").ProjectConfig;
+  projects: import("@types").ProjectInfo[];
   projectId: string;
-  glowColors: GlowColors;
   gradientTemplates: GradientTemplates;
   palettes: DefaultPalettes;
 }
@@ -54,17 +43,14 @@ export interface AppData {
  * Asset lists from server
  */
 export interface Assets {
-  screenshots: string[];
-  icons: string[];
-  mascots: string[];
+  images: string[];
 }
 
 /**
  * Selected item in sidebar
  */
 export type SelectedItem =
-  | { type: 'screenshot'; id: string }
-  | { type: 'feature-graphic' }
+  | { type: "screenshot"; id: string }
   | null;
 
 /**
@@ -84,9 +70,10 @@ export interface GenerateProgress {
 export interface GenerateResult {
   path: string;
   relativePath: string;
-  status: 'success' | 'error';
+  role: "screenshot" | "feature-graphic";
+  status: "success" | "error";
   error?: string;
 }
 
 // Import Palette type
-import type { ColorPalette as Palette } from '../types/index';
+import type { ColorPalette as Palette } from "@types";

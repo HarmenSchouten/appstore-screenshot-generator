@@ -1,4 +1,4 @@
-import type { DevicePreset, DevicePresetId } from "../../types/device.ts";
+import type { DevicePreset, DevicePresetId } from "@types";
 import { ANDROID_GALAXY_S24_ULTRA_PRESET } from "./android-galaxy-s24-ultra.ts";
 import { ANDROID_LEGACY_CLASSIC_PRESET } from "./android-legacy-classic.ts";
 import { ANDROID_ONEPLUS_13_PRESET } from "./android-oneplus-13.ts";

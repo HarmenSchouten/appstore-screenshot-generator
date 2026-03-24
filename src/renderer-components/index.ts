@@ -9,30 +9,18 @@
  */
 
 export { Screenshot, ScreenshotContent } from "./Screenshot.tsx";
-export { FeatureGraphic, FeatureGraphicContent } from "./FeatureGraphic.tsx";
-export { Glow, Glows } from "./Glow.tsx";
-export { Shape, Shapes } from "./Shape.tsx";
-export { PhoneFrame, Phones } from "./PhoneFrame.tsx";
-export { Mascot } from "./Mascot.tsx";
-export { BaseStyles, getBaseStylesCSS } from "./BaseStyles.tsx";
-export { GLOW_COLORS } from "./constants.ts";
+export { PhoneFrame } from "./layers/PhoneFrameLayer.tsx";
+export { getBaseStylesCSS } from "./BaseStyles.tsx";
 export { assetUrl } from "./utils.ts";
 
 // Server-side rendering (for Deno generate.ts)
-export { renderFeatureGraphic, renderScreenshot } from "./server.ts";
+export { renderScreenshot } from "./server.ts";
 
 // Re-export types
 export type {
   AppConfig,
-  FeatureGraphic as FeatureGraphicData,
-  FeatureGraphicRenderOptions,
-  GlowEffect,
-  MascotOptions,
-  PhoneFrameOptions,
   RenderOptions,
   Screenshot as ScreenshotData,
-  Shape as ShapeConfig,
-  ShapeType,
   ThemeConfig,
   TypographyOptions,
 } from "./types.ts";

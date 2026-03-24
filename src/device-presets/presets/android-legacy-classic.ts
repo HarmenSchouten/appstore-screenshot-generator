@@ -1,4 +1,4 @@
-import type { DevicePreset } from "../../types/device.ts";
+import type { DevicePreset } from "@types";
 
 export const ANDROID_LEGACY_CLASSIC_PRESET = {
   id: "android-legacy-classic",

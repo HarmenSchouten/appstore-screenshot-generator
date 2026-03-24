@@ -7,12 +7,9 @@
 import { Hono } from "hono";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { ProjectConfig } from "../types/index.ts";
+import type { ProjectConfig } from "@types";
 import { getProjectAssetsDir, getProjectOutputDir } from "../projects.ts";
-import {
-  renderFeatureGraphic,
-  renderScreenshot,
-} from "../renderer-components/server.ts";
+import { renderScreenshot } from "@renderer/server.ts";
 
 export function createGenerateRoutes(
   getCurrentProjectId: () => string,
@@ -31,6 +28,7 @@ export function createGenerateRoutes(
 
     const results: {
       path: string;
+      role: "screenshot" | "feature-graphic";
       status: "success" | "error";
       error?: string;
     }[] = [];
@@ -56,10 +54,15 @@ export function createGenerateRoutes(
         );
         await ensureDir(langOutputDir);
 
-        // Generate screenshots
+        // Generate screenshots (including feature graphics)
         for (const screenshot of platformConfig.screenshots) {
           const htmlPath = join(langOutputDir, `${screenshot.id}.html`);
           const pngPath = join(langOutputDir, `${screenshot.id}.png`);
+
+          // Feature graphics use fixed 1024x500, screenshots use platform dimensions
+          const dimensions = screenshot.role === "feature-graphic"
+            ? { width: 1024, height: 500 }
+            : platformConfig.dimensions;
 
           try {
             // Generate HTML using renderer
@@ -71,7 +74,7 @@ export function createGenerateRoutes(
               defaultDevicePresetId:
                 config.platformDefaults[platformName as "android" | "ios"]
                   .defaultDevicePresetId,
-              dimensions: platformConfig.dimensions,
+              dimensions,
               assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, "/")}/`,
             });
 
@@ -81,47 +84,19 @@ export function createGenerateRoutes(
             await convertHtmlFileToPng(
               htmlPath,
               pngPath,
-              platformConfig.dimensions,
+              dimensions,
             );
 
-            results.push({ path: pngPath, status: "success" });
+            results.push({
+              path: pngPath,
+              status: "success",
+              role: screenshot.role,
+            });
           } catch (error) {
             results.push({
               path: pngPath,
               status: "error",
-              error: error instanceof Error ? error.message : "Unknown error",
-            });
-          }
-        }
-
-        // Generate feature graphic if Android
-        if (platformName === "android" && platformConfig.featureGraphic) {
-          const fg = platformConfig.featureGraphic;
-          const htmlPath = join(langOutputDir, "feature-graphic.html");
-          const pngPath = join(langOutputDir, "feature-graphic.png");
-
-          try {
-            const html = renderFeatureGraphic({
-              featureGraphic: fg,
-              theme: config.theme,
-              app: config.app,
-              platform: "android",
-              defaultDevicePresetId:
-                config.platformDefaults.android.defaultDevicePresetId,
-              assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, "/")}/`,
-            });
-
-            await Deno.writeTextFile(htmlPath, html);
-            await convertHtmlFileToPng(htmlPath, pngPath, {
-              width: 1024,
-              height: 500,
-            });
-
-            results.push({ path: pngPath, status: "success" });
-          } catch (error) {
-            results.push({
-              path: pngPath,
-              status: "error",
+              role: screenshot.role,
               error: error instanceof Error ? error.message : "Unknown error",
             });
           }
@@ -144,15 +119,12 @@ export function createGenerateRoutes(
     let totalItems = 0;
     for (const langConfig of config.languages) {
       for (
-        const [platformName, platformConfig] of Object.entries(
+        const [_platformName, platformConfig] of Object.entries(
           langConfig.platforms,
         )
       ) {
         if (!platformConfig) continue;
         totalItems += platformConfig.screenshots.length;
-        if (platformName === "android" && platformConfig.featureGraphic) {
-          totalItems++;
-        }
       }
     }
 
@@ -171,6 +143,7 @@ export function createGenerateRoutes(
         const results: {
           path: string;
           relativePath: string;
+          role: "screenshot" | "feature-graphic";
           status: "success" | "error";
           error?: string;
         }[] = [];
@@ -198,13 +171,17 @@ export function createGenerateRoutes(
               const relativePath =
                 `${langConfig.language}/${platformName}/${screenshot.id}.png`;
 
+              // Feature graphics use fixed 1024x500, screenshots use platform dimensions
+              const dimensions = screenshot.role === "feature-graphic"
+                ? { width: 1024, height: 500 }
+                : platformConfig.dimensions;
+
               send({
                 type: "progress",
                 current: completed + 1,
                 total: totalItems,
-                item: `${langConfig.language}/${platformName}: ${
-                  screenshot.headline || screenshot.id
-                }`,
+                item:
+                  `${langConfig.language}/${platformName}: ${screenshot.id}`,
               });
 
               try {
@@ -216,71 +193,26 @@ export function createGenerateRoutes(
                   defaultDevicePresetId:
                     config.platformDefaults[platformName as "android" | "ios"]
                       .defaultDevicePresetId,
-                  dimensions: platformConfig.dimensions,
+                  dimensions,
                   assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, "/")}/`,
                 });
                 await Deno.writeTextFile(htmlPath, html);
                 await convertHtmlFileToPng(
                   htmlPath,
                   pngPath,
-                  platformConfig.dimensions,
+                  dimensions,
                 );
                 results.push({
                   path: pngPath,
                   relativePath,
+                  role: screenshot.role,
                   status: "success",
                 });
               } catch (error) {
                 results.push({
                   path: pngPath,
                   relativePath,
-                  status: "error",
-                  error: error instanceof Error
-                    ? error.message
-                    : "Unknown error",
-                });
-              }
-              completed++;
-            }
-
-            if (platformName === "android" && platformConfig.featureGraphic) {
-              const fg = platformConfig.featureGraphic;
-              const htmlPath = join(langOutputDir, "feature-graphic.html");
-              const pngPath = join(langOutputDir, "feature-graphic.png");
-              const relativePath =
-                `${langConfig.language}/${platformName}/feature-graphic.png`;
-
-              send({
-                type: "progress",
-                current: completed + 1,
-                total: totalItems,
-                item: `${langConfig.language}/${platformName}: Feature Graphic`,
-              });
-
-              try {
-                const html = renderFeatureGraphic({
-                  featureGraphic: fg,
-                  theme: config.theme,
-                  app: config.app,
-                  platform: "android",
-                  defaultDevicePresetId:
-                    config.platformDefaults.android.defaultDevicePresetId,
-                  assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, "/")}/`,
-                });
-                await Deno.writeTextFile(htmlPath, html);
-                await convertHtmlFileToPng(htmlPath, pngPath, {
-                  width: 1024,
-                  height: 500,
-                });
-                results.push({
-                  path: pngPath,
-                  relativePath,
-                  status: "success",
-                });
-              } catch (error) {
-                results.push({
-                  path: pngPath,
-                  relativePath,
+                  role: screenshot.role,
                   status: "error",
                   error: error instanceof Error
                     ? error.message
@@ -336,7 +268,30 @@ export function createGenerateRoutes(
    */
   routes.get("/generated", async (c) => {
     const outputDir = getProjectOutputDir(getCurrentProjectId());
-    const results: { relativePath: string; status: string }[] = [];
+
+    const results: {
+      relativePath: string;
+      status: string;
+      role: "screenshot" | "feature-graphic";
+    }[] = [];
+
+    /** Read PNG width/height from the IHDR chunk (bytes 16-23). */
+    async function readPngDimensions(
+      path: string,
+    ): Promise<{ width: number; height: number } | null> {
+      let file: Deno.FsFile | undefined;
+      try {
+        file = await Deno.open(path);
+        const buf = new Uint8Array(24);
+        await file.read(buf);
+        const view = new DataView(buf.buffer);
+        return { width: view.getUint32(16), height: view.getUint32(20) };
+      } catch {
+        return null;
+      } finally {
+        file?.close();
+      }
+    }
 
     async function scanDir(dir: string, prefix: string = "") {
       try {
@@ -348,7 +303,16 @@ export function createGenerateRoutes(
             entry.isFile &&
             (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
           ) {
-            results.push({ relativePath, status: "success" });
+            // Only parse PNG dimensions via IHDR; default other formats to screenshot
+            const dims = entry.name.endsWith(".png")
+              ? await readPngDimensions(join(dir, entry.name))
+              : null;
+            const isLandscape = dims ? dims.width > dims.height : false;
+            results.push({
+              relativePath,
+              status: "success",
+              role: isLandscape ? "feature-graphic" : "screenshot",
+            });
           }
         }
       } catch {
