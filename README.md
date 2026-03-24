@@ -57,7 +57,7 @@ npm run verify
 
 ## Architecture at a Glance
 
-- API and orchestration: src/server.ts and src/routes/
+- API and orchestration: `src/server.ts` and `src/routes/`
 - Screenshot generation: `src/generate.ts` and `src/convert.ts`
 - Shared renderer and layers: `src/renderer-components/`
 - Device presets: `src/device-presets/`
