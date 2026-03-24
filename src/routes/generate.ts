@@ -279,15 +279,17 @@ export function createGenerateRoutes(
     async function readPngDimensions(
       path: string,
     ): Promise<{ width: number; height: number } | null> {
+      let file: Deno.FsFile | undefined;
       try {
-        const file = await Deno.open(path);
+        file = await Deno.open(path);
         const buf = new Uint8Array(24);
         await file.read(buf);
-        file.close();
         const view = new DataView(buf.buffer);
         return { width: view.getUint32(16), height: view.getUint32(20) };
       } catch {
         return null;
+      } finally {
+        file?.close();
       }
     }
 
@@ -301,7 +303,10 @@ export function createGenerateRoutes(
             entry.isFile &&
             (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
           ) {
-            const dims = await readPngDimensions(join(dir, entry.name));
+            // Only parse PNG dimensions via IHDR; default other formats to screenshot
+            const dims = entry.name.endsWith(".png")
+              ? await readPngDimensions(join(dir, entry.name))
+              : null;
             const isLandscape = dims ? dims.width > dims.height : false;
             results.push({
               relativePath,

@@ -1,7 +1,24 @@
 import type { StateCreator } from "zustand";
 import type { AppState, ScreenshotSlice } from "./types.ts";
-import type { Screenshot } from "../types.ts";
+import type { Config, Screenshot } from "../types.ts";
+import type { Platform, PlatformConfig } from "@types";
 import { generateLayerId } from "../components/editors/layer-meta.ts";
+
+/**
+ * Clone the config down to the selected platform's screenshots array
+ * so that mutations never touch the previous Zustand state tree.
+ */
+function cloneConfigForPlatform(
+  config: Config,
+  lang: string,
+  platform: Platform,
+): { newConfig: Config; platformConfig: PlatformConfig } | null {
+  const newConfig = structuredClone(config);
+  const langConfig = newConfig.languages?.find((l) => l.language === lang);
+  const platformConfig = langConfig?.platforms?.[platform];
+  if (!platformConfig) return null;
+  return { newConfig, platformConfig };
+}
 
 export const createScreenshotSlice: StateCreator<
   AppState,
@@ -22,19 +39,26 @@ export const createScreenshotSlice: StateCreator<
       }],
     };
 
-    const newConfig = { ...config };
-    const langConfig = newConfig.languages?.find(
-      (l) => l.language === selectedLang,
-    );
-    if (langConfig?.platforms?.[selectedPlatform]) {
-      langConfig.platforms[selectedPlatform].screenshots.push(newScreenshot);
-      saveConfig(newConfig);
+    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    if (result) {
+      result.platformConfig.screenshots.push(newScreenshot);
+      saveConfig(result.newConfig);
       get().setSelectedItem({ type: "screenshot", id });
     }
   },
 
   addFeatureGraphic: () => {
     const { config, selectedLang, selectedPlatform, saveConfig } = get();
+
+    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    if (!result) return;
+
+    // Enforce uniqueness: only one feature-graphic per platform
+    const existing = result.platformConfig.screenshots.find(
+      (s) => s.role === "feature-graphic",
+    );
+    if (existing) return;
+
     const id = globalThis.crypto.randomUUID();
     const newScreenshot: Screenshot = {
       id,
@@ -46,15 +70,9 @@ export const createScreenshotSlice: StateCreator<
       }],
     };
 
-    const newConfig = { ...config };
-    const langConfig = newConfig.languages?.find(
-      (l) => l.language === selectedLang,
-    );
-    if (langConfig?.platforms?.[selectedPlatform]) {
-      langConfig.platforms[selectedPlatform].screenshots.push(newScreenshot);
-      saveConfig(newConfig);
-      get().setSelectedItem({ type: "screenshot", id });
-    }
+    result.platformConfig.screenshots.push(newScreenshot);
+    saveConfig(result.newConfig);
+    get().setSelectedItem({ type: "screenshot", id });
   },
 
   removeScreenshot: (id) => {
@@ -67,14 +85,11 @@ export const createScreenshotSlice: StateCreator<
       setSelectedItem,
     } = get();
 
-    const newConfig = { ...config };
-    const langConfig = newConfig.languages?.find(
-      (l) => l.language === selectedLang,
-    );
-    if (langConfig?.platforms?.[selectedPlatform]) {
-      langConfig.platforms[selectedPlatform].screenshots = langConfig
-        .platforms[selectedPlatform].screenshots.filter((s) => s.id !== id);
-      saveConfig(newConfig);
+    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    if (result) {
+      result.platformConfig.screenshots = result.platformConfig.screenshots
+        .filter((s) => s.id !== id);
+      saveConfig(result.newConfig);
       if (selectedItem?.type === "screenshot" && selectedItem.id === id) {
         setSelectedItem(null);
       }
@@ -84,19 +99,17 @@ export const createScreenshotSlice: StateCreator<
   updateScreenshot: (id, updates) => {
     const { config, selectedLang, selectedPlatform, saveConfig } = get();
 
-    const newConfig = { ...config };
-    const langConfig = newConfig.languages?.find(
-      (l) => l.language === selectedLang,
-    );
-    const platformConfig = langConfig?.platforms?.[selectedPlatform];
-    if (platformConfig) {
-      const idx = platformConfig.screenshots.findIndex((s) => s.id === id);
+    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    if (result) {
+      const idx = result.platformConfig.screenshots.findIndex((s) =>
+        s.id === id
+      );
       if (idx !== -1) {
-        platformConfig.screenshots[idx] = {
-          ...platformConfig.screenshots[idx],
+        result.platformConfig.screenshots[idx] = {
+          ...result.platformConfig.screenshots[idx],
           ...updates,
         };
-        saveConfig(newConfig);
+        saveConfig(result.newConfig);
       }
     }
   },
@@ -111,19 +124,14 @@ export const createScreenshotSlice: StateCreator<
       setSelectedItem,
     } = get();
 
-    const newConfig = { ...config };
-    const langConfig = newConfig.languages?.find(
-      (l) => l.language === selectedLang,
-    );
-    if (langConfig?.platforms?.[selectedPlatform]) {
-      const fgId = langConfig.platforms[selectedPlatform].screenshots.find(
+    const result = cloneConfigForPlatform(config, selectedLang, selectedPlatform);
+    if (result) {
+      const fgId = result.platformConfig.screenshots.find(
         (s) => s.role === "feature-graphic",
       )?.id;
-      langConfig.platforms[selectedPlatform].screenshots = langConfig
-        .platforms[selectedPlatform].screenshots.filter(
-          (s) => s.role !== "feature-graphic",
-        );
-      saveConfig(newConfig);
+      result.platformConfig.screenshots = result.platformConfig.screenshots
+        .filter((s) => s.role !== "feature-graphic");
+      saveConfig(result.newConfig);
       if (
         fgId &&
         selectedItem?.type === "screenshot" &&

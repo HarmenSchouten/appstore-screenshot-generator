@@ -1,4 +1,4 @@
-import { DEVICE_PRESETS } from "@device-presets";
+import type { DevicePresetId } from "./device.ts";
 import type { ShapeType } from "./effects.ts";
 import type { TypographyOptions } from "./typography.ts";
 
@@ -34,7 +34,7 @@ export interface PhoneFrameLayerProps
   extends BaseLayerProps, PositionalLayerProps {
   type: "phone-frame";
   /** Device preset to render */
-  model: keyof typeof DEVICE_PRESETS;
+  model: DevicePresetId;
   /** Path to the screenshot image shown inside the frame (relative to assets) */
   imagePath?: string;
   /** Phone size as percentage of container width (e.g. 70 for single, 42 for side-by-side) */

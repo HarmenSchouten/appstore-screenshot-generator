@@ -32,7 +32,7 @@ export const createConfigSlice: StateCreator<
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(() => {
       saveTimeout = null;
-      persistPending();
+      void persistPending().catch(console.error);
     }, SAVE_DEBOUNCE_MS);
   },
 
