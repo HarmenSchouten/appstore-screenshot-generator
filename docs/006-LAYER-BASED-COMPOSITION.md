@@ -1,6 +1,6 @@
 # 006 — Layer-Based Composition System
 
-**Status:** Proposed  
+**Status:** Accepted
 **Date:** 2026-03-22
 
 ## Context
@@ -58,7 +58,7 @@ All visual elements — text, phone frames, images, glows, shapes — become lay
 
 ### Feature Graphic Unification
 
-Feature Graphics become screenshots with a specific role `feature-graphhic`. No separate type, renderer, editor, or API routes. The current parallel code path is deleted entirely.
+Feature Graphics become screenshots with a specific role `feature-graphic`. No separate type, renderer, editor, or API routes. The current parallel code path is deleted entirely.
 
 ### Screenshot Role & Dimensions
 
@@ -69,7 +69,7 @@ role: 'screenshot' | 'feature-graphic'
 ```
 
 **What the meaning of `role` is:**
-- Determines the output size of the image. If role is `feature-graphic`, the output will be the appropiate size
+- Determines the output size of the image. If role is `feature-graphic`, the output will be the appropriate size
 - The left sidebar groups entries per platform into **"Screenshots"** and **"Feature Graphic"** sections.
 - Feature Graphic is constrained to one per platform. Screenshots are N per platform.
 
