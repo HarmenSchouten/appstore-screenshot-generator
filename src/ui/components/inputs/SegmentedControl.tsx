@@ -5,20 +5,20 @@
  * Follows the same visual language as the gradient-type selector in editors.
  */
 
-interface SegmentedControlOption<T extends string> {
+interface SegmentedControlOption<T extends string | number> {
   value: T;
   label: string;
   icon?: string;
 }
 
-interface SegmentedControlProps<T extends string> {
+interface SegmentedControlProps<T extends string | number> {
   options: SegmentedControlOption<T>[];
   value: T;
   onChange: (value: T) => void;
   label?: string;
 }
 
-export function SegmentedControl<T extends string>({
+export function SegmentedControl<T extends string | number>({
   options,
   value,
   onChange,
