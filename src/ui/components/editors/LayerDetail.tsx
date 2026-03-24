@@ -32,14 +32,14 @@ const LAYER_EDITORS: Record<
 
 interface LayerDetailProps {
   layer: Layer;
-  index: number;
+  allLayers: Layer[];
   onBack: () => void;
   onUpdate: (updates: Partial<Layer>) => void;
 }
 
 export function LayerDetail({
   layer,
-  index,
+  allLayers,
   onBack,
   onUpdate,
 }: LayerDetailProps) {
@@ -62,7 +62,7 @@ export function LayerDetail({
           <i className={`${meta.icon} ${meta.color} text-base`} />
           <div className="min-w-0 flex-1">
             <h2 className="font-semibold text-sm text-zinc-200 truncate">
-              {layerDisplayName(layer, index)}
+              {layerDisplayName(layer, allLayers)}
             </h2>
             <p className="text-xs text-zinc-500">{meta.label}</p>
           </div>

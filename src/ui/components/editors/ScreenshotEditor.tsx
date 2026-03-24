@@ -201,7 +201,7 @@ export function ScreenshotEditor({
                           key={layer.id}
                           id={layer.id}
                           layer={layer}
-                          index={index}
+                          allLayers={layers}
                           onClick={() => setActiveLayerId(layer.id)}
                           onDuplicate={() => handleDuplicate(index)}
                           onDelete={() => handleDelete(index)}
@@ -241,7 +241,7 @@ export function ScreenshotEditor({
           {activeLayer && (
             <LayerDetail
               layer={activeLayer}
-              index={activeIndex}
+              allLayers={layers}
               onBack={() => setActiveLayerId(null)}
               onUpdate={handleLayerUpdate}
             />

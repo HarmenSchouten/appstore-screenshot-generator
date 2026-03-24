@@ -10,14 +10,14 @@ import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
 export function SortableLayerCard({
   id,
   layer,
-  index,
+  allLayers,
   onClick,
   onDuplicate,
   onDelete,
 }: {
   id: string;
   layer: Layer;
-  index: number;
+  allLayers: Layer[];
   onClick: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -98,7 +98,7 @@ export function SortableLayerCard({
           className={`${meta.icon} ${meta.color} text-sm w-4 text-center shrink-0`}
         />
         <span className="text-sm text-zinc-200 truncate">
-          {layerDisplayName(layer, index)}
+          {layerDisplayName(layer, allLayers)}
         </span>
       </div>
 

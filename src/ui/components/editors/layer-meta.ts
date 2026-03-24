@@ -3,6 +3,7 @@
  */
 
 import type { Layer } from "../../../types/layers.ts";
+import { DEVICE_PRESETS } from "@device-presets";
 
 // ── Layer metadata ──────────────────────────────────────────────────
 
@@ -42,14 +43,34 @@ export const LAYER_META: Record<
   },
 };
 
-export function layerDisplayName(layer: Layer, index: number): string {
-  const meta = LAYER_META[layer.type];
+/** Derive a descriptive base name from a layer's content. */
+function layerBaseName(layer: Layer): string {
   switch (layer.type) {
     case "text":
-      return layer.text || `${meta.label} ${index + 1}`;
-    default:
-      return `${meta.label} ${index + 1}`;
+      return layer.text || "Text";
+    case "phone-frame":
+      return DEVICE_PRESETS[layer.model]?.label ?? "Phone Frame";
+    case "image":
+      if (layer.imagePath) {
+        const file = layer.imagePath.split("/").pop() ?? "";
+        return file.replace(/\.[^.]+$/, "") || "Image";
+      }
+      return "Image";
+    case "shape":
+      return layer.shapeType
+        .split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+    case "glow":
+      return "Glow";
+    case "background":
+      return "Background";
   }
+}
+
+export function layerDisplayName(layer: Layer, allLayers: Layer[]): string {
+  const name = layerBaseName(layer);
+  const siblings = allLayers.filter((l) => layerBaseName(l) === name);
+  if (siblings.length <= 1) return name;
+  return `${name} #${siblings.indexOf(layer) + 1}`;
 }
 
 /** Sorted alphabetically by label for the add-layer picker. */
