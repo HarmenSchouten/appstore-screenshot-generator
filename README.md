@@ -58,12 +58,12 @@ npm run verify
 ## Architecture at a Glance
 
 - API and orchestration: src/server.ts and src/routes/
-- Screenshot generation: src/generate.ts and src/convert.ts
-- Shared renderer and layers: src/renderer-components/
-- Device presets: src/device-presets/
-- Type definitions: src/types/
-- Utilities: src/lib/
-- Editor UI: src/ui/ (React + Vite)
+- Screenshot generation: `src/generate.ts` and `src/convert.ts`
+- Shared renderer and layers: `src/renderer-components/`
+- Device presets: `src/device-presets/`
+- Type definitions: `src/types/`
+- Utilities: `src/lib/`
+- Editor UI: `src/ui/` (React + Vite)
 
 > [!NOTE]
 > For project evolution and technical decisions, see:
