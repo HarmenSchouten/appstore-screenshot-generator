@@ -1,8 +1,6 @@
 /** Reusable sidebar card for screenshots and feature graphics */
 export function SidebarItemCard({
   title,
-  subtitle,
-  index,
   isSelected,
   confirmingDelete,
   onSelect,
@@ -11,8 +9,6 @@ export function SidebarItemCard({
   onCancelDelete,
 }: {
   title: string;
-  subtitle?: string;
-  index?: number;
   isSelected: boolean;
   confirmingDelete: boolean;
   onSelect: () => void;
@@ -53,17 +49,9 @@ export function SidebarItemCard({
         : (
           <div
             onClick={onSelect}
-            className="flex justify-between items-start gap-2 cursor-pointer"
+            className="flex justify-between items-center gap-2 cursor-pointer"
           >
-            <div className="min-w-0 flex-1">
-              {index != null && (
-                <div className="text-xs text-zinc-500 mb-1">#{index + 1}</div>
-              )}
-              <div className="font-medium text-sm truncate">{title}</div>
-              {subtitle && (
-                <div className="text-xs text-zinc-400 truncate">{subtitle}</div>
-              )}
-            </div>
+            <div className="font-medium text-sm truncate">{title}</div>
             <button
               type="button"
               onClick={(e) => {

@@ -212,8 +212,6 @@ export function Sidebar({
           <SidebarItemCard
             key={screenshot.id}
             title={`Screenshot ${index + 1}`}
-            subtitle="Screenshot details..."
-            index={index}
             isSelected={selectedItem?.type === "screenshot" &&
               selectedItem.id === screenshot.id}
             confirmingDelete={confirmDeleteKey === screenshot.id}
@@ -248,7 +246,6 @@ export function Sidebar({
                 ? (
                   <SidebarItemCard
                     title="Feature Graphic"
-                    subtitle="Feature Graphic details..."
                     isSelected={selectedItem?.type === "screenshot" &&
                       selectedItem.id === fg.id}
                     confirmingDelete={confirmDeleteKey ===
