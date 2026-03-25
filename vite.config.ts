@@ -23,6 +23,8 @@ export default defineConfig({
       "@types": resolve(__dirname, "src/types"),
       "@renderer": resolve(__dirname, "src/renderer-components"),
       "@device-presets": resolve(__dirname, "src/device-presets"),
+      "react": resolve(__dirname, "node_modules/react"),
+      "react-dom": resolve(__dirname, "node_modules/react-dom"),
     },
   },
 
