@@ -1,7 +1,9 @@
 # 006 — Layer-Based Composition System
 
-**Status:** Accepted
-**Date:** 2026-03-22
+| | |
+| - | - |
+| **Status** | Accepted |
+| **Date** | 2026-03-22 |
 
 ## Context
 
