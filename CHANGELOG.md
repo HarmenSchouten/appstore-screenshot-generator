@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project uses SemVer.
 
+## [2.0.1](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.0.0...v2.0.1) (2026-03-27)
+
+
+### Bug Fixes
+
+* Add drag-and-drop modifiers and resolve module paths ([#24](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/24)) ([d71fdf3](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/d71fdf328fd609fd722d5fff5e5d024d70cc762e))
+* Handle image border radius in pixels ([#26](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/26)) ([3719e31](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/3719e3136be46991346cb4acebdb4642ae2e2535))
+
 ## [2.0.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v1.0.1...v2.0.0) (2026-03-24)
 
 
