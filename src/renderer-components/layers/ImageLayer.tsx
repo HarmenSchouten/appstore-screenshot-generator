@@ -38,7 +38,7 @@ export const ImageLayer = ({
           width: "100%",
           height: "auto",
           display: "block",
-          borderRadius: borderRadius > 0 ? `${borderRadius}%` : undefined,
+          borderRadius: borderRadius > 0 ? `${borderRadius}px` : undefined,
           objectFit,
         }}
       />

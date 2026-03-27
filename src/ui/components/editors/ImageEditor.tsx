@@ -91,9 +91,9 @@ export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
           value={layer.borderRadius ?? 0}
           onChange={(v: number) => set("borderRadius", v)}
           min={0}
-          max={50}
+          max={1000}
           step={1}
-          unit="%"
+          unit="px"
         />
       </section>
 

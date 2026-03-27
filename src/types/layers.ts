@@ -48,7 +48,7 @@ export interface ImageLayerProps extends BaseLayerProps, PositionalLayerProps {
   imagePath: string;
   /** Size as percentage of container width */
   size: number;
-  /** Border radius as percentage (0 = sharp, 50 = circular) */
+  /** Border radius in pixels (0 = sharp corners) */
   borderRadius?: number;
   /** How the image fills its container */
   objectFit?: "cover" | "contain" | "fill";
