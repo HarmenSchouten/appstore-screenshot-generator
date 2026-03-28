@@ -7,6 +7,12 @@
 import { useState } from "react";
 import type { ProjectInfo } from "@ui/types.ts";
 import { useAppStore } from "../../store/index.ts";
+import {
+  useCreateProject,
+  useDeleteProject,
+  useRenameProject,
+  useSwitchProject,
+} from "@hooks";
 
 interface ProjectModalProps {
   projects: ProjectInfo[];
@@ -22,18 +28,17 @@ export function ProjectModal({
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  const {
-    createProject,
-    renameProject,
-    switchProject,
-    removeProject,
-    closeProjectModal,
-  } = useAppStore.getState();
+  const { closeProjectModal } = useAppStore.getState();
+
+  const createProject = useCreateProject();
+  const renameProject = useRenameProject();
+  const switchProject = useSwitchProject();
+  const deleteProject = useDeleteProject();
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
 
-    await createProject(newName.trim());
+    await createProject.mutateAsync(newName.trim());
 
     setNewName("");
     closeProjectModal();
@@ -41,7 +46,7 @@ export function ProjectModal({
 
   const handleRename = async (projectId: string) => {
     if (editName.trim()) {
-      await renameProject(projectId, editName.trim());
+      await renameProject.mutateAsync({ projectId, name: editName.trim() });
       setEditingProject(null);
       setEditName("");
       closeProjectModal();
@@ -49,12 +54,12 @@ export function ProjectModal({
   };
 
   const handleSwitchProjct = async (projectId: string) => {
-    await switchProject(projectId);
+    await switchProject.mutateAsync(projectId);
     closeProjectModal();
   };
 
   const handleDelete = async (projectId: string) => {
-    await removeProject(projectId);
+    await deleteProject.mutateAsync(projectId);
     setConfirmDelete(null);
   };
 
@@ -111,11 +116,10 @@ export function ProjectModal({
           {projects.map((p) => (
             <div
               key={p.id}
-              className={`p-3 rounded border ${
-                currentProject === p.id
+              className={`p-3 rounded border ${currentProject === p.id
                   ? "bg-indigo-900/50 border-indigo-500"
                   : "bg-zinc-800/50 border-transparent hover:bg-zinc-800"
-              }`}
+                }`}
             >
               {editingProject === p.id
                 ? (
@@ -150,69 +154,69 @@ export function ProjectModal({
                   </div>
                 )
                 : confirmDelete === p.id
-                ? (
-                  // Delete confirmation
-                  <div className="text-center">
-                    <p className="text-sm text-red-400 mb-2">
-                      Delete "{p.name}"?
-                    </p>
-                    <p className="text-xs text-zinc-500 mb-3">
-                      This will permanently delete all project data.
-                    </p>
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(p.id)}
-                        className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
-                      >
-                        Yes, Delete
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDelete(null)}
-                        className="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
-                      >
-                        Cancel
-                      </button>
+                  ? (
+                    // Delete confirmation
+                    <div className="text-center">
+                      <p className="text-sm text-red-400 mb-2">
+                        Delete "{p.name}"?
+                      </p>
+                      <p className="text-xs text-zinc-500 mb-3">
+                        This will permanently delete all project data.
+                      </p>
+                      <div className="flex gap-2 justify-center">
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(p.id)}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
+                        >
+                          Yes, Delete
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDelete(null)}
+                          className="px-3 py-1 bg-zinc-600 hover:bg-zinc-500 rounded text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )
-                : (
-                  // Normal view
-                  <div className="flex items-center justify-between">
-                    <div
-                      className="cursor-pointer flex-1"
-                      onClick={() => handleSwitchProjct(p.id)}
-                    >
-                      <div className="font-medium">{p.name}</div>
-                      <div className="text-xs text-zinc-500">{p.id}</div>
-                    </div>
-                    <div className="flex gap-1 ml-2">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startEditing(p);
-                        }}
-                        className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded"
-                        title="Rename"
+                  )
+                  : (
+                    // Normal view
+                    <div className="flex items-center justify-between">
+                      <div
+                        className="cursor-pointer flex-1"
+                        onClick={() => handleSwitchProjct(p.id)}
                       >
-                        <i className="fa-solid fa-pen text-xs" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setConfirmDelete(p.id);
-                        }}
-                        className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-700 rounded"
-                        title="Delete"
-                      >
-                        <i className="fa-solid fa-trash text-xs" />
-                      </button>
+                        <div className="font-medium">{p.name}</div>
+                        <div className="text-xs text-zinc-500">{p.id}</div>
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing(p);
+                          }}
+                          className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-700 rounded"
+                          title="Rename"
+                        >
+                          <i className="fa-solid fa-pen text-xs" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(p.id);
+                          }}
+                          className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-700 rounded"
+                          title="Delete"
+                        >
+                          <i className="fa-solid fa-trash text-xs" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
             </div>
           ))}
         </div>
