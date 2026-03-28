@@ -13,7 +13,7 @@ import {
 import type { DevicePresetId } from "../types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "../store/index.ts";
-import { useSwitchProject } from "@hooks";
+import { useAddLanguage, useCopyPlatformConfig, useSwitchProject } from "@hooks";
 
 interface SidebarProps {
   onGenerate: () => void;
@@ -36,14 +36,14 @@ export function Sidebar({
 
   // Mutation hooks
   const switchProject = useSwitchProject();
+  const addLanguage = useAddLanguage();
+  const copyPlatformConfig = useCopyPlatformConfig();
 
   // Store actions (stable refs from getState — never cause re-renders)
   const {
     setSelectedLang,
     setSelectedPlatform,
     setSelectedItem,
-    addLanguage,
-    copyPlatformConfig,
     addScreenshot,
     addFeatureGraphic,
     removeScreenshot,
@@ -121,7 +121,7 @@ export function Sidebar({
                   confirm("Copy screenshots from current language?")
                     ? selectedLang
                     : null;
-                addLanguage(lang, copyFrom);
+                addLanguage.mutate({ language: lang, copyFrom });
               }
             }}
             className="px-2 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 rounded"
@@ -166,7 +166,7 @@ export function Sidebar({
                   `Copy all ${sourcePlatform} screenshots to ${targetPlatform}? This will replace existing ${targetPlatform} screenshots.`,
                 )
               ) {
-                copyPlatformConfig(sourcePlatform, targetPlatform);
+                copyPlatformConfig.mutate({ sourcePlatform, targetPlatform });
               }
             }}
             className="px-2 py-1 text-xs bg-zinc-800 hover:bg-zinc-700 rounded"

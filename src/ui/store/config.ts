@@ -21,7 +21,7 @@ export const createConfigSlice: StateCreator<
   [],
   [],
   ConfigSlice
-> = (set, get) => ({
+> = (set) => ({
   config: {} as Config,
 
   setConfig: (config) => set({ config }),
@@ -42,49 +42,5 @@ export const createConfigSlice: StateCreator<
       saveTimeout = null;
     }
     await persistPending();
-  },
-
-  addLanguage: async (language, copyFrom) => {
-    const res = await fetch("/api/config/language", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ language, copyFrom }),
-    });
-    if (res.ok) {
-      const newLang = await res.json();
-      const { config } = get();
-      const newConfig = { ...config };
-      if (!newConfig.languages) newConfig.languages = [];
-      newConfig.languages.push(newLang);
-      set({ config: newConfig, selectedLang: language });
-    }
-  },
-
-  copyPlatformConfig: async (sourcePlatform, targetPlatform) => {
-    const { selectedLang, config } = get();
-    const res = await fetch("/api/config/copy-platform", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        language: selectedLang,
-        sourcePlatform,
-        targetPlatform,
-      }),
-    });
-    if (res.ok) {
-      const updatedLang = await res.json();
-      const newConfig = { ...config };
-      const langIndex = newConfig.languages?.findIndex(
-        (l) => l.language === selectedLang,
-      ) ?? -1;
-      if (langIndex >= 0 && newConfig.languages) {
-        newConfig.languages[langIndex] = updatedLang;
-      }
-      set({
-        config: newConfig,
-        selectedPlatform: targetPlatform,
-        selectedItem: null,
-      });
-    }
   },
 });

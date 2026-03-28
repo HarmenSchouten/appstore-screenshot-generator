@@ -3,6 +3,7 @@
  */
 
 import type { Assets, ProjectConfig, ProjectInfo } from "../types.ts";
+import type { LanguageConfig } from "@types";
 
 /**
  * Save config to server
@@ -75,7 +76,7 @@ export async function renameProject(
 export async function addLanguage(
   language: string,
   copyFrom: string | null,
-): Promise<unknown> {
+): Promise<LanguageConfig> {
   const res = await fetch("/api/config/language", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -98,7 +99,7 @@ export async function copyPlatform(
   language: string,
   sourcePlatform: string,
   targetPlatform: string,
-): Promise<unknown> {
+): Promise<LanguageConfig> {
   const res = await fetch("/api/config/copy-platform", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
