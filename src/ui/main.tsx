@@ -11,6 +11,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { App } from "./components/App.tsx";
 import { useAppStore } from "./store/index.ts";
 import "./styles.css";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { queryClient } from "./utils/query.ts";
 
 // Fetch initial data and mount application
 async function init() {
@@ -35,14 +38,17 @@ async function init() {
     const root = createRoot(document.getElementById("root")!);
     root.render(
       <React.StrictMode>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="/:project?/:lang?/:platform?/:screenshotId?"
-              element={<App />}
-            />
-          </Routes>
-        </BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="/:project?/:lang?/:platform?/:screenshotId?"
+                element={<App />}
+              />
+            </Routes>
+          </BrowserRouter>
+          <ReactQueryDevtools />
+        </QueryClientProvider>
       </React.StrictMode>,
     );
   } catch (error) {
