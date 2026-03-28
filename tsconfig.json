@@ -32,7 +32,9 @@
       "@renderer": ["src/renderer-components/index.ts"],
       "@renderer/*": ["src/renderer-components/*"],
       "@device-presets": ["src/device-presets/index.ts"],
-      "@device-presets/*": ["src/device-presets/*"]
+      "@device-presets/*": ["src/device-presets/*"],
+      "@hooks": ["src/ui/hooks/index.ts"],
+      "@hooks/*": ["src/ui/hooks/*"]
     }
   },
   "include": [
