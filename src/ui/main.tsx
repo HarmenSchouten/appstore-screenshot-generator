@@ -2,8 +2,8 @@
  * UI Entry Point
  *
  * Initializes the React application.
- * useInitData fetches server state via React Query; Suspense + ErrorBoundary
- * handle loading and error states declaratively.
+ * useInitData fetches server state via React Query; ErrorBoundary catches
+ * init failures, and AppShell gates rendering on the query's loading state.
  */
 
 import React from "react";
