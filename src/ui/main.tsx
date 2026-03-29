@@ -27,9 +27,10 @@ function LoadingScreen() {
 }
 
 function AppShell() {
-  const { isPending } = useInitData();
+  const { isPending, isError, error } = useInitData();
 
   if (isPending) return <LoadingScreen />;
+  if (isError) throw error;
 
   return (
     <BrowserRouter>
