@@ -7,7 +7,7 @@
  */
 
 import React from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, type Root } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { App } from "./components/App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
@@ -44,7 +44,18 @@ function AppShell() {
   );
 }
 
-const root = createRoot(document.getElementById("root")!);
+const container = document.getElementById("root")!;
+
+// Reuse the React root across HMR updates to prevent mounting duplicate trees.
+// import.meta.hot.data persists across HMR instances of the same module (Vite API).
+// Calling root.render() again on the same root is safe — React reconciles the tree.
+// deno-lint-ignore no-explicit-any
+const hot = (import.meta as any).hot;
+const root: Root = hot?.data?.root ?? createRoot(container);
+if (hot) {
+  hot.data.root = root;
+}
+
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
