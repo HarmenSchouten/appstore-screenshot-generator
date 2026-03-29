@@ -53,7 +53,7 @@ export function ProjectModal({
     }
   };
 
-  const handleSwitchProjct = async (projectId: string) => {
+  const handleSwitchProject = async (projectId: string) => {
     await switchProject.mutateAsync(projectId);
     closeProjectModal();
   };
@@ -187,7 +187,7 @@ export function ProjectModal({
                   <div className="flex items-center justify-between">
                     <div
                       className="cursor-pointer flex-1"
-                      onClick={() => handleSwitchProjct(p.id)}
+                      onClick={() => handleSwitchProject(p.id)}
                     >
                       <div className="font-medium">{p.name}</div>
                       <div className="text-xs text-zinc-500">{p.id}</div>
