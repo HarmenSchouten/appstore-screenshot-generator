@@ -31,19 +31,24 @@ export const useAppStore = create<AppState>()(
 
 // ── Selectors ───────────────────────────────────────────────────────
 
+const EMPTY_SCREENSHOTS: Screenshot[] = [];
+
 export const selectScreenshots = (state: AppState): Screenshot[] => {
   const langConfig = state.config.languages?.find(
     (l) => l.language === state.selectedLang,
   );
-  return langConfig?.platforms?.[state.selectedPlatform]?.screenshots ?? [];
+  return langConfig?.platforms?.[state.selectedPlatform]?.screenshots ??
+    EMPTY_SCREENSHOTS;
 };
+
+const DEFAULT_DIMENSIONS = { width: 1242, height: 2688 } as const;
 
 export const selectDimensions = (state: AppState) => {
   const langConfig = state.config.languages?.find(
     (l) => l.language === state.selectedLang,
   );
   const platformConfig = langConfig?.platforms?.[state.selectedPlatform];
-  return platformConfig?.dimensions || { width: 1242, height: 2688 };
+  return platformConfig?.dimensions || DEFAULT_DIMENSIONS;
 };
 
 // Re-export types for convenience
