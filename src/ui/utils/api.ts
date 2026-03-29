@@ -124,7 +124,7 @@ export async function copyPlatform(
  * Fetch previously generated images
  */
 export async function fetchGenerated(): Promise<
-  { results: unknown[]; outputDir: string } | null
+  { results: GenerateResult[]; outputDir: string } | null
 > {
   try {
     const res = await fetch("/api/generate/generated");
