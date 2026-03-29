@@ -40,8 +40,14 @@ export function useConfigAutoSave() {
       if (pendingRef.current) {
         const config = pendingRef.current;
         pendingRef.current = null;
-        useAppStore.setState({ _configDirty: false });
-        await mutateRef.current(config);
+        try {
+          await mutateRef.current(config);
+          useAppStore.setState({ _configDirty: false });
+        } catch (err) {
+          pendingRef.current = config;
+          useAppStore.setState({ _configDirty: true });
+          throw err;
+        }
       }
     });
 
@@ -54,8 +60,13 @@ export function useConfigAutoSave() {
           if (pendingRef.current) {
             const config = pendingRef.current;
             pendingRef.current = null;
-            useAppStore.setState({ _configDirty: false });
-            void mutateRef.current(config).catch(console.error);
+            void mutateRef.current(config)
+              .then(() => useAppStore.setState({ _configDirty: false }))
+              .catch((err) => {
+                pendingRef.current = config;
+                useAppStore.setState({ _configDirty: true });
+                console.error(err);
+              });
           }
         }, SAVE_DEBOUNCE_MS);
       }
