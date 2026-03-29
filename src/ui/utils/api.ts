@@ -136,3 +136,43 @@ export async function openOutputFolder(): Promise<void> {
     body: JSON.stringify({}),
   });
 }
+
+/**
+ * Upload an asset file
+ */
+export async function uploadAsset(
+  formData: FormData,
+): Promise<{ path: string }> {
+  const res = await fetch("/api/assets/upload", {
+    method: "POST",
+    body: formData,
+  });
+  return res.json();
+}
+
+/**
+ * Rename an asset
+ */
+export async function renameAsset(
+  oldPath: string,
+  newName: string,
+): Promise<void> {
+  const res = await fetch("/api/assets/rename", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ oldPath, newName }),
+  });
+  if (!res.ok) throw new Error("Rename failed");
+}
+
+/**
+ * Delete an asset
+ */
+export async function deleteAsset(path: string): Promise<void> {
+  const res = await fetch("/api/assets", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+  });
+  if (!res.ok) throw new Error("Delete failed");
+}

@@ -19,7 +19,6 @@ export function PhoneFrameEditor(
   { layer, onUpdate }: PhoneFrameEditorProps,
 ) {
   const assets = useAppStore((s) => s.assets);
-  const refreshAssets = useAppStore((s) => s.refreshAssets);
 
   const set = useCallback(
     <K extends keyof PhoneFrameLayerProps>(
@@ -109,7 +108,6 @@ export function PhoneFrameEditor(
           value={layer.imagePath ?? ""}
           onChange={(v: string) => set("imagePath", v)}
           options={assets.images}
-          onAssetsRefresh={refreshAssets}
           placeholder="Select screenshot…"
         />
       </section>

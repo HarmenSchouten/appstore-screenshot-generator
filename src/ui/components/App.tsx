@@ -18,10 +18,9 @@ import {
   selectScreenshots,
   useAppStore,
 } from "../store/index.ts";
-import { activateProject, fetchAssets } from "../utils/api.ts";
 import { useStoreRouteSync } from "../utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
-import { useConfigAutoSave } from "@hooks";
+import { useConfigAutoSave, useSwitchProject, useAssetsQuery } from "@hooks";
 
 export function App() {
   // Two-way sync: React Router params <-> Zustand store
@@ -29,6 +28,12 @@ export function App() {
 
   // Reactive auto-save: config changes → debounced mutation
   useConfigAutoSave();
+
+  // Fetch assets via React Query — syncs to Zustand store
+  useAssetsQuery();
+
+  // Project switch mutation (used on mount if URL project differs)
+  const switchProject = useSwitchProject();
 
   const config = useAppStore((s) => s.config);
   const selectedItem = useAppStore((s) => s.selectedItem);
@@ -49,12 +54,9 @@ export function App() {
 
   // Stable action references (never change, safe to read once)
   const {
-    setConfig,
     updateConfig,
-    setSelectedLang,
     setSelectedItem,
     updateScreenshot,
-    refreshAssets,
     getDefaultDevicePreset,
     generateAll,
     closeGenerateModal,
@@ -72,16 +74,10 @@ export function App() {
   // On mount, sync server to URL-specified project if they differ
   useEffect(() => {
     if (currentProject !== initialProjectId) {
-      activateProject(currentProject).then((data) => {
-        setConfig(data.config);
-        setSelectedLang(data.config.languages?.[0]?.language || "en");
-        setSelectedItem(null);
-        fetchAssets().then(useAppStore.getState().setAssets);
-        refreshLastGenerated();
-      });
+      switchProject.mutate(currentProject);
       return;
     }
-    refreshAssets();
+    // Assets are loaded by useAssetsQuery; just load last generated
     refreshLastGenerated();
   }, []);
 
@@ -158,7 +154,6 @@ export function App() {
         <MediaManagerModal
           assets={assets}
           onClose={closeMediaManager}
-          onRefresh={refreshAssets}
         />
       )}
     </div>

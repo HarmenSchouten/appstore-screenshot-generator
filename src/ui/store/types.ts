@@ -38,7 +38,6 @@ export interface SelectionSlice {
 export interface AssetsSlice {
   assets: Assets;
   setAssets: (assets: Assets) => void;
-  refreshAssets: () => Promise<void>;
 }
 
 export interface ScreenshotSlice {
