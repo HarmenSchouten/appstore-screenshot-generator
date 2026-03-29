@@ -36,7 +36,11 @@ export function MediaManagerModal(
       formData.append("file", file);
       formData.append("category", "images");
 
-      await uploadAsset.mutateAsync(formData);
+      try {
+        await uploadAsset.mutateAsync(formData);
+      } catch (err) {
+        console.error("Upload failed:", file.name, err);
+      }
     }
     e.target.value = "";
   };
