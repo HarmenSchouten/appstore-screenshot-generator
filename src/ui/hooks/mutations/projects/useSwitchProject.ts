@@ -10,12 +10,13 @@ import { useMutation } from "@tanstack/react-query";
 import { activateProject, fetchAssets } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { queryKeys } from "@ui/utils/query.ts";
+import { flushPersist } from "@ui/utils/config-persistence.ts";
 
 export function useSwitchProject() {
   return useMutation({
     mutationKey: [...queryKeys.projects.all, "switch"],
     mutationFn: async (projectId: string) => {
-      await useAppStore.getState().flush();
+      await flushPersist();
       const data = await activateProject(projectId);
       const assets = await fetchAssets();
       return { projectId, data, assets };

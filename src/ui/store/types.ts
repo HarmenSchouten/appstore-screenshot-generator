@@ -13,11 +13,11 @@ import type {
 
 export interface ConfigSlice {
   config: Config;
+  _configDirty: boolean;
+  /** Hydrate config from server — does NOT trigger auto-save. */
   setConfig: (config: Config) => void;
-  /** Update config in state AND debounce-persist to server. */
-  saveConfig: (config: Config) => void;
-  /** Flush any pending debounced save immediately. */
-  flush: () => Promise<void>;
+  /** Apply a local edit — triggers auto-save via the subscriber. */
+  updateConfig: (config: Config) => void;
 }
 
 export interface ProjectSlice {

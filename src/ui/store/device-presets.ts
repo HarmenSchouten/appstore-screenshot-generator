@@ -19,8 +19,8 @@ export const createDevicePresetSlice: StateCreator<
   },
 
   updateDefaultDevicePreset: (platform, presetId) => {
-    const { config, saveConfig } = get();
-    saveConfig({
+    const { config, updateConfig } = get();
+    updateConfig({
       ...config,
       platformDefaults: {
         ...config.platformDefaults,

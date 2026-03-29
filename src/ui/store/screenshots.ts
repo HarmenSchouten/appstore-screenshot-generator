@@ -27,7 +27,7 @@ export const createScreenshotSlice: StateCreator<
   ScreenshotSlice
 > = (_set, get) => ({
   addScreenshot: () => {
-    const { config, selectedLang, selectedPlatform, saveConfig } = get();
+    const { config, selectedLang, selectedPlatform } = get();
     const id = globalThis.crypto.randomUUID();
     const newScreenshot: Screenshot = {
       id,
@@ -46,13 +46,13 @@ export const createScreenshotSlice: StateCreator<
     );
     if (result) {
       result.platformConfig.screenshots.push(newScreenshot);
-      saveConfig(result.newConfig);
+      get().updateConfig(result.newConfig);
       get().setSelectedItem({ type: "screenshot", id });
     }
   },
 
   addFeatureGraphic: () => {
-    const { config, selectedLang, selectedPlatform, saveConfig } = get();
+    const { config, selectedLang, selectedPlatform } = get();
 
     const result = cloneConfigForPlatform(
       config,
@@ -79,7 +79,7 @@ export const createScreenshotSlice: StateCreator<
     };
 
     result.platformConfig.screenshots.push(newScreenshot);
-    saveConfig(result.newConfig);
+    get().updateConfig(result.newConfig);
     get().setSelectedItem({ type: "screenshot", id });
   },
 
@@ -89,7 +89,6 @@ export const createScreenshotSlice: StateCreator<
       selectedLang,
       selectedPlatform,
       selectedItem,
-      saveConfig,
       setSelectedItem,
     } = get();
 
@@ -101,7 +100,7 @@ export const createScreenshotSlice: StateCreator<
     if (result) {
       result.platformConfig.screenshots = result.platformConfig.screenshots
         .filter((s) => s.id !== id);
-      saveConfig(result.newConfig);
+      get().updateConfig(result.newConfig);
       if (selectedItem?.type === "screenshot" && selectedItem.id === id) {
         setSelectedItem(null);
       }
@@ -109,7 +108,7 @@ export const createScreenshotSlice: StateCreator<
   },
 
   updateScreenshot: (id, updates) => {
-    const { config, selectedLang, selectedPlatform, saveConfig } = get();
+    const { config, selectedLang, selectedPlatform } = get();
 
     const result = cloneConfigForPlatform(
       config,
@@ -125,7 +124,7 @@ export const createScreenshotSlice: StateCreator<
           ...result.platformConfig.screenshots[idx],
           ...updates,
         };
-        saveConfig(result.newConfig);
+        get().updateConfig(result.newConfig);
       }
     }
   },
@@ -136,7 +135,6 @@ export const createScreenshotSlice: StateCreator<
       selectedLang,
       selectedPlatform,
       selectedItem,
-      saveConfig,
       setSelectedItem,
     } = get();
 
@@ -151,7 +149,7 @@ export const createScreenshotSlice: StateCreator<
       )?.id;
       result.platformConfig.screenshots = result.platformConfig.screenshots
         .filter((s) => s.role !== "feature-graphic");
-      saveConfig(result.newConfig);
+      get().updateConfig(result.newConfig);
       if (
         fgId &&
         selectedItem?.type === "screenshot" &&

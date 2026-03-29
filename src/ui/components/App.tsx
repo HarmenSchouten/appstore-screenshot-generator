@@ -21,10 +21,14 @@ import {
 import { activateProject, fetchAssets } from "../utils/api.ts";
 import { useStoreRouteSync } from "../utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
+import { useConfigAutoSave } from "@hooks";
 
 export function App() {
   // Two-way sync: React Router params <-> Zustand store
   useStoreRouteSync();
+
+  // Reactive auto-save: config changes → debounced mutation
+  useConfigAutoSave();
 
   const config = useAppStore((s) => s.config);
   const selectedItem = useAppStore((s) => s.selectedItem);
@@ -46,9 +50,9 @@ export function App() {
   // Stable action references (never change, safe to read once)
   const {
     setConfig,
+    updateConfig,
     setSelectedLang,
     setSelectedItem,
-    saveConfig,
     updateScreenshot,
     refreshAssets,
     getDefaultDevicePreset,
@@ -144,7 +148,7 @@ export function App() {
           config={config}
           onClose={closeThemeEditor}
           onSave={(newConfig) => {
-            saveConfig(newConfig);
+            updateConfig(newConfig);
             closeThemeEditor();
           }}
         />

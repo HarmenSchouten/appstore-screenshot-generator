@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
 import { fetchGenerated } from "../utils/api.ts";
+import { flushPersist } from "../utils/config-persistence.ts";
 import type { AppState, GenerationSlice } from "./types.ts";
 
 export const createGenerationSlice: StateCreator<
@@ -20,7 +21,7 @@ export const createGenerationSlice: StateCreator<
   lastGenerated: null,
 
   generateAll: async () => {
-    await get().flush();
+    await flushPersist();
 
     set({
       showGenerateModal: true,
