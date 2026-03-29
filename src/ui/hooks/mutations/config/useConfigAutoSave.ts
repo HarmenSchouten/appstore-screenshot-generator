@@ -64,6 +64,7 @@ export function useConfigAutoSave() {
     return () => {
       unsub();
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      registerFlush(() => Promise.resolve());
     };
   }, []);
 }
