@@ -63,10 +63,8 @@ export interface GenerationSlice {
   generateProgress: GenerateProgress;
   showGenerateModal: boolean;
   lastGenerated: { results: GenerateResult[]; outputDir: string } | null;
-  generateAll: () => Promise<void>;
   closeGenerateModal: () => void;
   viewLastGenerated: () => void;
-  refreshLastGenerated: () => Promise<void>;
 }
 
 export interface UISlice {

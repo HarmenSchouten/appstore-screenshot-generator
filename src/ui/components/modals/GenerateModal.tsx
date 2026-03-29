@@ -6,6 +6,7 @@
 
 import { useMemo } from "react";
 import type { GenerateProgress, GenerateResult } from "@ui/types.ts";
+import { useOpenOutputFolder } from "@hooks";
 
 interface GenerateModalProps {
   progress: GenerateProgress;
@@ -28,6 +29,8 @@ export function GenerateModal(
   const successCount = results?.filter((r) => r.status === "success").length ||
     0;
   const errorCount = results?.filter((r) => r.status === "error").length || 0;
+
+  const openFolder = useOpenOutputFolder();
 
   // Group results by platform and type
   const groupedResults = useMemo<GroupedResults>(() => {
@@ -60,14 +63,6 @@ export function GenerateModal(
 
     return grouped;
   }, [results]);
-
-  const openFolder = async () => {
-    await fetch("/api/generate/open-folder", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-  };
 
   const renderPlatformSection = (
     platform: "android" | "ios",
@@ -203,7 +198,7 @@ export function GenerateModal(
               <div className="flex gap-3 mt-4 pt-4 border-t border-zinc-800">
                 <button
                   type="button"
-                  onClick={openFolder}
+                  onClick={() => openFolder.mutate()}
                   className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm flex items-center justify-center gap-2"
                 >
                   <i className="fa-solid fa-folder-open" /> Open in Explorer

@@ -3,6 +3,7 @@
  */
 
 import type { Assets, ProjectConfig, ProjectInfo } from "../types.ts";
+import type { GenerateResult } from "@ui/types.ts";
 import type { LanguageConfig } from "@types";
 
 /**
@@ -123,6 +124,49 @@ export async function fetchGenerated(): Promise<
     return null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Start generation via SSE stream.
+ * Calls `onProgress` for each SSE event; resolves with final results.
+ */
+export async function generateStream(
+  onProgress: (data: {
+    type: "start" | "progress" | "complete";
+    total?: number;
+    current?: number;
+    item?: string;
+    results?: GenerateResult[];
+    outputDir?: string;
+  }) => void,
+): Promise<void> {
+  const response = await fetch("/api/generate/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No response body");
+
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const text = decoder.decode(value);
+    const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+
+    for (const line of lines) {
+      try {
+        const data = JSON.parse(line.slice(6));
+        onProgress(data);
+      } catch {
+        // Ignore parse errors from partial SSE chunks
+      }
+    }
   }
 }
 

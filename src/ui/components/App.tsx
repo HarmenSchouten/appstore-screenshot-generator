@@ -20,7 +20,12 @@ import {
 } from "../store/index.ts";
 import { useStoreRouteSync } from "../utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
-import { useConfigAutoSave, useSwitchProject, useAssetsQuery } from "@hooks";
+import {
+  useConfigAutoSave,
+  useSwitchProject,
+  useAssetsQuery,
+  useLastGeneratedQuery,
+} from "@hooks";
 
 export function App() {
   // Two-way sync: React Router params <-> Zustand store
@@ -34,6 +39,9 @@ export function App() {
 
   // Project switch mutation (used on mount if URL project differs)
   const switchProject = useSwitchProject();
+
+  // Last-generated query
+  useLastGeneratedQuery();
 
   const config = useAppStore((s) => s.config);
   const selectedItem = useAppStore((s) => s.selectedItem);
@@ -58,9 +66,7 @@ export function App() {
     setSelectedItem,
     updateScreenshot,
     getDefaultDevicePreset,
-    generateAll,
     closeGenerateModal,
-    refreshLastGenerated,
     closeThemeEditor,
     closeMediaManager,
   } = useAppStore.getState();
@@ -75,10 +81,8 @@ export function App() {
   useEffect(() => {
     if (currentProject !== initialProjectId) {
       switchProject.mutate(currentProject);
-      return;
     }
-    // Assets are loaded by useAssetsQuery; just load last generated
-    refreshLastGenerated();
+    // Assets + last-generated are loaded by their respective queries
   }, []);
 
   // Deselect if selected screenshot no longer exists
@@ -90,9 +94,7 @@ export function App() {
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
-      <Sidebar
-        onGenerate={generateAll}
-      />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 flex items-center justify-center p-8 bg-zinc-900/50">

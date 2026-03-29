@@ -13,15 +13,9 @@ import {
 import type { DevicePresetId } from "../types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "../store/index.ts";
-import { useAddLanguage, useCopyPlatformConfig, useSwitchProject } from "@hooks";
+import { useAddLanguage, useCopyPlatformConfig, useGenerateAll, useSwitchProject } from "@hooks";
 
-interface SidebarProps {
-  onGenerate: () => void;
-}
-
-export function Sidebar({
-  onGenerate,
-}: SidebarProps) {
+export function Sidebar() {
   // Store state (reactive selectors)
   const config = useAppStore((s) => s.config);
   const projects = useAppStore((s) => s.projects);
@@ -38,6 +32,7 @@ export function Sidebar({
   const switchProject = useSwitchProject();
   const addLanguage = useAddLanguage();
   const copyPlatformConfig = useCopyPlatformConfig();
+  const generateAll = useGenerateAll();
 
   // Store actions (stable refs from getState — never cause re-renders)
   const {
@@ -324,7 +319,7 @@ export function Sidebar({
       <div className="p-4 border-t border-zinc-800 space-y-2">
         <button
           type="button"
-          onClick={onGenerate}
+          onClick={() => generateAll.mutate()}
           disabled={generating}
           className={`w-full py-3 rounded font-medium flex items-center justify-center gap-2 ${
             generating

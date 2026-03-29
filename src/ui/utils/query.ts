@@ -26,4 +26,7 @@ export const queryKeys = {
   assets: {
     all: ["assets"] as const,
   },
+  generation: {
+    last: ["generation", "last"] as const,
+  },
 } as const;

@@ -30,7 +30,7 @@ export function useSwitchProject() {
         selectedItem: null,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
-      useAppStore.getState().refreshLastGenerated();
+      queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
     },
   });
 }
