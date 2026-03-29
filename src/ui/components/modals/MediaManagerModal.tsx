@@ -51,6 +51,7 @@ export function MediaManagerModal(
           setEditingItem(null);
           setNewName("");
         },
+        onError: (err) => console.error("Rename failed:", err),
       },
     );
   };
@@ -58,7 +59,9 @@ export function MediaManagerModal(
   const handleDelete = (path: string) => {
     if (!confirm("Delete this file? This cannot be undone.")) return;
 
-    deleteAsset.mutate(path);
+    deleteAsset.mutate(path, {
+      onError: (err) => console.error("Delete failed:", err),
+    });
   };
 
   const startEditing = (path: string) => {
