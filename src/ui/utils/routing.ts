@@ -7,6 +7,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "../store/index.ts";
+import { useSwitchProject } from "@hooks";
 
 /**
  * Build a URL path from store state segments.
@@ -39,6 +40,7 @@ export function useStoreRouteSync() {
   }>();
   const navigate = useNavigate();
   const isRouteChange = useRef(false);
+  const switchProject = useSwitchProject();
 
   // ── Route → Store (URL changed, push into Zustand) ───────────────
   useEffect(() => {
@@ -49,7 +51,7 @@ export function useStoreRouteSync() {
       const valid = state.projects.find((p) => p.id === params.project);
       if (valid) {
         isRouteChange.current = true;
-        state.switchProject(params.project);
+        switchProject.mutate(params.project);
         return; // switchProject sets lang/item/etc
       }
     }

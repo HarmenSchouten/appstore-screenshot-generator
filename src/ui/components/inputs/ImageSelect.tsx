@@ -4,13 +4,13 @@
  * Dropdown selector with upload button for selecting/uploading images.
  */
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { useUploadAsset } from "@hooks";
 
 interface ImageSelectProps {
   value: string;
   onChange: (value: string) => void;
   options: string[];
-  onAssetsRefresh?: () => Promise<void>;
   label?: string;
   placeholder?: string;
 }
@@ -19,37 +19,26 @@ export function ImageSelect({
   value,
   onChange,
   options,
-  onAssetsRefresh,
   label,
   placeholder = "Select image...",
 }: ImageSelectProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const upload = useUploadAsset();
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("category", "images");
 
-    try {
-      const res = await fetch("/api/assets/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        // Refresh assets list and select the new file
-        if (onAssetsRefresh) await onAssetsRefresh();
+    upload.mutate(formData, {
+      onSuccess: (data) => {
         onChange(data.path);
-      }
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
-    setUploading(false);
+      },
+    });
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -83,7 +72,7 @@ export function ImageSelect({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
+          disabled={upload.isPending}
           className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 rounded text-sm disabled:opacity-50"
           title="Upload new image"
         >

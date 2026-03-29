@@ -13,28 +13,17 @@ import type {
 
 export interface ConfigSlice {
   config: Config;
+  _configDirty: boolean;
+  /** Hydrate config from server — does NOT trigger auto-save. */
   setConfig: (config: Config) => void;
-  /** Update config in state AND debounce-persist to server. */
-  saveConfig: (config: Config) => void;
-  /** Flush any pending debounced save immediately. */
-  flush: () => Promise<void>;
-  /** Add a new language, optionally copying from an existing one. */
-  addLanguage: (language: string, copyFrom: string | null) => Promise<void>;
-  /** Copy one platform's config to another within the selected language. */
-  copyPlatformConfig: (
-    sourcePlatform: "android" | "ios",
-    targetPlatform: "android" | "ios",
-  ) => Promise<void>;
+  /** Apply a local edit — triggers auto-save via the subscriber. */
+  updateConfig: (config: Config) => void;
 }
 
 export interface ProjectSlice {
   projects: ProjectInfo[];
   currentProject: string;
   initialProjectId: string;
-  switchProject: (projectId: string) => Promise<void>;
-  createProject: (name: string) => Promise<void>;
-  removeProject: (projectId: string) => Promise<void>;
-  renameProject: (projectId: string, newName: string) => Promise<void>;
 }
 
 export interface SelectionSlice {
@@ -49,7 +38,6 @@ export interface SelectionSlice {
 export interface AssetsSlice {
   assets: Assets;
   setAssets: (assets: Assets) => void;
-  refreshAssets: () => Promise<void>;
 }
 
 export interface ScreenshotSlice {
@@ -75,10 +63,8 @@ export interface GenerationSlice {
   generateProgress: GenerateProgress;
   showGenerateModal: boolean;
   lastGenerated: { results: GenerateResult[]; outputDir: string } | null;
-  generateAll: () => Promise<void>;
   closeGenerateModal: () => void;
   viewLastGenerated: () => void;
-  refreshLastGenerated: () => Promise<void>;
 }
 
 export interface UISlice {

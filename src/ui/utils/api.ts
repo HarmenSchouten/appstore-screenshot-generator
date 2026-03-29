@@ -3,6 +3,19 @@
  */
 
 import type { Assets, ProjectConfig, ProjectInfo } from "../types.ts";
+import type { AppData, GenerateResult } from "@ui/types.ts";
+import type { LanguageConfig } from "@types";
+
+/**
+ * Fetch initial application data
+ */
+export async function fetchInit(): Promise<AppData> {
+  const res = await fetch("/api/init");
+  if (!res.ok) {
+    throw new Error(`Failed to load app data: ${res.status}`);
+  }
+  return res.json();
+}
 
 /**
  * Save config to server
@@ -75,7 +88,7 @@ export async function renameProject(
 export async function addLanguage(
   language: string,
   copyFrom: string | null,
-): Promise<unknown> {
+): Promise<LanguageConfig> {
   const res = await fetch("/api/config/language", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -98,7 +111,7 @@ export async function copyPlatform(
   language: string,
   sourcePlatform: string,
   targetPlatform: string,
-): Promise<unknown> {
+): Promise<LanguageConfig> {
   const res = await fetch("/api/config/copy-platform", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -111,7 +124,7 @@ export async function copyPlatform(
  * Fetch previously generated images
  */
 export async function fetchGenerated(): Promise<
-  { results: unknown[]; outputDir: string } | null
+  { results: GenerateResult[]; outputDir: string } | null
 > {
   try {
     const res = await fetch("/api/generate/generated");
@@ -126,6 +139,55 @@ export async function fetchGenerated(): Promise<
 }
 
 /**
+ * Start generation via SSE stream.
+ * Calls `onProgress` for each SSE event; resolves when the stream ends.
+ */
+export async function generateStream(
+  onProgress: (data: {
+    type: "start" | "progress" | "complete";
+    total?: number;
+    current?: number;
+    item?: string;
+    results?: GenerateResult[];
+    outputDir?: string;
+  }) => void,
+): Promise<void> {
+  const response = await fetch("/api/generate/stream", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) throw new Error("Generate stream request failed");
+
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No response body");
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    // Keep the last (possibly incomplete) line in the buffer
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      try {
+        const data = JSON.parse(line.slice(6));
+        onProgress(data);
+      } catch {
+        // Ignore parse errors from malformed events
+      }
+    }
+  }
+}
+
+/**
  * Open output folder in file explorer
  */
 export async function openOutputFolder(): Promise<void> {
@@ -134,4 +196,45 @@ export async function openOutputFolder(): Promise<void> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({}),
   });
+}
+
+/**
+ * Upload an asset file
+ */
+export async function uploadAsset(
+  formData: FormData,
+): Promise<{ path: string }> {
+  const res = await fetch("/api/assets/upload", {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) throw new Error("Upload failed");
+  return res.json();
+}
+
+/**
+ * Rename an asset
+ */
+export async function renameAsset(
+  oldPath: string,
+  newName: string,
+): Promise<void> {
+  const res = await fetch("/api/assets/rename", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ oldPath, newName }),
+  });
+  if (!res.ok) throw new Error("Rename failed");
+}
+
+/**
+ * Delete an asset
+ */
+export async function deleteAsset(path: string): Promise<void> {
+  const res = await fetch("/api/assets", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+  });
+  if (!res.ok) throw new Error("Delete failed");
 }

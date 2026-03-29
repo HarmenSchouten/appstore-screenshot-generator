@@ -16,7 +16,6 @@ interface ImageEditorProps {
 
 export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
   const assets = useAppStore((s) => s.assets);
-  const refreshAssets = useAppStore((s) => s.refreshAssets);
 
   const set = useCallback(
     <K extends keyof ImageLayerProps>(
@@ -37,7 +36,6 @@ export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
           value={layer.imagePath}
           onChange={(v: string) => set("imagePath", v)}
           options={assets.images}
-          onAssetsRefresh={refreshAssets}
           placeholder="Select image…"
         />
       </section>

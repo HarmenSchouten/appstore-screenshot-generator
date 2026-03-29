@@ -7,6 +7,12 @@
 import { useState } from "react";
 import type { ProjectInfo } from "@ui/types.ts";
 import { useAppStore } from "../../store/index.ts";
+import {
+  useCreateProject,
+  useDeleteProject,
+  useRenameProject,
+  useSwitchProject,
+} from "@hooks";
 
 interface ProjectModalProps {
   projects: ProjectInfo[];
@@ -22,40 +28,46 @@ export function ProjectModal({
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  const {
-    createProject,
-    renameProject,
-    switchProject,
-    removeProject,
-    closeProjectModal,
-  } = useAppStore.getState();
+  const { closeProjectModal } = useAppStore.getState();
 
-  const handleCreate = async () => {
+  const createProject = useCreateProject();
+  const renameProject = useRenameProject();
+  const switchProject = useSwitchProject();
+  const deleteProject = useDeleteProject();
+
+  const handleCreate = () => {
     if (!newName.trim()) return;
 
-    await createProject(newName.trim());
-
-    setNewName("");
-    closeProjectModal();
+    createProject.mutate(newName.trim(), {
+      onSuccess: () => {
+        setNewName("");
+        closeProjectModal();
+      },
+    });
   };
 
-  const handleRename = async (projectId: string) => {
-    if (editName.trim()) {
-      await renameProject(projectId, editName.trim());
-      setEditingProject(null);
-      setEditName("");
-      closeProjectModal();
-    }
+  const handleRename = (projectId: string) => {
+    if (!editName.trim()) return;
+
+    renameProject.mutate({ projectId, name: editName.trim() }, {
+      onSuccess: () => {
+        setEditingProject(null);
+        setEditName("");
+        closeProjectModal();
+      },
+    });
   };
 
-  const handleSwitchProjct = async (projectId: string) => {
-    await switchProject(projectId);
-    closeProjectModal();
+  const handleSwitchProject = (projectId: string) => {
+    switchProject.mutate(projectId, {
+      onSuccess: () => closeProjectModal(),
+    });
   };
 
-  const handleDelete = async (projectId: string) => {
-    await removeProject(projectId);
-    setConfirmDelete(null);
+  const handleDelete = (projectId: string) => {
+    deleteProject.mutate(projectId, {
+      onSuccess: () => setConfirmDelete(null),
+    });
   };
 
   const startEditing = (project: ProjectInfo) => {
@@ -182,7 +194,7 @@ export function ProjectModal({
                   <div className="flex items-center justify-between">
                     <div
                       className="cursor-pointer flex-1"
-                      onClick={() => handleSwitchProjct(p.id)}
+                      onClick={() => handleSwitchProject(p.id)}
                     >
                       <div className="font-medium">{p.name}</div>
                       <div className="text-xs text-zinc-500">{p.id}</div>
