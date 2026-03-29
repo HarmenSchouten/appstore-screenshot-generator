@@ -21,5 +21,6 @@ The files below document the project evolution and trade-offs:
 - [004-VITE-REACT-ANALYSIS.md](004-VITE-REACT-ANALYSIS.md)
 - [005-DEVICE-PRESETS.md](005-DEVICE-PRESETS.md)
 - [006-LAYER-BASED-COMPOSITION.md](006-LAYER-BASED-COMPOSITION.md)
+- [007-TANSTACK-QUERY.md](007-TANSTACK-QUERY.md)
 
 Use these as context when making structural changes.
