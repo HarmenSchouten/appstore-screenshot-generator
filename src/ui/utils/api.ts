@@ -3,8 +3,19 @@
  */
 
 import type { Assets, ProjectConfig, ProjectInfo } from "../types.ts";
-import type { GenerateResult } from "@ui/types.ts";
+import type { AppData, GenerateResult } from "@ui/types.ts";
 import type { LanguageConfig } from "@types";
+
+/**
+ * Fetch initial application data
+ */
+export async function fetchInit(): Promise<AppData> {
+  const res = await fetch("/api/init");
+  if (!res.ok) {
+    throw new Error(`Failed to load app data: ${res.status}`);
+  }
+  return res.json();
+}
 
 /**
  * Save config to server

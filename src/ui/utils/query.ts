@@ -16,6 +16,7 @@ export const queryClient = new QueryClient({
 });
 
 export const queryKeys = {
+  init: ["init"] as const,
   projects: {
     all: ["projects"] as const,
     detail: (id: string) => ["projects", id] as const,
