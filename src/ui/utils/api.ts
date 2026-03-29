@@ -140,7 +140,7 @@ export async function fetchGenerated(): Promise<
 
 /**
  * Start generation via SSE stream.
- * Calls `onProgress` for each SSE event; resolves with final results.
+ * Calls `onProgress` for each SSE event; resolves when the stream ends.
  */
 export async function generateStream(
   onProgress: (data: {
@@ -158,24 +158,30 @@ export async function generateStream(
     body: JSON.stringify({}),
   });
 
+  if (!response.ok) throw new Error("Generate stream request failed");
+
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No response body");
 
   const decoder = new TextDecoder();
+  let buffer = "";
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
 
-    const text = decoder.decode(value);
-    const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    // Keep the last (possibly incomplete) line in the buffer
+    buffer = lines.pop() ?? "";
 
     for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
       try {
         const data = JSON.parse(line.slice(6));
         onProgress(data);
       } catch {
-        // Ignore parse errors from partial SSE chunks
+        // Ignore parse errors from malformed events
       }
     }
   }
@@ -202,6 +208,7 @@ export async function uploadAsset(
     method: "POST",
     body: formData,
   });
+  if (!res.ok) throw new Error("Upload failed");
   return res.json();
 }
 
