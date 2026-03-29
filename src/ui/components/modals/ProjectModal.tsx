@@ -35,32 +35,39 @@ export function ProjectModal({
   const switchProject = useSwitchProject();
   const deleteProject = useDeleteProject();
 
-  const handleCreate = async () => {
+  const handleCreate = () => {
     if (!newName.trim()) return;
 
-    await createProject.mutateAsync(newName.trim());
-
-    setNewName("");
-    closeProjectModal();
+    createProject.mutate(newName.trim(), {
+      onSuccess: () => {
+        setNewName("");
+        closeProjectModal();
+      },
+    });
   };
 
-  const handleRename = async (projectId: string) => {
-    if (editName.trim()) {
-      await renameProject.mutateAsync({ projectId, name: editName.trim() });
-      setEditingProject(null);
-      setEditName("");
-      closeProjectModal();
-    }
+  const handleRename = (projectId: string) => {
+    if (!editName.trim()) return;
+
+    renameProject.mutate({ projectId, name: editName.trim() }, {
+      onSuccess: () => {
+        setEditingProject(null);
+        setEditName("");
+        closeProjectModal();
+      },
+    });
   };
 
-  const handleSwitchProject = async (projectId: string) => {
-    await switchProject.mutateAsync(projectId);
-    closeProjectModal();
+  const handleSwitchProject = (projectId: string) => {
+    switchProject.mutate(projectId, {
+      onSuccess: () => closeProjectModal(),
+    });
   };
 
-  const handleDelete = async (projectId: string) => {
-    await deleteProject.mutateAsync(projectId);
-    setConfirmDelete(null);
+  const handleDelete = (projectId: string) => {
+    deleteProject.mutate(projectId, {
+      onSuccess: () => setConfirmDelete(null),
+    });
   };
 
   const startEditing = (project: ProjectInfo) => {
