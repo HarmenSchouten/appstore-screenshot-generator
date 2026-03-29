@@ -1,4 +1,12 @@
-export const EmptyState = () => {
+interface EmptyStateProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export const EmptyState = ({
+  title = "Select a screenshot or feature graphic to preview",
+  subtitle = "Use the sidebar to pick an item to edit",
+}: EmptyStateProps) => {
   return (
     <div className="flex flex-col items-center gap-6 select-none">
       <style
@@ -73,11 +81,13 @@ export const EmptyState = () => {
       </div>
       <div className="text-center space-y-1.5">
         <p className="text-sm text-zinc-500">
-          Select a screenshot or feature graphic to preview
+          {title}
         </p>
-        <p className="text-xs text-zinc-600">
-          Use the sidebar to pick an item to edit
-        </p>
+        {subtitle && (
+          <p className="text-xs text-zinc-600">
+            {subtitle}
+          </p>
+        )}
       </div>
     </div>
   );

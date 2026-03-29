@@ -7,6 +7,12 @@
 import { useState } from "react";
 import type { ProjectInfo } from "@ui/types.ts";
 import { useAppStore } from "../../store/index.ts";
+import {
+  useCreateProject,
+  useDeleteProject,
+  useRenameProject,
+  useSwitchProject,
+} from "@hooks";
 
 interface ProjectModalProps {
   projects: ProjectInfo[];
@@ -22,18 +28,17 @@ export function ProjectModal({
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  const {
-    createProject,
-    renameProject,
-    switchProject,
-    removeProject,
-    closeProjectModal,
-  } = useAppStore.getState();
+  const { closeProjectModal } = useAppStore.getState();
+
+  const createProject = useCreateProject();
+  const renameProject = useRenameProject();
+  const switchProject = useSwitchProject();
+  const deleteProject = useDeleteProject();
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
 
-    await createProject(newName.trim());
+    await createProject.mutateAsync(newName.trim());
 
     setNewName("");
     closeProjectModal();
@@ -41,7 +46,7 @@ export function ProjectModal({
 
   const handleRename = async (projectId: string) => {
     if (editName.trim()) {
-      await renameProject(projectId, editName.trim());
+      await renameProject.mutateAsync({ projectId, name: editName.trim() });
       setEditingProject(null);
       setEditName("");
       closeProjectModal();
@@ -49,12 +54,12 @@ export function ProjectModal({
   };
 
   const handleSwitchProjct = async (projectId: string) => {
-    await switchProject(projectId);
+    await switchProject.mutateAsync(projectId);
     closeProjectModal();
   };
 
   const handleDelete = async (projectId: string) => {
-    await removeProject(projectId);
+    await deleteProject.mutateAsync(projectId);
     setConfirmDelete(null);
   };
 

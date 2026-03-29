@@ -9,6 +9,8 @@
     "npm:@dnd-kit/modifiers@9": "9.0.0_@dnd-kit+core@6.3.1__react@18.3.1__react-dom@18.3.1___react@18.3.1_react@18.3.1",
     "npm:@dnd-kit/sortable@10": "10.0.0_@dnd-kit+core@6.3.1__react@18.3.1__react-dom@18.3.1___react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@dnd-kit/utilities@^3.2.2": "3.2.2_react@18.3.1",
+    "npm:@tanstack/react-query-devtools@^5.95.2": "5.95.2_@tanstack+react-query@5.95.2__react@18.3.1_react@18.3.1",
+    "npm:@tanstack/react-query@^5.95.2": "5.95.2_react@18.3.1",
     "npm:@types/node@*": "22.5.4",
     "npm:@types/react-dom@^18.3.1": "18.3.7_@types+react@18.3.28",
     "npm:@types/react@^18.3.1": "18.3.28",
@@ -686,6 +688,27 @@
       "integrity": "sha512-2HRCml6OztYXyJXAvdDXPKcawukWY2GpR5/nxKp4iBgiO3wcoEGkAaqctIbZcNB6KlUQBIqt8VYkNSj2397EfA==",
       "os": ["win32"],
       "cpu": ["x64"]
+    },
+    "@tanstack/query-core@5.95.2": {
+      "integrity": "sha512-o4T8vZHZET4Bib3jZ/tCW9/7080urD4c+0/AUaYVpIqOsr7y0reBc1oX3ttNaSW5mYyvZHctiQ/UOP2PfdmFEQ=="
+    },
+    "@tanstack/query-devtools@5.95.2": {
+      "integrity": "sha512-QfaoqBn9uAZ+ICkA8brd1EHj+qBF6glCFgt94U8XP5BT6ppSsDBI8IJ00BU+cAGjQzp6wcKJL2EmRYvxy0TWIg=="
+    },
+    "@tanstack/react-query-devtools@5.95.2_@tanstack+react-query@5.95.2__react@18.3.1_react@18.3.1": {
+      "integrity": "sha512-AFQFmbznVkbtfpx8VJ2DylW17wWagQel/qLstVLkYmNRo2CmJt3SNej5hvl6EnEeljJIdC3BTB+W7HZtpsH+3g==",
+      "dependencies": [
+        "@tanstack/query-devtools",
+        "@tanstack/react-query",
+        "react"
+      ]
+    },
+    "@tanstack/react-query@5.95.2_react@18.3.1": {
+      "integrity": "sha512-/wGkvLj/st5Ud1Q76KF1uFxScV7WeqN1slQx5280ycwAyYkIPGaRZAEgHxe3bjirSd5Zpwkj6zNcR4cqYni/ZA==",
+      "dependencies": [
+        "@tanstack/query-core",
+        "react"
+      ]
     },
     "@tootallnate/quickjs-emscripten@0.23.0": {
       "integrity": "sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA=="
@@ -2047,6 +2070,8 @@
         "npm:@dnd-kit/modifiers@9",
         "npm:@dnd-kit/sortable@10",
         "npm:@dnd-kit/utilities@^3.2.2",
+        "npm:@tanstack/react-query-devtools@^5.95.2",
+        "npm:@tanstack/react-query@^5.95.2",
         "npm:@types/react-dom@^18.3.1",
         "npm:@types/react@^18.3.12",
         "npm:@vitejs/plugin-react@^4.3.4",

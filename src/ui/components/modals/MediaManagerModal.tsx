@@ -6,81 +6,59 @@
 
 import { useRef, useState } from "react";
 import type { Assets } from "@ui/types.ts";
+import { useDeleteAsset, useRenameAsset, useUploadAsset } from "@hooks";
 
 interface MediaManagerModalProps {
   assets: Assets;
   onClose: () => void;
-  onRefresh: () => Promise<void>;
 }
 
 export function MediaManagerModal(
-  { assets, onClose, onRefresh }: MediaManagerModalProps,
+  { assets, onClose }: MediaManagerModalProps,
 ) {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
 
+  const uploadAsset = useUploadAsset();
+  const renameAsset = useRenameAsset();
+  const deleteAsset = useDeleteAsset();
+
+  const uploading = uploadAsset.isPending;
   const currentAssets = assets.images || [];
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files?.length) return;
 
-    setUploading(true);
     for (const file of Array.from(files)) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("category", "images");
 
-      try {
-        await fetch("/api/assets/upload", {
-          method: "POST",
-          body: formData,
-        });
-      } catch (err) {
-        console.error("Upload failed:", err);
-      }
+      await uploadAsset.mutateAsync(formData);
     }
-    await onRefresh();
-    setUploading(false);
     e.target.value = "";
   };
 
-  const handleRename = async (oldPath: string) => {
+  const handleRename = (oldPath: string) => {
     if (!newName.trim()) return;
 
-    try {
-      const res = await fetch("/api/assets/rename", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ oldPath, newName: newName.trim() }),
-      });
-      if (res.ok) {
-        await onRefresh();
-        setEditingItem(null);
-        setNewName("");
-      }
-    } catch (err) {
-      console.error("Rename failed:", err);
-    }
+    renameAsset.mutate(
+      { oldPath, newName: newName.trim() },
+      {
+        onSuccess: () => {
+          setEditingItem(null);
+          setNewName("");
+        },
+      },
+    );
   };
 
-  const handleDelete = async (path: string) => {
+  const handleDelete = (path: string) => {
     if (!confirm("Delete this file? This cannot be undone.")) return;
 
-    try {
-      const res = await fetch("/api/assets", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path }),
-      });
-      if (res.ok) {
-        await onRefresh();
-      }
-    } catch (err) {
-      console.error("Delete failed:", err);
-    }
+    deleteAsset.mutate(path);
   };
 
   const startEditing = (path: string) => {

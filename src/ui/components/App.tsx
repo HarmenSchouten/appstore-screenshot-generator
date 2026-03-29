@@ -18,13 +18,30 @@ import {
   selectScreenshots,
   useAppStore,
 } from "../store/index.ts";
-import { activateProject, fetchAssets } from "../utils/api.ts";
 import { useStoreRouteSync } from "../utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
+import {
+  useAssetsQuery,
+  useConfigAutoSave,
+  useLastGeneratedQuery,
+  useSwitchProject,
+} from "@hooks";
 
 export function App() {
   // Two-way sync: React Router params <-> Zustand store
   useStoreRouteSync();
+
+  // Reactive auto-save: config changes → debounced mutation
+  useConfigAutoSave();
+
+  // Fetch assets via React Query — syncs to Zustand store
+  useAssetsQuery();
+
+  // Project switch mutation (used on mount if URL project differs)
+  const switchProject = useSwitchProject();
+
+  // Last-generated query
+  useLastGeneratedQuery();
 
   const config = useAppStore((s) => s.config);
   const selectedItem = useAppStore((s) => s.selectedItem);
@@ -45,16 +62,11 @@ export function App() {
 
   // Stable action references (never change, safe to read once)
   const {
-    setConfig,
-    setSelectedLang,
+    updateConfig,
     setSelectedItem,
-    saveConfig,
     updateScreenshot,
-    refreshAssets,
     getDefaultDevicePreset,
-    generateAll,
     closeGenerateModal,
-    refreshLastGenerated,
     closeThemeEditor,
     closeMediaManager,
   } = useAppStore.getState();
@@ -68,17 +80,9 @@ export function App() {
   // On mount, sync server to URL-specified project if they differ
   useEffect(() => {
     if (currentProject !== initialProjectId) {
-      activateProject(currentProject).then((data) => {
-        setConfig(data.config);
-        setSelectedLang(data.config.languages?.[0]?.language || "en");
-        setSelectedItem(null);
-        fetchAssets().then(useAppStore.getState().setAssets);
-        refreshLastGenerated();
-      });
-      return;
+      switchProject.mutate(currentProject);
     }
-    refreshAssets();
-    refreshLastGenerated();
+    // Assets + last-generated are loaded by their respective queries
   }, []);
 
   // Deselect if selected screenshot no longer exists
@@ -90,9 +94,7 @@ export function App() {
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
-      <Sidebar
-        onGenerate={generateAll}
-      />
+      <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="flex-1 flex items-center justify-center p-8 bg-zinc-900/50">
@@ -144,7 +146,7 @@ export function App() {
           config={config}
           onClose={closeThemeEditor}
           onSave={(newConfig) => {
-            saveConfig(newConfig);
+            updateConfig(newConfig);
             closeThemeEditor();
           }}
         />
@@ -154,7 +156,6 @@ export function App() {
         <MediaManagerModal
           assets={assets}
           onClose={closeMediaManager}
-          onRefresh={refreshAssets}
         />
       )}
     </div>
