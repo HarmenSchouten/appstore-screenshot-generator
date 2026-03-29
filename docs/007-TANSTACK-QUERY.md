@@ -2,8 +2,9 @@
 
 | | |
 | --- | --- |
-| **Status** | Accepted |
+| **Status** | Implemented |
 | **Date** | 2026-03-28 |
+| **Updated** | 2026-03-29 |
 
 ## Context
 
@@ -28,9 +29,8 @@ deduplication, or cache invalidation.
    project switch), code must manually call `refreshAssets()`, refetch config,
    or chain additional requests. Missing an invalidation call leads to stale UI.
 
-3. **Waterfall fetches on mount.** `App.tsx` runs `activateProject`, then
-   `setConfig`, then `fetchAssets`, then `refreshLastGenerated` in strict
-   sequence. Nothing runs in parallel.
+3. **Waterfall fetches on mount.** `main.tsx` runs an imperative `fetch` then
+   hydrates the store. Nothing runs in parallel.
 
 4. **Duplicated fetch logic.** Asset upload exists in both `ImageSelect.tsx` and
    `MediaManagerModal.tsx` with near-identical fetch/FormData/error patterns.
@@ -42,7 +42,7 @@ deduplication, or cache invalidation.
    `console.error`, some silently swallow inside `try-catch`, and some have no
    error handling at all.
 
-7. **Fragile project switch chain.** `switchProject()` is a sequence of four
+7. **Fragile project switch chain.** `switchProject()` is a sequence of
    serial awaits. If any step fails partway through, the store is in an
    inconsistent state with no rollback.
 
@@ -52,48 +52,87 @@ deduplication, or cache invalidation.
 
 ## Decision
 
-Adopt **TanStack Query (React Query)** as the server state manager. Zustand
-retains client-only state. The migration includes:
+Adopt **TanStack Query (React Query)** as the server state manager using a
+**hybrid architecture**: React Query owns all server communication (queries and
+mutations), while Zustand remains the single source of truth for the active
+config document and all client state.
 
-- **Query-based config per project.** Config moves from Zustand to the React
-  Query cache under key `['config', projectId]`. Local edits use
-  `queryClient.setQueryData` for instant UI updates, backed by a debounced
-  `useMutation` for server persistence. On error, the query invalidates to roll
-  back to the server's version.
+### Architecture overview
 
-- **Suspense mode for all queries.** All read hooks use `useSuspenseQuery`.
-  The app tree wraps in `<Suspense>` boundaries with loading fallbacks and
-  `<ErrorBoundary>` components for error recovery.
+| Layer | Responsibility | Owns API calls? |
+|-------|---------------|-----------------|
+| `utils/api.ts` | Pure fetch functions (no state logic) | Yes (raw HTTP only) |
+| React Query hooks (`hooks/`) | Orchestrate API calls, track status, hydrate store | Yes (via `useMutation` / `useQuery`) |
+| Zustand store (`store/`) | Client-only state + synchronous setters | **No** |
+| Components (`components/`) | Render UI, call hooks | No |
 
-- **Optimistic updates for project rename.** The `useRenameProject` mutation
-  uses `onMutate` to update the cache immediately, `onError` to rollback, and
-  `onSettled` to refetch.
+### Key principles
 
-- **React Query DevTools.** Added as a dev dependency and rendered inside the
-  `QueryClientProvider` for cache visibility during development.
+1. **Zustand store must never make API calls.** Store slices hold client-only
+   state (config, selections, UI flags) and synchronous setters.
+
+2. **All server communication goes through React Query hooks.** Use
+   `useMutation` for writes and `useQuery` for reads. Hook `queryFn`/`mutationFn`
+   calls functions from `utils/api.ts`.
+
+3. **Hooks hydrate the store in `onSuccess` or `useEffect`.** After a
+   successful query or mutation, update Zustand via `useAppStore.setState()`
+   or slice setters.
+
+4. **Compose hooks, don't duplicate logic.** If one mutation needs to trigger
+   another (e.g. create project → switch to it), call the other hook's
+   `.mutateAsync()`.
+
+5. **Separate concerns in callbacks** (per TkDodo's guidance): put logic (store
+   updates, invalidation) in `useMutation` callbacks; put UI actions (close
+   modals, redirects) at the `mutate()` call site in components.
+
+6. **Prefer `mutate` over `mutateAsync`** unless composing promises between
+   hooks.
 
 ### What stays in Zustand
 
-Zustand becomes a thin client-state store holding only:
+Zustand retains 8 slices. The slice count is not a problem — most slices are
+thin (a few fields and synchronous setters). The split keeps related state and
+convenience methods co-located.
 
-- `currentProject` / `initialProjectId` (navigation state)
-- `selectedLang` / `selectedPlatform` / `selectedItem` (selection state)
-- `generating` / `generateProgress` / `showGenerateModal` (streaming UI state
-  for the SSE-based generation progress modal)
-- Modal open/close flags (`projectModalOpen`, `themeEditorOpen`,
-  `mediaManagerOpen`)
+| Slice | Contents |
+|-------|----------|
+| `ConfigSlice` | `config`, `_configDirty`, `setConfig()`, `updateConfig()` |
+| `ProjectSlice` | `projects`, `currentProject`, `initialProjectId` |
+| `SelectionSlice` | `selectedLang`, `selectedPlatform`, `selectedItem` |
+| `AssetsSlice` | `assets`, `setAssets()` |
+| `ScreenshotSlice` | `addScreenshot()`, `updateScreenshot()`, `removeScreenshot()`, etc. |
+| `DevicePresetSlice` | `getDefaultDevicePreset()`, `updateDefaultDevicePreset()` |
+| `GenerationSlice` | `generating`, `generateProgress`, `showGenerateModal`, `lastGenerated` |
+| `UISlice` | Modal open/close flags |
 
-### What moves to React Query
+**Why config stays in Zustand:** Config is a local-first editable document.
+Screenshot and device-preset slices need synchronous `get().config` access to
+clone-and-mutate. Zustand's `subscribe()` enables reactive auto-save without
+prop drilling. Moving config to the React Query cache would require every
+slice method to go async or accept config as a parameter, adding complexity
+with no user-visible benefit.
 
-All server-fetched data and server-mutating operations:
+### What React Query manages
 
-| Data | Query key | Replaces |
-|------|-----------|----------|
-| Init payload | `['init']` | `main.tsx` imperative fetch |
-| Project config | `['config', projectId]` | `ConfigSlice` + `ScreenshotSlice` + `DevicePresetSlice` |
-| Asset list | `['assets']` | `AssetsSlice` |
-| Project list | `['projects']` | `ProjectSlice.projects` |
-| Generated results | `['generated']` | `GenerationSlice.lastGenerated` |
+All server-fetched data flows through React Query, then hydrates the store:
+
+| Data | Query key | Hook | Hydration target |
+|------|-----------|------|-----------------|
+| Init payload | `['init']` | `useInitData` | `config`, `projects`, `currentProject`, `initialProjectId` |
+| Asset list | `['assets']` | `useAssetsQuery` | `AssetsSlice.assets` |
+| Generated results | `['generation', 'last']` | `useLastGeneratedQuery` | `GenerationSlice.lastGenerated` |
+
+All mutations use `useMutation`:
+
+| Domain | Hooks |
+|--------|-------|
+| Config | `useConfigAutoSave` (Zustand subscribe → debounced mutation) |
+| Projects | `useCreateProject`, `useDeleteProject`, `useRenameProject`, `useSwitchProject` |
+| Assets | `useUploadAsset`, `useRenameAsset`, `useDeleteAsset` |
+| Languages | `useAddLanguage`, `useDeleteLanguage`, `useCopyPlatformConfig` |
+| Generation | `useGenerateAll` (SSE streaming), `useOpenOutputFolder` |
 
 ### Hook structure
 
@@ -101,22 +140,22 @@ One hook per file, categorized by domain:
 
 ```
 src/ui/hooks/
+  index.ts                # Barrel export
   queries/
-    useInitData.ts
-    useConfig.ts
-    useAssets.ts
-    useGenerated.ts
     index.ts
-  mutations/
-    config/
-      useSaveConfig.ts
+    init/
+      useInitData.ts
       index.ts
-    screenshots/
-      useAddScreenshot.ts
-      useRemoveScreenshot.ts
-      useUpdateScreenshot.ts
-      useAddFeatureGraphic.ts
-      useRemoveFeatureGraphic.ts
+    assets/
+      useAssetsQuery.ts
+      index.ts
+    generation/
+      useLastGeneratedQuery.ts
+      index.ts
+  mutations/
+    index.ts
+    config/
+      useConfigAutoSave.ts
       index.ts
     assets/
       useUploadAsset.ts
@@ -138,10 +177,6 @@ src/ui/hooks/
       useGenerateAll.ts
       useOpenOutputFolder.ts
       index.ts
-    device-presets/
-      useUpdateDevicePreset.ts
-      index.ts
-    index.ts
 ```
 
 The existing `src/ui/utils/api.ts` stays as-is. Its pure fetch functions become
@@ -149,26 +184,45 @@ the `queryFn` and `mutationFn` callables passed to React Query hooks.
 
 ### Config editing pattern
 
-Config is the most frequently edited server resource. The new flow:
+Config is the most frequently edited server resource. The flow:
 
-1. Component calls `useSaveConfig().save(newConfig)`
-2. Hook calls `queryClient.setQueryData(['config', projectId], newConfig)` for
-   instant UI update
-3. A 50ms debounce timer starts (matching the current behavior)
-4. When the timer fires, `useMutation` sends `PUT /api/config`
-5. On error, `queryClient.invalidateQueries(['config', projectId])` rolls back
-   to the server's version
+1. Component calls `useAppStore.getState().updateConfig(newConfig)` (or uses a
+   `ScreenshotSlice` / `DevicePresetSlice` convenience method that calls
+   `updateConfig` internally)
+2. `updateConfig` sets `config` and `_configDirty = true` in Zustand
+3. `useConfigAutoSave` subscribes to the store; when `config` changes and
+   `_configDirty` is true, it debounces 50ms then calls `useMutation`
+4. The mutation sends `PUT /api/config`
+5. On success, `_configDirty` is cleared
 
-This preserves the existing UX (rapid edits feel instant, server sees one
-request per burst) while adding error recovery and visibility through DevTools.
+A `flushPersist()` bridge (`utils/config-persistence.ts`) allows non-React code
+(project switch, generation) to force an immediate save before proceeding.
 
-### Screenshot mutations
+### Screenshot and device-preset mutations
 
 Screenshot operations (add, remove, update, add feature graphic, remove feature
-graphic) follow the same pattern they do today: `structuredClone(config)`,
-mutate the clone, then call `useSaveConfig().save(newConfig)`. The difference is
-that the clone is read from the query cache instead of the Zustand store, and
-the save goes through the debounced mutation instead of a Zustand action.
+graphic) and the default device preset setter stay as **Zustand convenience
+methods**. They `structuredClone(config)`, mutate the clone, then call
+`get().updateConfig(newConfig)`. The auto-save hook picks up the change.
+
+This avoids the overhead of individual mutation hooks for operations that are
+purely local config transforms — no separate server endpoint exists for them.
+
+### App initialization
+
+The `useInitData` query replaces the imperative `fetch("/api/init")` in
+`main.tsx`. An `AppShell` component calls `useInitData`, hydrates the store
+on success, and renders the app tree. `main.tsx` wraps `AppShell` in
+`<Suspense>` + `<ErrorBoundary>` for loading and error states.
+
+### Error boundaries
+
+A React `ErrorBoundary` component wraps the app tree. It catches render errors
+and query failures propagated by Suspense, displaying a retry UI instead of a
+blank screen.
+
+- **React Query DevTools.** Added as a dev dependency and rendered inside the
+  `QueryClientProvider` for cache visibility during development.
 
 ## Alternatives considered
 
@@ -192,30 +246,41 @@ are purely client-side with no server backing. Putting them in a query cache
 would add unnecessary complexity and confusion about what is "fetched" versus
 what is "local."
 
+### Config in React Query cache
+
+Considered moving config to the React Query cache under key
+`['config', projectId]`, with `queryClient.setQueryData` for local edits and
+a debounced mutation for persistence. Rejected because:
+
+- Screenshot and device-preset slices need synchronous `get().config` access.
+  Moving config to the query cache would require every convenience method to
+  accept config as a parameter or go async.
+- Zustand's `subscribe()` provides a clean reactive auto-save pattern.
+- The hybrid approach (Zustand owns config, React Query handles the network)
+  is simpler and already working well.
+
 ## Consequences
 
 ### Positive
 
 - **Automatic cache invalidation and deduplication.** Mutations declare which
-  query keys to invalidate. Multiple components using `useAssets()` share a
-  single network request.
+  query keys to invalidate. Multiple components using `useAssetsQuery()` share
+  a single network request.
 
 - **Built-in loading and error states.** Every query returns `isPending`,
-  `isError`, `error`. Suspense mode surfaces these through boundaries instead of
-  manual state tracking.
-
-- **Optimistic updates with rollback.** Project rename and config edits update
-  the UI instantly with automatic rollback on server failure.
+  `isError`, `error`. Error boundaries catch failures and offer retry.
 
 - **DevTools.** The React Query DevTools panel shows every cache entry, its
-  staleness, and refetch triggers. This makes debugging data flow
-  straightforward.
+  staleness, and refetch triggers.
 
 - **Retry logic.** Failed requests retry once automatically (configurable)
   instead of silently failing.
 
-- **Reduced Zustand surface.** The store drops from 8 slices to 3, making the
-  remaining client state easier to reason about.
+- **No API calls in store.** Clear separation: Zustand = synchronous state,
+  React Query = async server communication.
+
+- **Reactive config persistence.** The subscribe-based auto-save is transparent
+  to components — they just call `updateConfig()` and the hook handles the rest.
 
 ### Negative
 
@@ -223,24 +288,20 @@ what is "local."
   to the client bundle.
 
 - **New patterns to learn.** Developers need to understand query keys,
-  `useSuspenseQuery`, `useMutation`, optimistic update callbacks, and cache
-  invalidation strategies.
+  `useQuery`, `useMutation`, and cache invalidation strategies.
 
-- **Suspense boundaries required.** The app needs `<Suspense>` and
-  `<ErrorBoundary>` wrappers that did not exist before. Incorrect boundary
-  placement can cause unexpected loading states or error propagation.
-
-- **Migration surface.** Every component that currently reads `config`, `assets`,
-  or `projects` from Zustand needs to switch to the corresponding query hook.
-  This touches most UI files.
+- **Dual-store hydration.** React Query fetches data, then syncs it to Zustand
+  via `useEffect` / `onSuccess`. This indirection is the cost of keeping
+  Zustand as the component-facing state source.
 
 ## Scope
 
 ### In scope
 
 - All UI data fetching and mutation logic
-- QueryClient setup, Suspense boundaries, ErrorBoundary component
-- Zustand store simplification
+- QueryClient setup, `<Suspense>` boundary, `<ErrorBoundary>` component
+- `useInitData` query to replace imperative init fetch
+- Zustand store cleanup (remove all API calls from slices)
 - React Query DevTools integration
 
 ### Out of scope
@@ -248,4 +309,8 @@ what is "local."
 - Server/backend code (routes, server.ts, generate.ts, convert.ts)
 - Renderer components (TSX rendering pipeline)
 - React Router structure
+- Config in React Query cache (deliberately kept in Zustand — see Alternatives)
+- Screenshot/device-preset mutation hooks (stay as Zustand convenience methods)
+- `useSuspenseQuery` (regular `useQuery` is sufficient for current needs)
+- Optimistic updates for project rename (not needed yet)
 - Any new API endpoints
