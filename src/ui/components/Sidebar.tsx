@@ -13,7 +13,12 @@ import {
 import type { DevicePresetId } from "../types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "../store/index.ts";
-import { useAddLanguage, useCopyPlatformConfig, useGenerateAll, useSwitchProject } from "@hooks";
+import {
+  useAddLanguage,
+  useCopyPlatformConfig,
+  useGenerateAll,
+  useSwitchProject,
+} from "@hooks";
 
 export function Sidebar() {
   // Store state (reactive selectors)
@@ -79,7 +84,8 @@ export function Sidebar() {
         {/* Project Selector */}
         <select
           value={currentProject ?? ""}
-          onChange={(e) => switchProject.mutate((e.target as HTMLSelectElement).value)}
+          onChange={(e) =>
+            switchProject.mutate((e.target as HTMLSelectElement).value)}
           className="w-full px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700"
         >
           {projects.map((p) => (

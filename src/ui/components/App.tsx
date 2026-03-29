@@ -21,10 +21,10 @@ import {
 import { useStoreRouteSync } from "../utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import {
-  useConfigAutoSave,
-  useSwitchProject,
   useAssetsQuery,
+  useConfigAutoSave,
   useLastGeneratedQuery,
+  useSwitchProject,
 } from "@hooks";
 
 export function App() {

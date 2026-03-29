@@ -6,7 +6,7 @@
 
 import { useRef, useState } from "react";
 import type { Assets } from "@ui/types.ts";
-import { useUploadAsset, useRenameAsset, useDeleteAsset } from "@hooks";
+import { useDeleteAsset, useRenameAsset, useUploadAsset } from "@hooks";
 
 interface MediaManagerModalProps {
   assets: Assets;

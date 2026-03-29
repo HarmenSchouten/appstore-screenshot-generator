@@ -12,8 +12,9 @@ import { queryKeys } from "@ui/utils/query.ts";
 export function useAddLanguage() {
   return useMutation({
     mutationKey: [...queryKeys.config.current, "addLanguage"],
-    mutationFn: ({ language, copyFrom }: { language: string; copyFrom: string | null }) =>
-      addLanguage(language, copyFrom),
+    mutationFn: (
+      { language, copyFrom }: { language: string; copyFrom: string | null },
+    ) => addLanguage(language, copyFrom),
     onSuccess: (newLang, { language }) => {
       useAppStore.setState((s) => {
         const newConfig = { ...s.config };
