@@ -38,7 +38,6 @@ export const PhoneFrameLayer = ({
   return (
     <div
       style={{
-
         position: "absolute",
         left: `${posX}%`,
         top: `${posY}%`,
