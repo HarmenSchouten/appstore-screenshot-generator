@@ -7,6 +7,13 @@ import { useSortable } from "@dnd-kit/sortable";
 import type { Layer } from "@types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
 
+/** True when a layer expects an image but none has been picked yet. */
+function isMissingImage(layer: Layer): boolean {
+  if (layer.type === "phone-frame") return !layer.imagePath;
+  if (layer.type === "image") return !layer.imagePath;
+  return false;
+}
+
 export function SortableLayerCard({
   id,
   layer,
@@ -47,6 +54,7 @@ export function SortableLayerCard({
   });
 
   const meta = LAYER_META[layer.type];
+  const missingImage = isMissingImage(layer);
 
   const style = {
     // Translate-only (no scale) for a cleaner drag feel
@@ -100,18 +108,16 @@ export function SortableLayerCard({
         <span className="text-sm text-zinc-200 truncate">
           {layerDisplayName(layer, allLayers)}
         </span>
-      </div>
 
-      {/* Opacity indicator (only when not full) */}
-      {(layer.opacity ?? 1) < 1 && (
-        <span
-          className={`text-[10px] text-zinc-500 tabular-nums ${
-            confirmingDelete ? "invisible" : ""
-          }`}
-        >
-          {Math.round((layer.opacity ?? 1) * 100)}%
-        </span>
-      )}
+        {missingImage && (
+          <span className="relative shrink-0 group/warn">
+            <i className="fa-solid fa-triangle-exclamation text-xs text-zinc-500" />
+            <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 whitespace-nowrap rounded-md bg-zinc-900 border border-zinc-700 px-2.5 py-1.5 text-[11px] text-zinc-300 opacity-0 group-hover/warn:opacity-100 transition-opacity duration-150 shadow-lg shadow-black/40">
+              No image selected
+            </span>
+          </span>
+        )}
+      </div>
 
       {/* Actions */}
       <div

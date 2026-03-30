@@ -38,6 +38,7 @@ export const PhoneFrameLayer = ({
   return (
     <div
       style={{
+
         position: "absolute",
         left: `${posX}%`,
         top: `${posY}%`,
@@ -196,6 +197,12 @@ function PhoneFrameCore({
     display: "block",
   };
 
+  // ── Empty-state sizing (relative to screen area) ──────────
+
+  const screenPixelWidth = pixelWidth -
+    (preset.screen.left + preset.screen.right) * s;
+  const sw = screenPixelWidth; // shorthand
+
   // ── Buttons ───────────────────────────────────────────────
 
   const buttonFill = preset.material.buttonFill ??
@@ -317,8 +324,90 @@ function PhoneFrameCore({
           ? <img src={imageUrl} alt="Screenshot" style={screenImageStyle} />
           : (
             <div
-              style={{ width: "100%", height: "100%", background: "#1a1a1a" }}
-            />
+              style={{
+                width: "100%",
+                height: "100%",
+                background: "#1a1a1a",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: `${sw * 0.03}px`,
+              }}
+            >
+              <style
+                dangerouslySetInnerHTML={{
+                  __html: `
+                    @keyframes phoneFrameEmptyPulse {
+                      0%, 100% { opacity: 0.33; }
+                      50% { opacity: 0.5; }
+                    }
+                  `,
+                }}
+              />
+              <div
+                style={{
+                  animation: "phoneFrameEmptyPulse 3s ease-in-out infinite",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: `${sw * 0.03}px`,
+                }}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.55)"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{
+                    width: `${sw * 0.25}px`,
+                    height: `${sw * 0.25}px`,
+                  }}
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: `${sw * 0.012}px`,
+                  }}
+                >
+                  <span
+                    style={{
+                      color: "rgba(255,255,255,0.50)",
+                      fontSize: `${sw * 0.075}px`,
+                      fontFamily: "system-ui, sans-serif",
+                      fontWeight: 700,
+                      letterSpacing: `${sw * 0.001}px`,
+                      userSelect: "none",
+                    }}
+                  >
+                    No screenshot
+                  </span>
+                  <span
+                    style={{
+                      color: "rgba(255,255,255,0.30)",
+                      fontSize: `${sw * 0.045}px`,
+                      fontFamily: "system-ui, sans-serif",
+                      fontWeight: 400,
+                      userSelect: "none",
+                      textAlign: "center",
+                      lineHeight: 1.4,
+                      padding: `0 ${sw * 0.06}px`,
+                    }}
+                  >
+                    Choose an image in the layer settings
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
       </div>
     </div>
