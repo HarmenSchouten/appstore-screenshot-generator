@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project uses SemVer.
 
+## [2.1.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.0.1...v2.1.0) (2026-04-01)
+
+
+### Features
+
+* Add Empty State Phone Frame  ([#31](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/31)) ([0c2c880](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/0c2c880f2bf47bd0151f27277f397bcc13aff4f8))
+* enhance EmptyState component with props for customizable title and subtitle ([677a00f](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/677a00f36db7d3ff3763028235bebe8d4ee3fa36))
+* implement language management mutations and update Sidebar component to use TanStack Query ([cda64a5](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/cda64a5fa2ad5a05fe017a68f323f3d35556f5b2))
+* implement project mutation hooks for server state management with TanStack Query ([2f41f07](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/2f41f07f0e745aec9bd9ce82bddc0ac10865c1ae))
+* integrate TanStack Query for server state management and add query utilities ([cc716c3](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/cc716c347583cdf548f5699ad8f9011ad693e541))
+* introduce ErrorBoundary and useInitData for improved error handling and server state management ([b6e9359](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/b6e935910045961d3f9a0d27dc6f25ed00e500a6))
+
+
+### Bug Fixes
+
+* add error handling for asset upload failures in MediaManagerModal ([225c835](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/225c8350ed09b6c94a288f286d44efa983d5eb8a))
+* correct typo in handleSwitchProject function name ([7d41dd9](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/7d41dd98c81f0b1155c15a3fc814567f22c1bef8))
+* enhance AppShell to handle error state from useInitData ([6c23d91](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/6c23d91294c1c9153beb152942d43c1318e81c7d))
+* enhance error handling in rename and delete asset functions ([4bd5a56](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/4bd5a56449652e8a1402819551780057f07c6f49))
+* ensure flush registration is cleared on unmount in useConfigAutoSave hook ([0552450](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/05524504e823cbc3c1642997afdbfe244c962e23))
+* improve error handling and state management in useConfigAutoSave hook ([52b4f63](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/52b4f63fb06f5a87f911d05b54be1647da486000))
+* improve error handling in generateStream and uploadAsset functions ([26a7a98](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/26a7a98e237ef11d1e230d1c13dc19a829217226))
+* refactor project mutation handlers to use callbacks instead of async/await ([5ebbbce](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/5ebbbcebce83df06051ba79b6efeff7c56adc2e2))
+* refactor useLastGeneratedQuery to eliminate useEffect and improve state synchronization ([04d10d0](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/04d10d060b64febd4f23755cb8aa7cd025ef273c))
+* replace useEffect with synchronous hydration in useInitData for improved state management ([eb9342e](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/eb9342ec1275fcb71c90f6eebcd2ad8e3f611b67))
+* update comments to clarify useInitData and ErrorBoundary roles in server state management ([40ebb03](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/40ebb03f0bf2c0a5bf18fb6fcd10d6c2f4984a95))
+* update root creation logic for HMR support and import Root type ([652fbbf](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/652fbbf4822f661f8d56ea9fc27283d37b02b0b5))
+
+
+### Refactoring
+
+* implement generation management with TanStack Query and refactor related components ([6232585](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/6232585c6f2bc4cdea7ccd167435594551bdb969))
+* integrate TanStack Query for asset management and replace store-level refresh logic ([1b4bdce](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/1b4bdcea7f4f1dea26e92716e8ae549878083bc5))
+* Introduce tanstack query for server state management ([#29](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/29)) ([c40d3f1](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/c40d3f1afeb86e08a36919309740019b288bcbd0))
+* replace config store set calls with a proper auto save loop using react query ([4b11040](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/4b11040d00ececfd164d3aabf6ecf7b56791ec16))
+* replace project management with TanStack Query hooks and update Sidebar and ProjectModal components ([9335605](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/9335605a969a52ebc03d8b9f3f9920e363feeaef))
+* update selectors to use constants for empty screenshots and default dimensions ([a92003b](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/a92003b314942ab35aafd62583ed802b5ad2c533))
+
 ## [2.0.1](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.0.0...v2.0.1) (2026-03-27)
 
 
