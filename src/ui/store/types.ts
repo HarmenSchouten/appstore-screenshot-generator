@@ -45,6 +45,7 @@ export interface ScreenshotSlice {
   addFeatureGraphic: () => void;
   removeScreenshot: (id: string) => void;
   updateScreenshot: (id: string, updates: Partial<Screenshot>) => void;
+  reorderScreenshots: (orderedIds: string[]) => void;
   removeFeatureGraphic: () => void;
 }
 

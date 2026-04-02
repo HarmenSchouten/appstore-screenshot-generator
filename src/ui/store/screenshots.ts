@@ -129,6 +129,30 @@ export const createScreenshotSlice: StateCreator<
     }
   },
 
+  reorderScreenshots: (orderedIds) => {
+    const { config, selectedLang, selectedPlatform } = get();
+
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
+    if (result) {
+      const byId = new Map(
+        result.platformConfig.screenshots.map((s) => [s.id, s]),
+      );
+      // Keep feature graphics in place, reorder only screenshots
+      const featureGraphics = result.platformConfig.screenshots.filter(
+        (s) => s.role === "feature-graphic",
+      );
+      const reordered = orderedIds
+        .map((id) => byId.get(id))
+        .filter((s): s is Screenshot => s != null && s.role === "screenshot");
+      result.platformConfig.screenshots = [...reordered, ...featureGraphics];
+      get().updateConfig(result.newConfig);
+    }
+  },
+
   removeFeatureGraphic: () => {
     const {
       config,

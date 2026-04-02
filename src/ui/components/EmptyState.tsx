@@ -4,8 +4,8 @@ interface EmptyStateProps {
 }
 
 export const EmptyState = ({
-  title = "Select a screenshot or feature graphic to preview",
-  subtitle = "Use the sidebar to pick an item to edit",
+  title = "Select a screenshot or feature graphic to start editing",
+  subtitle,
 }: EmptyStateProps) => {
   return (
     <div className="flex flex-col items-center gap-6 select-none">

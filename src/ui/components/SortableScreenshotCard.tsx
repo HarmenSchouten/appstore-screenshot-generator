@@ -1,26 +1,23 @@
 /**
- * SortableLayerCard — wraps LayerCard with dnd-kit sortable.
+ * SortableScreenshotCard — wraps SidebarItemCard with dnd-kit sortable.
  *
- * Follows the same wrapper pattern as SortableScreenshotCard.
+ * Follows the same pattern as SortableLayerCard in the layer editor.
  */
 
 import { useSortable } from "@dnd-kit/sortable";
-import type { Layer } from "@types";
-import { LayerCard } from "./LayerCard.tsx";
+import { SidebarItemCard } from "./SidebarItemCard.tsx";
 
-export function SortableLayerCard({
+export function SortableScreenshotCard({
   id,
-  layer,
-  allLayers,
-  onClick,
-  onDuplicate,
+  title,
+  isSelected,
+  onSelect,
   onDelete,
 }: {
   id: string;
-  layer: Layer;
-  allLayers: Layer[];
-  onClick: () => void;
-  onDuplicate: () => void;
+  title: string;
+  isSelected: boolean;
+  onSelect: () => void;
   onDelete: () => void;
 }) {
   const {
@@ -50,11 +47,10 @@ export function SortableLayerCard({
   };
 
   return (
-    <LayerCard
-      layer={layer}
-      allLayers={allLayers}
-      onClick={onClick}
-      onDuplicate={onDuplicate}
+    <SidebarItemCard
+      title={title}
+      isSelected={isSelected}
+      onSelect={onSelect}
       onDelete={onDelete}
       sortableProps={{
         setNodeRef,
