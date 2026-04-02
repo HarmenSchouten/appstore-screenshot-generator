@@ -83,6 +83,21 @@ export async function renameProject(
 }
 
 /**
+ * Duplicate project
+ */
+export async function duplicateProject(
+  projectId: string,
+  name: string,
+): Promise<ProjectInfo> {
+  const res = await fetch(`/api/projects/${projectId}/duplicate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return res.json();
+}
+
+/**
  * Add language
  */
 export async function addLanguage(
