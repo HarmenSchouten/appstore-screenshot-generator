@@ -13,11 +13,6 @@ body {
   background: #0f0f0f;
 }
 
-.sidebar {
-  width: 260px;
-  min-width: 260px;
-}
-
 .editor-panel {
   flex: 1;
   min-width: 0;
