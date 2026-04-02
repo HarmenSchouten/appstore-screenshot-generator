@@ -10,6 +10,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useAppStore } from "../store/index.ts";
 import { getFlagForCode, LanguagePicker } from "./LanguagePicker.tsx";
+import {
+  useAddLanguage,
+  useCopyPlatformConfig,
+  useCreateProject,
+  useDeleteLanguage,
+  useSwitchProject,
+} from "@hooks";
 
 interface TopBarProps {
   onGenerate: () => void;
@@ -28,16 +35,17 @@ export function TopBar({ onGenerate }: TopBarProps) {
   const {
     setSelectedLang,
     setSelectedPlatform,
-    switchProject,
-    createProject,
-    addLanguage,
-    removeLanguage,
-    copyPlatformConfig,
     openProjectModal,
     openThemeEditor,
     openMediaManager,
     viewLastGenerated,
   } = useAppStore.getState();
+
+  const switchProject = useSwitchProject();
+  const createProject = useCreateProject();
+  const addLanguage = useAddLanguage();
+  const deleteLanguage = useDeleteLanguage();
+  const copyPlatform = useCopyPlatformConfig();
 
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
   const [quickCreateName, setQuickCreateName] = useState("");
@@ -99,7 +107,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
                   type="button"
                   key={p.id}
                   onClick={() => {
-                    switchProject(p.id);
+                    switchProject.mutate(p.id);
                     setProjectDropdownOpen(false);
                   }}
                   className={`w-full px-3 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-2 transition-colors ${
@@ -135,7 +143,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
                     )}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && quickCreateName.trim()) {
-                      createProject(quickCreateName.trim());
+                      createProject.mutate(quickCreateName.trim());
                       setQuickCreateName("");
                       setProjectDropdownOpen(false);
                     }
@@ -147,7 +155,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
                   type="button"
                   onClick={() => {
                     if (quickCreateName.trim()) {
-                      createProject(quickCreateName.trim());
+                      createProject.mutate(quickCreateName.trim());
                       setQuickCreateName("");
                       setProjectDropdownOpen(false);
                     }
@@ -193,7 +201,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
                   <button
                     type="button"
                     onClick={() => {
-                      removeLanguage(lang.language);
+                      deleteLanguage.mutate(lang.language);
                       setConfirmDeleteLang(null);
                     }}
                     className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-600 hover:bg-red-500 text-white transition-colors"
@@ -259,7 +267,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
           existingLanguages={languages.map((l) => l.language)}
           currentLanguage={selectedLang}
           onAdd={(code, copyFrom) => {
-            addLanguage(code, copyFrom);
+            addLanguage.mutate({ language: code, copyFrom });
             setLangPickerOpen(false);
           }}
           onClose={() =>
@@ -317,7 +325,10 @@ export function TopBar({ onGenerate }: TopBarProps) {
                   const target = selectedPlatform === "android"
                     ? "ios"
                     : "android";
-                  copyPlatformConfig(selectedPlatform, target);
+                  copyPlatform.mutate({
+                    sourcePlatform: selectedPlatform,
+                    targetPlatform: target,
+                  });
                   setConfirmCopyPlatform(false);
                 }}
                 className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-600 hover:bg-amber-500 text-white transition-colors"
