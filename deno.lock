@@ -25,6 +25,7 @@
     "npm:puppeteer@24": "24.38.0_devtools-protocol@0.0.1581282_typescript@5.9.3",
     "npm:react-dom@^18.3.1": "18.3.1_react@18.3.1",
     "npm:react-router-dom@^7.13.1": "7.13.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
+    "npm:react-zoom-pan-pinch@^3.7.0": "3.7.0_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:react@^18.3.1": "18.3.1",
     "npm:sharp@0.33.5": "0.33.5",
     "npm:tailwindcss@^3.4.17": "3.4.19_postcss@8.5.8_jiti@1.21.7",
@@ -1631,6 +1632,13 @@
         "react-dom"
       ]
     },
+    "react-zoom-pan-pinch@3.7.0_react@18.3.1_react-dom@18.3.1__react@18.3.1": {
+      "integrity": "sha512-UmReVZ0TxlKzxSbYiAj+LeGRW8s8LraAFTXRAxzMYnNRgGPsxCudwZKVkjvGmjtx7SW/hZamt69NUmGf4xrkXA==",
+      "dependencies": [
+        "react",
+        "react-dom"
+      ]
+    },
     "react@18.3.1": {
       "integrity": "sha512-wS+hAgJShR0KhEvPJArfuPVN1+Hz1t0Y6n5jLrGQbkb4urgPE/0Rve+1kMB1v/oWgHgm4WIcV+i7F2pTVj+2iQ==",
       "dependencies": [
@@ -2081,6 +2089,7 @@
         "npm:puppeteer@24",
         "npm:react-dom@^18.3.1",
         "npm:react-router-dom@^7.13.1",
+        "npm:react-zoom-pan-pinch@^3.7.0",
         "npm:react@^18.3.1",
         "npm:tailwindcss@^3.4.17",
         "npm:typescript@^5.7.2",
