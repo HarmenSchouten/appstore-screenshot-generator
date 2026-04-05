@@ -6,8 +6,10 @@
  */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
+import { ZoomControls } from "./ZoomControls.tsx";
 import type {
   AppConfig,
   DevicePresetId,
@@ -108,46 +110,70 @@ export function Preview(
   return (
     <div
       ref={containerRef}
-      className="w-full h-full flex items-center justify-center"
+      className="w-full h-full flex items-center justify-center relative overflow-hidden"
     >
       <style dangerouslySetInnerHTML={{ __html: baseCSS }} />
-      <div
-        className="relative bg-black rounded-lg overflow-hidden shadow-2xl"
-        style={{
-          width: width * scale + "px",
-          height: height * scale + "px",
-          transition: frameResizeTransition,
-        }}
+      <TransformWrapper
+        key={screenshot?.id}
+        initialScale={1}
+        minScale={1}
+        maxScale={5}
+        centerOnInit
+        limitToBounds
+        doubleClick={{ mode: "reset" }}
       >
-        {/* Isolated preview container — uses zoom for resolution-independent scaling */}
-        <div
-          className={screenshot?.role === "screenshot"
-            ? "screenshot-preview"
-            : "fg-preview"}
-          style={{
-            width: width + "px",
-            height: height + "px",
-            zoom: scale,
-            opacity: contentOpacity,
-            transition: "opacity 80ms linear",
-            // Reset inherited styles
-            fontFamily: theme.fontFamily,
-          }}
-        >
-          {/* Render content */}
-          <ScreenshotContent
-            options={{
-              screenshot,
-              theme,
-              app,
-              platform,
-              defaultDevicePresetId,
-              dimensions,
-              assetUrlPrefix: "/assets/",
-            }}
-          />
-        </div>
-      </div>
+        {({ zoomIn, zoomOut, resetTransform }) => (
+          <>
+            <TransformComponent
+              wrapperStyle={{ overflow: "visible" }}
+            >
+              <div
+                className="relative bg-black rounded-lg overflow-hidden shadow-2xl"
+                style={{
+                  width: width * scale + "px",
+                  height: height * scale + "px",
+                  transition: frameResizeTransition,
+                }}
+              >
+                {/* Isolated preview container — uses zoom for resolution-independent scaling */}
+                <div
+                  className={screenshot?.role === "screenshot"
+                    ? "screenshot-preview"
+                    : "fg-preview"}
+                  style={{
+                    width: width + "px",
+                    height: height + "px",
+                    zoom: scale,
+                    opacity: contentOpacity,
+                    transition: "opacity 80ms linear",
+                    // Reset inherited styles
+                    fontFamily: theme.fontFamily,
+                  }}
+                >
+                  {/* Render content */}
+                  <ScreenshotContent
+                    options={{
+                      screenshot,
+                      theme,
+                      app,
+                      platform,
+                      defaultDevicePresetId,
+                      dimensions,
+                      assetUrlPrefix: "/assets/",
+                    }}
+                  />
+                </div>
+              </div>
+            </TransformComponent>
+
+            <ZoomControls
+              onZoomIn={() => zoomIn(0.5)}
+              onZoomOut={() => zoomOut(0.5)}
+              onReset={() => resetTransform()}
+            />
+          </>
+        )}
+      </TransformWrapper>
     </div>
   );
 }
