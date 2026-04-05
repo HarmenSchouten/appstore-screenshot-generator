@@ -92,7 +92,7 @@ export function App() {
         <Sidebar />
 
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex-1 flex items-center justify-center p-8 bg-zinc-900/50">
+          <div className="flex-1 flex items-center justify-center p-4 bg-zinc-900/50">
             {selectedScreenshot
               ? (
                 <Preview
