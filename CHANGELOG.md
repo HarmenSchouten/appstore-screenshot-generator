@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project uses SemVer.
 
+## [2.2.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.1.0...v2.2.0) (2026-04-05)
+
+
+### Features
+
+* Add zoom functionality to preview component ([#35](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/35)) ([7d30058](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/7d300589e3c1d7077bee51e55bd5e5f7d1a5573d))
+* redesign sidebar into topbar and sidebar with clear separation of UI components ([#33](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/33)) ([7376d1b](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/7376d1b830e68867776d413bfd8fc5a3a785af95))
+
+
+### Bug Fixes
+
+* Update project and language management to use mutate methods ([#34](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/34)) ([3ee58b0](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/3ee58b099b7718367b3f70ce233e93322faf6b51))
+
 ## [2.1.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.0.1...v2.1.0) (2026-04-01)
 
 
