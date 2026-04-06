@@ -1,11 +1,19 @@
+import { APP_SHORTCUTS } from "@hooks";
+import { formatForDisplay } from "@tanstack/react-hotkeys";
+import { useAppStore } from "@ui/store/index.ts";
+
 interface EmptyStateProps {
   title?: string;
   subtitle?: string;
+  showShortcuts?: boolean;
 }
+
+const emptyStateShortcuts = APP_SHORTCUTS.filter((s) => s.showOnEmptyState);
 
 export const EmptyState = ({
   title = "Select a screenshot or feature graphic to start editing",
   subtitle,
+  showShortcuts = true,
 }: EmptyStateProps) => {
   return (
     <div className="flex flex-col items-center gap-6 select-none">
@@ -89,6 +97,40 @@ export const EmptyState = ({
           </p>
         )}
       </div>
+
+      {showShortcuts && (
+        <>
+          <div className="grid grid-cols-2 gap-2 mt-2 w-full max-w-md">
+            {emptyStateShortcuts.map((shortcut) => (
+              <div
+                key={shortcut.id}
+                className="flex items-center gap-3 px-3 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-lg"
+              >
+                <i
+                  className={`${shortcut.icon} text-zinc-500 text-sm w-4 text-center`}
+                />
+                <span className="text-xs text-zinc-400 flex-1">
+                  {shortcut.label}
+                </span>
+                <kbd className="bg-zinc-700 rounded px-1.5 py-0.5 text-[11px] font-mono text-zinc-300 shrink-0">
+                  {formatForDisplay(shortcut.keys)}
+                </kbd>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              useAppStore.getState().openShortcutCheatSheet()}
+            className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            Show all shortcuts
+            <kbd className="ml-1.5 bg-zinc-800 rounded px-1 py-0.5 text-[10px] font-mono text-zinc-500">
+              ?
+            </kbd>
+          </button>
+        </>
+      )}
     </div>
   );
 };
