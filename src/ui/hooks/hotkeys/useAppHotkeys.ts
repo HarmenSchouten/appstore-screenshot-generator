@@ -1,7 +1,7 @@
 import { useCallback, useRef } from "react";
 import { useHotkey } from "@tanstack/react-hotkeys";
 import type { Hotkey } from "@tanstack/react-hotkeys";
-import { useAppStore, selectScreenshots } from "@ui/store/index.ts";
+import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import { useGenerateAll, useOpenOutputFolder } from "@hooks";
 
 const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
@@ -26,8 +26,7 @@ export function useAppHotkeys() {
     (s) => s.shortcutCheatSheetOpen,
   );
 
-  const noModalOpen =
-    !projectModalOpen &&
+  const noModalOpen = !projectModalOpen &&
     !themeEditorOpen &&
     !mediaManagerOpen &&
     !showGenerateModal &&
