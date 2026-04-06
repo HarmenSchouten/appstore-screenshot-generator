@@ -15,13 +15,16 @@ import { EmptyState } from "./components/EmptyState.tsx";
 import "./styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { HotkeysProvider } from "@tanstack/react-hotkeys";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import { queryClient } from "./utils/query.ts";
 import { useInitData } from "@hooks";
 
 function LoadingScreen() {
   return (
     <div className="flex items-center justify-center h-screen bg-zinc-950 text-white">
-      <EmptyState title="Loading..." subtitle="" />
+      <EmptyState title="Loading..." subtitle="" showShortcuts={false} />
     </div>
   );
 }
@@ -59,10 +62,13 @@ if (hot) {
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ErrorBoundary>
-        <AppShell />
-      </ErrorBoundary>
+      <HotkeysProvider>
+        <ErrorBoundary>
+          <AppShell />
+        </ErrorBoundary>
+      </HotkeysProvider>
       <ReactQueryDevtools />
+      <TanStackDevtools plugins={[hotkeysDevtoolsPlugin()]} />
     </QueryClientProvider>
   </React.StrictMode>,
 );
