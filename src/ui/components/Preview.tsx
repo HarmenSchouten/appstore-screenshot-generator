@@ -6,7 +6,13 @@
  */
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import {
+  TransformComponent,
+  TransformWrapper,
+  useControls,
+} from "react-zoom-pan-pinch";
+import { useHotkey } from "@tanstack/react-hotkeys";
+import { useAppStore } from "@ui/store/index.ts";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import { ZoomControls } from "./ZoomControls.tsx";
@@ -17,6 +23,37 @@ import type {
   Screenshot,
   ThemeConfig,
 } from "@renderer/types.ts";
+
+const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
+
+function ZoomHotkeys() {
+  const { zoomIn, zoomOut, resetTransform } = useControls();
+
+  const noModalOpen = useAppStore((s) =>
+    !s.projectModalOpen &&
+    !s.themeEditorOpen &&
+    !s.mediaManagerOpen &&
+    !s.showGenerateModal &&
+    !s.shortcutCheatSheetOpen
+  );
+
+  useHotkey("=", () => {
+    if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;
+    zoomIn(0.5);
+  }, { enabled: noModalOpen, preventDefault: false });
+
+  useHotkey("-", () => {
+    if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;
+    zoomOut(0.5);
+  }, { enabled: noModalOpen, preventDefault: false });
+
+  useHotkey("0", () => {
+    if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;
+    resetTransform();
+  }, { enabled: noModalOpen, preventDefault: false });
+
+  return null;
+}
 
 interface PreviewProps {
   screenshot?: Screenshot;
@@ -124,6 +161,7 @@ export function Preview(
       >
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
+            <ZoomHotkeys />
             <TransformComponent
               wrapperStyle={{ overflow: "visible" }}
             >
