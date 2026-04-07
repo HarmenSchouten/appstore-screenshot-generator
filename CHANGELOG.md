@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project uses SemVer.
 
+## [2.3.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.2.0...v2.3.0) (2026-04-07)
+
+
+### Features
+
+* Add keyboard shortcuts functionality and cheat sheet ([#37](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/37)) ([b3f933d](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/b3f933d48ae91b59eed6d20491f9f46a697c6a0f))
+
 ## [2.2.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.1.0...v2.2.0) (2026-04-05)
 
 
