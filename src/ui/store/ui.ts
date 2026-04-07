@@ -10,10 +10,13 @@ export const createUISlice: StateCreator<
   projectModalOpen: false,
   themeEditorOpen: false,
   mediaManagerOpen: false,
+  shortcutCheatSheetOpen: false,
   openProjectModal: () => set({ projectModalOpen: true }),
   closeProjectModal: () => set({ projectModalOpen: false }),
   openThemeEditor: () => set({ themeEditorOpen: true }),
   closeThemeEditor: () => set({ themeEditorOpen: false }),
   openMediaManager: () => set({ mediaManagerOpen: true }),
   closeMediaManager: () => set({ mediaManagerOpen: false }),
+  openShortcutCheatSheet: () => set({ shortcutCheatSheetOpen: true }),
+  closeShortcutCheatSheet: () => set({ shortcutCheatSheetOpen: false }),
 });

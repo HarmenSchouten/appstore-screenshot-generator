@@ -14,6 +14,7 @@ import { ProjectModal } from "./modals/ProjectModal.tsx";
 import { GenerateModal } from "./modals/GenerateModal.tsx";
 import { ThemeEditorModal } from "./modals/ThemeEditorModal.tsx";
 import { MediaManagerModal } from "./modals/MediaManagerModal.tsx";
+import { ShortcutCheatSheetModal } from "./modals/ShortcutCheatSheetModal.tsx";
 import {
   selectDimensions,
   selectScreenshots,
@@ -22,6 +23,7 @@ import {
 import { useStoreRouteSync } from "../utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import {
+  useAppHotkeys,
   useAssetsQuery,
   useConfigAutoSave,
   useGenerateAll,
@@ -33,6 +35,7 @@ export function App() {
   useStoreRouteSync();
   useConfigAutoSave();
   useAssetsQuery();
+  useAppHotkeys();
 
   const switchProject = useSwitchProject();
   const generateAll = useGenerateAll();
@@ -55,6 +58,9 @@ export function App() {
   const generating = useAppStore((s) => s.generating);
   const generateProgress = useAppStore((s) => s.generateProgress);
   const showGenerateModal = useAppStore((s) => s.showGenerateModal);
+  const shortcutCheatSheetOpen = useAppStore(
+    (s) => s.shortcutCheatSheetOpen,
+  );
 
   const {
     updateConfig,
@@ -64,6 +70,7 @@ export function App() {
     closeGenerateModal,
     closeThemeEditor,
     closeMediaManager,
+    closeShortcutCheatSheet,
   } = useAppStore.getState();
 
   const selectedScreenshot = selectedItem?.type === "screenshot"
@@ -153,6 +160,10 @@ export function App() {
           assets={assets}
           onClose={closeMediaManager}
         />
+      )}
+
+      {shortcutCheatSheetOpen && (
+        <ShortcutCheatSheetModal onClose={closeShortcutCheatSheet} />
       )}
     </div>
   );

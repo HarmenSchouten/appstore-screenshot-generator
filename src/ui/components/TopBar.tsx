@@ -381,6 +381,15 @@ export function TopBar({ onGenerate }: TopBarProps) {
         <span className="text-xs">{assetCount}</span>
       </button>
 
+      <button
+        type="button"
+        onClick={() => useAppStore.getState().openShortcutCheatSheet()}
+        className={`${btnH} w-8 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-600 hover:text-zinc-400 transition-colors`}
+        title="Keyboard Shortcuts (?)"
+      >
+        <i className="fa-solid fa-keyboard text-xs" />
+      </button>
+
       <div className="w-px h-5 bg-zinc-700 mx-0.5" />
 
       {/* Generate actions */}

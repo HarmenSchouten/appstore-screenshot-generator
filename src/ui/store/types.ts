@@ -72,12 +72,15 @@ export interface UISlice {
   projectModalOpen: boolean;
   themeEditorOpen: boolean;
   mediaManagerOpen: boolean;
+  shortcutCheatSheetOpen: boolean;
   openProjectModal: () => void;
   closeProjectModal: () => void;
   openThemeEditor: () => void;
   closeThemeEditor: () => void;
   openMediaManager: () => void;
   closeMediaManager: () => void;
+  openShortcutCheatSheet: () => void;
+  closeShortcutCheatSheet: () => void;
 }
 
 // ── Combined store type ─────────────────────────────────────────────
