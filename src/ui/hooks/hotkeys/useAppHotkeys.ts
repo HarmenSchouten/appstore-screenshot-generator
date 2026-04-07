@@ -1,6 +1,5 @@
 import { useCallback, useRef } from "react";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import type { Hotkey } from "@tanstack/react-hotkeys";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import { useGenerateAll, useOpenOutputFolder } from "@hooks";
 
@@ -20,7 +19,6 @@ export function useAppHotkeys() {
   const showGenerateModal = useAppStore((s) => s.showGenerateModal);
   const selectedItem = useAppStore((s) => s.selectedItem);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const lastGenerated = useAppStore((s) => s.lastGenerated);
 
   const shortcutCheatSheetOpen = useAppStore(
     (s) => s.shortcutCheatSheetOpen,
@@ -70,6 +68,17 @@ export function useAppHotkeys() {
     state.setSelectedLang(languages[nextIndex].language);
   }, { enabled: noModalOpen });
 
+  useHotkey("Mod+Shift+J", () => {
+    const state = useAppStore.getState();
+    const languages = state.config.languages ?? [];
+    if (languages.length < 2) return;
+    const currentIndex = languages.findIndex(
+      (l) => l.language === state.selectedLang,
+    );
+    const prevIndex = (currentIndex - 1 + languages.length) % languages.length;
+    state.setSelectedLang(languages[prevIndex].language);
+  }, { enabled: noModalOpen });
+
   // ── Tier 2 — Power-user shortcuts ─────────────────────────────────
 
   useHotkey("Mod+Shift+P", () => {
@@ -115,23 +124,32 @@ export function useAppHotkeys() {
     openOutputFolder.mutate();
   }, { enabled: noModalOpen });
 
-  useHotkey("Mod+Shift+L", () => {
-    useAppStore.getState().viewLastGenerated();
-  }, { enabled: noModalOpen && !!lastGenerated });
-
   // ── Screenshot selection ───────────────────────────────────────────
 
-  for (let i = 1; i <= 9; i++) {
-    useHotkey(String(i) as Hotkey, () => {
-      if (isInputFocused()) return;
-      const state = useAppStore.getState();
-      const screenshots = selectScreenshots(state);
-      const items = screenshots.filter((s) => s.role === "screenshot");
-      if (i <= items.length) {
-        state.setSelectedItem({ type: "screenshot", id: items[i - 1].id });
-      }
-    }, { enabled: noModalOpen, preventDefault: false });
-  }
+  const stepScreenshot = useCallback((direction: 1 | -1) => {
+    if (isInputFocused()) return;
+    const state = useAppStore.getState();
+    const screenshots = selectScreenshots(state);
+    const items = screenshots.filter((s) => s.role === "screenshot");
+    if (items.length === 0) return;
+    const currentId = state.selectedItem?.id;
+    const currentIndex = items.findIndex((s) => s.id === currentId);
+    // If nothing (or the feature graphic) is selected, jump to first/last.
+    const nextIndex = currentIndex === -1
+      ? (direction === 1 ? 0 : items.length - 1)
+      : (currentIndex + direction + items.length) % items.length;
+    state.setSelectedItem({ type: "screenshot", id: items[nextIndex].id });
+  }, []);
+
+  useHotkey("]", () => stepScreenshot(1), {
+    enabled: noModalOpen,
+    preventDefault: false,
+  });
+
+  useHotkey("[", () => stepScreenshot(-1), {
+    enabled: noModalOpen,
+    preventDefault: false,
+  });
 
   useHotkey("G", () => {
     if (isInputFocused()) return;

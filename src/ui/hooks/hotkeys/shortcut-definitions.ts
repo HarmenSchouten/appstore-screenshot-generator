@@ -8,7 +8,7 @@ export interface ShortcutDefinition {
 }
 
 export const APP_SHORTCUTS: ShortcutDefinition[] = [
-  // Tier 1 — shown on EmptyState
+  // Tier 1 - shown on EmptyState
   {
     id: "add-screenshot",
     keys: "Mod+Shift+A",
@@ -50,14 +50,22 @@ export const APP_SHORTCUTS: ShortcutDefinition[] = [
     showOnEmptyState: true,
   },
   {
-    id: "cycle-language",
+    id: "cycle-language-next",
     keys: "Mod+Shift+K",
     label: "Next Language",
     description: "Cycle to the next language in the project",
     icon: "fa-solid fa-globe",
     showOnEmptyState: true,
   },
-  // Tier 2 — power-user shortcuts
+  {
+    id: "cycle-language-prev",
+    keys: "Mod+Shift+J",
+    label: "Previous Language",
+    description: "Cycle to the previous language in the project",
+    icon: "fa-solid fa-globe",
+    showOnEmptyState: false,
+  },
+  // Tier 2 - power-user shortcuts
   {
     id: "open-project-modal",
     keys: "Mod+Shift+P",
@@ -80,14 +88,6 @@ export const APP_SHORTCUTS: ShortcutDefinition[] = [
     label: "Open Output",
     description: "Open the output folder in the file explorer",
     icon: "fa-solid fa-folder",
-    showOnEmptyState: false,
-  },
-  {
-    id: "view-last-generated",
-    keys: "Mod+Shift+L",
-    label: "Last Generated",
-    description: "View the last generated results",
-    icon: "fa-solid fa-eye",
     showOnEmptyState: false,
   },
   {
@@ -115,11 +115,19 @@ export const APP_SHORTCUTS: ShortcutDefinition[] = [
     showOnEmptyState: false,
   },
   {
-    id: "select-screenshot",
-    keys: "1-9",
-    label: "Select Screenshot",
-    description: "Jump to a screenshot by its position number",
-    icon: "fa-solid fa-hashtag",
+    id: "previous-screenshot",
+    keys: "[",
+    label: "Previous Screenshot",
+    description: "Select the previous screenshot in the list",
+    icon: "fa-solid fa-arrow-left",
+    showOnEmptyState: false,
+  },
+  {
+    id: "next-screenshot",
+    keys: "]",
+    label: "Next Screenshot",
+    description: "Select the next screenshot in the list",
+    icon: "fa-solid fa-arrow-right",
     showOnEmptyState: false,
   },
   {
