@@ -15,6 +15,7 @@ import { GenerateModal } from "./modals/GenerateModal.tsx";
 import { ThemeEditorModal } from "./modals/ThemeEditorModal.tsx";
 import { MediaManagerModal } from "./modals/MediaManagerModal.tsx";
 import { ShortcutCheatSheetModal } from "./modals/ShortcutCheatSheetModal.tsx";
+import { ToastContainer } from "./ToastContainer.tsx";
 import {
   selectDimensions,
   selectScreenshots,
@@ -165,6 +166,8 @@ export function App() {
       {shortcutCheatSheetOpen && (
         <ShortcutCheatSheetModal onClose={closeShortcutCheatSheet} />
       )}
+
+      <ToastContainer />
     </div>
   );
 }
