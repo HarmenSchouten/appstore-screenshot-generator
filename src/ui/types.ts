@@ -73,6 +73,7 @@ export interface GenerateResult {
   role: "screenshot" | "feature-graphic";
   status: "success" | "error";
   error?: string;
+  screenshotName?: string;
 }
 
 // Import Palette type

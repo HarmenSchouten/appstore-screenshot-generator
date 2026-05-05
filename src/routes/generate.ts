@@ -11,6 +11,23 @@ import type { ProjectConfig } from "@types";
 import { getProjectAssetsDir, getProjectOutputDir } from "../projects.ts";
 import { renderScreenshot } from "@renderer/server.ts";
 
+function sanitizeFilename(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "screenshot";
+}
+
+function uniqueName(base: string, used: Set<string>): string {
+  let name = base;
+  let i = 2;
+  while (used.has(name)) {
+    name = `${base}-${i++}`;
+  }
+  used.add(name);
+  return name;
+}
+
 export function createGenerateRoutes(
   getCurrentProjectId: () => string,
   getConfig: () => Promise<ProjectConfig>,
@@ -54,18 +71,21 @@ export function createGenerateRoutes(
         );
         await ensureDir(langOutputDir);
 
-        // Generate screenshots (including feature graphics)
-        for (const screenshot of platformConfig.screenshots) {
-          const htmlPath = join(langOutputDir, `${screenshot.id}.html`);
-          const pngPath = join(langOutputDir, `${screenshot.id}.png`);
+        const usedNames = new Set<string>();
 
-          // Feature graphics use fixed 1024x500, screenshots use platform dimensions
+        for (const screenshot of platformConfig.screenshots) {
+          const baseName = sanitizeFilename(
+            screenshot.name || screenshot.id,
+          );
+          const fileName = uniqueName(baseName, usedNames);
+          const htmlPath = join(langOutputDir, `${fileName}.html`);
+          const pngPath = join(langOutputDir, `${fileName}.png`);
+
           const dimensions = screenshot.role === "feature-graphic"
             ? { width: 1024, height: 500 }
             : platformConfig.dimensions;
 
           try {
-            // Generate HTML using renderer
             const html = renderScreenshot({
               screenshot,
               theme: config.theme,
@@ -80,7 +100,6 @@ export function createGenerateRoutes(
 
             await Deno.writeTextFile(htmlPath, html);
 
-            // Convert to PNG
             await convertHtmlFileToPng(
               htmlPath,
               pngPath,
@@ -146,6 +165,7 @@ export function createGenerateRoutes(
           role: "screenshot" | "feature-graphic";
           status: "success" | "error";
           error?: string;
+          screenshotName?: string;
         }[] = [];
 
         send({ type: "start", total: totalItems });
@@ -165,13 +185,17 @@ export function createGenerateRoutes(
             );
             await ensureDir(langOutputDir);
 
-            for (const screenshot of platformConfig.screenshots) {
-              const htmlPath = join(langOutputDir, `${screenshot.id}.html`);
-              const pngPath = join(langOutputDir, `${screenshot.id}.png`);
-              const relativePath =
-                `${langConfig.language}/${platformName}/${screenshot.id}.png`;
+            const usedNames = new Set<string>();
 
-              // Feature graphics use fixed 1024x500, screenshots use platform dimensions
+            for (const screenshot of platformConfig.screenshots) {
+              const displayName = screenshot.name || screenshot.id;
+              const baseName = sanitizeFilename(displayName);
+              const fileName = uniqueName(baseName, usedNames);
+              const htmlPath = join(langOutputDir, `${fileName}.html`);
+              const pngPath = join(langOutputDir, `${fileName}.png`);
+              const relativePath =
+                `${langConfig.language}/${platformName}/${fileName}.png`;
+
               const dimensions = screenshot.role === "feature-graphic"
                 ? { width: 1024, height: 500 }
                 : platformConfig.dimensions;
@@ -180,8 +204,7 @@ export function createGenerateRoutes(
                 type: "progress",
                 current: completed + 1,
                 total: totalItems,
-                item:
-                  `${langConfig.language}/${platformName}: ${screenshot.id}`,
+                item: `${langConfig.language}/${platformName}: ${displayName}`,
               });
 
               try {
@@ -207,6 +230,7 @@ export function createGenerateRoutes(
                   relativePath,
                   role: screenshot.role,
                   status: "success",
+                  screenshotName: displayName,
                 });
               } catch (error) {
                 results.push({
@@ -217,6 +241,7 @@ export function createGenerateRoutes(
                   error: error instanceof Error
                     ? error.message
                     : "Unknown error",
+                  screenshotName: displayName,
                 });
               }
               completed++;
