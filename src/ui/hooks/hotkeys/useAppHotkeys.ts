@@ -93,7 +93,11 @@ export function useAppHotkeys() {
     if (now - deleteArmedAt.current > CONFIRM_WINDOW_MS) {
       // First press — arm the shortcut
       deleteArmedAt.current = now;
-      // TODO: show toast "Press again to delete"
+      useAppStore.getState().addToast({
+        type: "info",
+        message: "Press again to delete",
+        duration: CONFIRM_WINDOW_MS,
+      });
       return;
     }
     // Second press within window — execute

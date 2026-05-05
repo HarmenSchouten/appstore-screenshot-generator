@@ -66,6 +66,10 @@ export function useConfigAutoSave() {
                 pendingRef.current = config;
                 useAppStore.setState({ _configDirty: true });
                 console.error(err);
+                useAppStore.getState().addToast({
+                  type: "error",
+                  message: "Failed to save config",
+                });
               });
           }
         }, SAVE_DEBOUNCE_MS);

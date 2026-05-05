@@ -59,12 +59,25 @@ export function useGenerateAll() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
+      const results = useAppStore.getState().generateProgress.results;
+      const count = results?.filter((r) => r.status === "success").length ?? 0;
+      if (count > 0) {
+        useAppStore.getState().addToast({
+          type: "success",
+          message: `Generated ${count} screenshot${
+            count !== 1 ? "s" : ""
+          } successfully`,
+        });
+      }
     },
     onSettled: () => {
       useAppStore.setState({ generating: false });
     },
     onError: (error) => {
-      alert("Generation failed: " + error.message);
+      useAppStore.getState().addToast({
+        type: "error",
+        message: "Generation failed: " + error.message,
+      });
       useAppStore.setState({ showGenerateModal: false });
     },
   });
