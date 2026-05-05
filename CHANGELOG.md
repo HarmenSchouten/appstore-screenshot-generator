@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog and this project uses SemVer.
 
+## [2.4.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.3.0...v2.4.0) (2026-05-05)
+
+
+### Features
+
+* Toast notifications, generation modal redesign, and rename UX ([#39](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/39)) ([582891d](https://github.com/HarmenSchouten/appstore-screenshot-generator/commit/582891d7d3f32f65823f73734829c05ab6eafb58))
+
 ## [2.3.0](https://github.com/HarmenSchouten/appstore-screenshot-generator/compare/v2.2.0...v2.3.0) (2026-04-07)
 
 
