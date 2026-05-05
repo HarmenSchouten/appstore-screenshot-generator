@@ -233,13 +233,14 @@ export async function uploadAsset(
 export async function renameAsset(
   oldPath: string,
   newName: string,
-): Promise<void> {
+): Promise<{ newPath: string }> {
   const res = await fetch("/api/assets/rename", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ oldPath, newName }),
   });
   if (!res.ok) throw new Error("Rename failed");
+  return res.json();
 }
 
 /**
