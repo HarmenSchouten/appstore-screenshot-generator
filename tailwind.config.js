@@ -16,6 +16,13 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        slideIn: {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      animation: {
+        slideIn: "slideIn 150ms ease-out",
       },
     },
   },

@@ -9,7 +9,7 @@
     "npm:@dnd-kit/modifiers@9": "9.0.0_@dnd-kit+core@6.3.1__react@18.3.1__react-dom@18.3.1___react@18.3.1_react@18.3.1",
     "npm:@dnd-kit/sortable@10": "10.0.0_@dnd-kit+core@6.3.1__react@18.3.1__react-dom@18.3.1___react@18.3.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@dnd-kit/utilities@^3.2.2": "3.2.2_react@18.3.1",
-    "npm:@tanstack/react-devtools@~0.10.1": "0.10.1_@types+react@18.3.28_@types+react-dom@18.3.7__@types+react@18.3.28_react@18.3.1_react-dom@18.3.1__react@18.3.1_csstype@3.2.3_solid-js@1.9.12",
+    "npm:@tanstack/react-devtools@~0.10.1": "0.10.2_@types+react@18.3.28_@types+react-dom@18.3.7__@types+react@18.3.28_react@18.3.1_react-dom@18.3.1__react@18.3.1_csstype@3.2.3_solid-js@1.9.12",
     "npm:@tanstack/react-hotkeys-devtools@~0.6.6": "0.6.6_@types+react@18.3.28_@types+react-dom@18.3.7__@types+react@18.3.28_react@18.3.1_react-dom@18.3.1__react@18.3.1_@tanstack+hotkeys@0.7.1_csstype@3.2.3_solid-js@1.9.12",
     "npm:@tanstack/react-hotkeys@~0.9.1": "0.9.1_react@18.3.1_react-dom@18.3.1__react@18.3.1",
     "npm:@tanstack/react-query-devtools@^5.95.2": "5.95.2_@tanstack+react-query@5.95.2__react@18.3.1_react@18.3.1",
@@ -781,8 +781,8 @@
       ],
       "bin": true
     },
-    "@tanstack/devtools@0.11.1_solid-js@1.9.12_csstype@3.2.3": {
-      "integrity": "sha512-g3nHgVP76kT9190d6O32AjANoEnujLEB+51PDtBzlah8hvKeEygK53cunN+HXhjlfhM4PoOCi8/B96cdJVSnLg==",
+    "@tanstack/devtools@0.11.2_solid-js@1.9.12_csstype@3.2.3": {
+      "integrity": "sha512-K8+tsBx+ptTLqqd4dOF10B6laj1g+XYImqYZL9n0jBINGaT+sOf17PKV9pbBt8kdbZeIGsHaJ5OZWCyZoHqN4A==",
       "dependencies": [
         "@solid-primitives/event-listener",
         "@solid-primitives/keyboard",
@@ -820,8 +820,8 @@
     "@tanstack/query-devtools@5.95.2": {
       "integrity": "sha512-QfaoqBn9uAZ+ICkA8brd1EHj+qBF6glCFgt94U8XP5BT6ppSsDBI8IJ00BU+cAGjQzp6wcKJL2EmRYvxy0TWIg=="
     },
-    "@tanstack/react-devtools@0.10.1_@types+react@18.3.28_@types+react-dom@18.3.7__@types+react@18.3.28_react@18.3.1_react-dom@18.3.1__react@18.3.1_csstype@3.2.3_solid-js@1.9.12": {
-      "integrity": "sha512-cvcd0EqN7Q2LYatQXxFhOkEa9RUQXZlhXnM1mwuibxmyRX+CMyohUZcgjodtIfgh+RT0Pmvt49liTdZby5ovZw==",
+    "@tanstack/react-devtools@0.10.2_@types+react@18.3.28_@types+react-dom@18.3.7__@types+react@18.3.28_react@18.3.1_react-dom@18.3.1__react@18.3.1_csstype@3.2.3_solid-js@1.9.12": {
+      "integrity": "sha512-1BmZyxOrI5SqmRJ5MgkYZNNdnlLsJxQRI2YgorrAvcF2MxK6x5RcuStvD8+YlXoMw3JtNukPxoITirKAnKYDQA==",
       "dependencies": [
         "@tanstack/devtools",
         "@types/react",
@@ -1542,8 +1542,8 @@
     "lru-cache@7.18.3": {
       "integrity": "sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA=="
     },
-    "match-sorter@8.2.0": {
-      "integrity": "sha512-qRVB7wYMJXizAWR4TKo5UYwgW7oAVzA8V9jve0wGzRvV91ou9dcqL+/2gJtD0PZ/Pm2Fq6cVT4VHXHmDFVMGRA==",
+    "match-sorter@8.3.0": {
+      "integrity": "sha512-8Py1GbZi5zsclYSFcPAH4H5xfTbeD0bOREA7qP/t8bW4MbOSlPl8sbqHOedEV7O+Bxyvxm6xs/v6BXJGe+JDNA==",
       "dependencies": [
         "@babel/runtime",
         "remove-accents"

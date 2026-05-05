@@ -29,8 +29,21 @@ export const createScreenshotSlice: StateCreator<
   addScreenshot: () => {
     const { config, selectedLang, selectedPlatform } = get();
     const id = globalThis.crypto.randomUUID();
+
+    const result = cloneConfigForPlatform(
+      config,
+      selectedLang,
+      selectedPlatform,
+    );
+    if (!result) return;
+
+    const count = result.platformConfig.screenshots.filter(
+      (s) => s.role === "screenshot",
+    ).length;
+
     const newScreenshot: Screenshot = {
       id,
+      name: `Screenshot ${count + 1}`,
       role: "screenshot",
       layers: [{
         id: generateLayerId(),
@@ -39,16 +52,9 @@ export const createScreenshotSlice: StateCreator<
       }],
     };
 
-    const result = cloneConfigForPlatform(
-      config,
-      selectedLang,
-      selectedPlatform,
-    );
-    if (result) {
-      result.platformConfig.screenshots.push(newScreenshot);
-      get().updateConfig(result.newConfig);
-      get().setSelectedItem({ type: "screenshot", id });
-    }
+    result.platformConfig.screenshots.push(newScreenshot);
+    get().updateConfig(result.newConfig);
+    get().setSelectedItem({ type: "screenshot", id });
   },
 
   addFeatureGraphic: () => {
@@ -70,6 +76,7 @@ export const createScreenshotSlice: StateCreator<
     const id = globalThis.crypto.randomUUID();
     const newScreenshot: Screenshot = {
       id,
+      name: "Feature Graphic",
       role: "feature-graphic",
       layers: [{
         id: generateLayerId(),

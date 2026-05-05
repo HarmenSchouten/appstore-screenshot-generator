@@ -14,10 +14,10 @@ import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
 import { EmptyState } from "./components/EmptyState.tsx";
 import "./styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactQueryDevtools as _ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HotkeysProvider } from "@tanstack/react-hotkeys";
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
+import { TanStackDevtools as _TanStackDevtools } from "@tanstack/react-devtools";
+import { hotkeysDevtoolsPlugin as _hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import { queryClient } from "./utils/query.ts";
 import { useInitData } from "@hooks";
 
@@ -67,8 +67,13 @@ root.render(
           <AppShell />
         </ErrorBoundary>
       </HotkeysProvider>
-      <ReactQueryDevtools />
-      <TanStackDevtools plugins={[hotkeysDevtoolsPlugin()]} />
+      {
+        /* <ReactQueryDevtools />
+      <TanStackDevtools
+        config={{ triggerHidden: true }}
+        plugins={[hotkeysDevtoolsPlugin()]}
+      /> */
+      }
     </QueryClientProvider>
   </React.StrictMode>,
 );

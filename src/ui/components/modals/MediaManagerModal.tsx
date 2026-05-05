@@ -7,6 +7,7 @@
 import { useRef, useState } from "react";
 import type { Assets } from "@ui/types.ts";
 import { useDeleteAsset, useRenameAsset, useUploadAsset } from "@hooks";
+import { useAppStore } from "@ui/store/index.ts";
 
 interface MediaManagerModalProps {
   assets: Assets;
@@ -38,8 +39,15 @@ export function MediaManagerModal(
 
       try {
         await uploadAsset.mutateAsync(formData);
-      } catch (err) {
-        console.error("Upload failed:", file.name, err);
+        useAppStore.getState().addToast({
+          type: "success",
+          message: `Uploaded ${file.name}`,
+        });
+      } catch {
+        useAppStore.getState().addToast({
+          type: "error",
+          message: `Upload failed: ${file.name}`,
+        });
       }
     }
     e.target.value = "";
@@ -48,14 +56,18 @@ export function MediaManagerModal(
   const handleRename = (oldPath: string) => {
     if (!newName.trim()) return;
 
+    setEditingItem(null);
+    setNewName("");
+
     renameAsset.mutate(
       { oldPath, newName: newName.trim() },
       {
-        onSuccess: () => {
-          setEditingItem(null);
-          setNewName("");
+        onError: () => {
+          useAppStore.getState().addToast({
+            type: "error",
+            message: "Rename failed",
+          });
         },
-        onError: (err) => console.error("Rename failed:", err),
       },
     );
   };
@@ -64,7 +76,18 @@ export function MediaManagerModal(
     if (!confirm("Delete this file? This cannot be undone.")) return;
 
     deleteAsset.mutate(path, {
-      onError: (err) => console.error("Delete failed:", err),
+      onSuccess: () => {
+        useAppStore.getState().addToast({
+          type: "success",
+          message: "File deleted",
+        });
+      },
+      onError: () => {
+        useAppStore.getState().addToast({
+          type: "error",
+          message: "Delete failed",
+        });
+      },
     });
   };
 

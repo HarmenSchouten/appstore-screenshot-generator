@@ -83,6 +83,19 @@ export interface UISlice {
   closeShortcutCheatSheet: () => void;
 }
 
+export interface ToastItem {
+  id: string;
+  type: "error" | "success" | "info";
+  message: string;
+  duration?: number;
+}
+
+export interface ToastSlice {
+  toasts: ToastItem[];
+  addToast: (toast: Omit<ToastItem, "id">) => void;
+  removeToast: (id: string) => void;
+}
+
 // ── Combined store type ─────────────────────────────────────────────
 
 export type AppState =
@@ -93,4 +106,5 @@ export type AppState =
   & ScreenshotSlice
   & DevicePresetSlice
   & GenerationSlice
-  & UISlice;
+  & UISlice
+  & ToastSlice;
