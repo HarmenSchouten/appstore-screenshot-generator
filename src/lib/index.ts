@@ -6,7 +6,6 @@
  */
 
 import type { ColorPalette, GradientTemplate } from "@types";
-import { DEFAULT_PLATFORM_DEFAULTS } from "@device-presets";
 
 // ============================================================
 // Gradient Templates
@@ -120,43 +119,4 @@ export function applyPaletteToGradient(
     .replace(/\{primary\}/g, palette.primary)
     .replace(/\{secondary\}/g, palette.secondary)
     .replace(/\{accent\}/g, palette.accent);
-}
-
-/**
- * Get default project configuration
- */
-export function getDefaultConfig(appName: string = "My App") {
-  return {
-    app: {
-      name: appName,
-      iconPath: "",
-      defaultMascotPath: "",
-    },
-    theme: {
-      background: {
-        gradient: "linear-gradient(135deg, #a855f7 0%, #0a0a0a 100%)",
-      },
-      fontFamily: "Inter, sans-serif",
-      googleFontsUrl:
-        "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');",
-    },
-    palette: DEFAULT_PALETTES[0].palette,
-    platformDefaults: structuredClone(DEFAULT_PLATFORM_DEFAULTS),
-    assetsBasePath: "assets",
-    languages: [
-      {
-        language: "en",
-        platforms: {
-          android: {
-            dimensions: { width: 1242, height: 2688 },
-            screenshots: [],
-          },
-          ios: {
-            dimensions: { width: 1242, height: 2688 },
-            screenshots: [],
-          },
-        },
-      },
-    ],
-  };
 }
