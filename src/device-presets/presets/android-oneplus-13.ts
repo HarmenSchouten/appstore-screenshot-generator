@@ -1,4 +1,4 @@
-import type { DevicePreset } from "@types";
+import type { DevicePreset } from "@app-types";
 
 export const ANDROID_ONEPLUS_13_PRESET = {
   id: "android-oneplus-13",

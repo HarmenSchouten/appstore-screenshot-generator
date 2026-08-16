@@ -3,9 +3,9 @@
  */
 
 import { useCallback } from "react";
-import type { PhoneFrameLayerProps } from "@types";
+import type { PhoneFrameLayerProps } from "@app-types";
 import { getAllDevicePresets } from "@device-presets";
-import type { DevicePresetId } from "@types";
+import type { DevicePresetId } from "@app-types";
 import { useAppStore } from "@ui/store/index.ts";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";

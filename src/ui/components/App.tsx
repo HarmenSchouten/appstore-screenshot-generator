@@ -20,8 +20,8 @@ import {
   selectDimensions,
   selectScreenshots,
   useAppStore,
-} from "../store/index.ts";
-import { useStoreRouteSync } from "../utils/routing.ts";
+} from "@ui/store/index.ts";
+import { useStoreRouteSync } from "@ui/utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import {
   useAppHotkeys,

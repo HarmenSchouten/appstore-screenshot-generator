@@ -6,7 +6,7 @@
  */
 
 import React from "react";
-import type { RenderOptions } from "./types.ts";
+import type { Layer, RenderOptions, ThemeConfig } from "@app-types";
 import { getBaseStylesCSS } from "./BaseStyles.tsx";
 import {
   BackgroundLayer,
@@ -16,8 +16,6 @@ import {
   ShapeLayer,
   TextLayer,
 } from "./layers/index.tsx";
-import { Layer } from "@types";
-import type { ThemeConfig } from "@types";
 
 interface ScreenshotProps {
   options: RenderOptions;

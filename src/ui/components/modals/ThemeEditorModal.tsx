@@ -5,7 +5,7 @@
  */
 
 import { useState } from "react";
-import { ColorInput } from "../inputs/ColorInput.tsx";
+import { ColorInput } from "@ui/components/inputs/ColorInput.tsx";
 import type { Config } from "@ui/types.ts";
 import {
   applyPaletteToGradient,

@@ -22,7 +22,7 @@ import type {
   Platform,
   Screenshot,
   ThemeConfig,
-} from "@renderer/types.ts";
+} from "@app-types";
 
 const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 

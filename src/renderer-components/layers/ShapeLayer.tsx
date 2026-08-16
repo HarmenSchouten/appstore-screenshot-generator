@@ -5,8 +5,8 @@
  * to work within the layer-based composition system.
  */
 
-import type { ShapeLayerProps } from "@types";
-import { seededRandom } from "../utils.ts";
+import type { ShapeLayerProps } from "@app-types";
+import { seededRandom } from "@renderer/utils.ts";
 
 // ── Line coordinate helpers ─────────────────────────────────
 

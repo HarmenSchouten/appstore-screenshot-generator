@@ -5,7 +5,7 @@
  * used throughout the application.
  */
 
-import type { ColorPalette, GradientTemplate } from "@types";
+import type { ColorPalette, GradientTemplate } from "@app-types";
 
 // ============================================================
 // Gradient Templates

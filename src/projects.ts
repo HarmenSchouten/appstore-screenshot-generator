@@ -13,7 +13,7 @@ import {
   isDevicePresetId,
   LEGACY_PLATFORM_DEFAULTS,
 } from "@device-presets";
-import type { ProjectConfig, ProjectInfo } from "@types";
+import type { ProjectConfig, ProjectInfo } from "@app-types";
 
 const PROJECTS_DIR = "projects";
 const DEFAULT_PROJECT_ID = "default";

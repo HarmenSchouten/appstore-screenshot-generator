@@ -1,4 +1,4 @@
-import type { BackgroundLayerProps, ThemeConfig } from "@types";
+import type { BackgroundLayerProps, ThemeConfig } from "@app-types";
 
 export type GradientType = "solid" | "linear" | "radial";
 

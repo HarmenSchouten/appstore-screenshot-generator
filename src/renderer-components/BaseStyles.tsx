@@ -5,7 +5,7 @@
  * resets, font-family, and .screenshot container.
  */
 
-import type { ThemeConfig } from "./types.ts";
+import type { ThemeConfig } from "@app-types";
 
 interface BaseStyleOptions {
   /**

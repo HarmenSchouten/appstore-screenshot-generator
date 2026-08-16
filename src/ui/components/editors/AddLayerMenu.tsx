@@ -2,7 +2,7 @@
  * AddLayerMenu — dropdown picker for adding a new layer type.
  */
 
-import type { Layer } from "@types";
+import type { Layer } from "@app-types";
 import { ADDABLE_LAYERS, LAYER_META } from "./layer-meta.ts";
 
 export function AddLayerMenu({

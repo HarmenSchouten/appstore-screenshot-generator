@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import type { ProjectInfo } from "@ui/types.ts";
-import { useAppStore } from "../../store/index.ts";
+import { useAppStore } from "@ui/store/index.ts";
 import {
   useDeleteProject,
   useDuplicateProject,

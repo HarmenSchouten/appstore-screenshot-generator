@@ -7,9 +7,9 @@
  */
 
 import { useEffect, useState } from "react";
-import type { Layer } from "@types";
+import type { Layer } from "@app-types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
-import type { SortableProps } from "../sortable-types.ts";
+import type { SortableProps } from "@ui/components/sortable-types.ts";
 
 /** True when a layer expects an image but none has been picked yet. */
 function isMissingImage(layer: Layer): boolean {

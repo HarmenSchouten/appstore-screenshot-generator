@@ -31,6 +31,7 @@ Deno owns dependencies: `package.json` is the single manifest for npm packages, 
 - Add or bump a dependency in `package.json`, run `deno install`, commit `deno.lock` with it. CI runs `deno install --frozen` and fails if the lock is stale.
 - Dependabot PRs bump `package.json` only (it cannot write `deno.lock`). Before merging one: check out the branch, run `deno install`, commit and push `deno.lock`.
 - Tasks invoke Vite and concurrently via `node_modules/<pkg>/…/bin` paths rather than `npm:` specifiers, so running a task never writes `npm:pkg@*` entries into `deno.lock`.
+- Path aliases (`@ui/`, `@app-types`, `@hooks`, …) are declared once in `deno.json` `imports`; `vite.config.ts` derives its aliases from there. There is no `tsconfig.json`. Imports that leave the current directory use an alias, never `../`.
 
 ## Scope guidance for this repo
 

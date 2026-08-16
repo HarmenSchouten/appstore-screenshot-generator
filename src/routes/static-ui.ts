@@ -6,7 +6,7 @@
 
 import { type Context, Hono } from "hono";
 import { DEFAULT_PALETTES, GRADIENT_TEMPLATES } from "@lib";
-import type { ProjectConfig, ProjectInfo } from "@types";
+import type { ProjectConfig, ProjectInfo } from "@app-types";
 
 export function createStaticUIRoutes(
   getConfig: () => Promise<ProjectConfig>,

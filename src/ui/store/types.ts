@@ -7,7 +7,7 @@ import type {
   ProjectInfo,
   Screenshot,
   SelectedItem,
-} from "../types.ts";
+} from "@ui/types.ts";
 
 // ── Slice interfaces ────────────────────────────────────────────────
 

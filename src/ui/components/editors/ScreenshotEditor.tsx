@@ -26,7 +26,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { Screenshot } from "@ui/types.ts";
-import type { Layer } from "@types";
+import type { Layer } from "@app-types";
 import { createDefaultLayer, generateLayerId } from "./layer-meta.ts";
 import { SortableLayerCard } from "./SortableLayerCard.tsx";
 import { AddLayerMenu } from "./AddLayerMenu.tsx";

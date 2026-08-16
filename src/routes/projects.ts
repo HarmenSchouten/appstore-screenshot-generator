@@ -5,14 +5,14 @@
  */
 
 import { Hono } from "hono";
-import type { ProjectConfig } from "@types";
+import type { ProjectConfig } from "@app-types";
 import {
   createProject,
   deleteProject,
   duplicateProject,
   listProjects,
   renameProject,
-} from "../projects.ts";
+} from "@/projects.ts";
 
 export interface ProjectState {
   currentProjectId: string;

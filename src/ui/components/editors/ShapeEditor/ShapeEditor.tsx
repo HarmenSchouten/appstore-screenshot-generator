@@ -9,10 +9,10 @@
  */
 
 import { useCallback } from "react";
-import type { ShapeLayerProps } from "@types";
+import type { ShapeLayerProps } from "@app-types";
 import { ColorInput, Slider } from "@ui/components/inputs/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
-import { SectionHeading } from "../SectionHeading.tsx";
+import { SectionHeading } from "@ui/components/editors/SectionHeading.tsx";
 import { ShapeTypeSelect } from "./ShapeTypeSelect.tsx";
 import {
   BlobOptions,

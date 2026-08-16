@@ -2,7 +2,7 @@
  * ShapeTypeSelect — categorised dropdown for picking a shape type.
  */
 
-import type { ShapeType } from "@types";
+import type { ShapeType } from "@app-types";
 
 const SHAPE_GROUPS: {
   label: string;

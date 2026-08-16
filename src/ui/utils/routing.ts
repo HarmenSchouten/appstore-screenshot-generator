@@ -6,7 +6,7 @@
 
 import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAppStore } from "../store/index.ts";
+import { useAppStore } from "@ui/store/index.ts";
 import { useSwitchProject } from "@hooks";
 
 /**

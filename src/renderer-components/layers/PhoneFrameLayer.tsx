@@ -11,8 +11,8 @@ import {
   DEVICE_PRESET_REFERENCE_WIDTH,
   getDevicePreset,
 } from "@device-presets";
-import type { DevicePresetId, PhoneFrameLayerProps } from "@types";
-import { assetUrl } from "../utils.ts";
+import type { DevicePresetId, PhoneFrameLayerProps } from "@app-types";
+import { assetUrl } from "@renderer/utils.ts";
 
 interface PhoneFrameLayerRenderProps extends PhoneFrameLayerProps {
   /** Prefix for resolving asset paths (e.g. "/assets/" in preview) */

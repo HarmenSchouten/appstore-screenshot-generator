@@ -13,7 +13,7 @@
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
 import { renderScreenshot } from "@renderer/server.ts";
-import type { Language, Platform, ScreenshotConfig } from "@types";
+import type { Language, Platform, ScreenshotConfig } from "@app-types";
 
 // Parse command line arguments
 const parseArgs = () => {

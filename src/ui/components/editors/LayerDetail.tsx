@@ -4,7 +4,7 @@
  * Shows the layer name, type badge, and the type-specific editor.
  */
 
-import type { Layer } from "@types";
+import type { Layer } from "@app-types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
 import { BackgroundEditor } from "./BackgroundEditor.tsx";
 import { TextEditor } from "./TextEditor.tsx";
