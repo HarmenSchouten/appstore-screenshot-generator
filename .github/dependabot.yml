@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # package.json is the single npm manifest (Deno installs from it; deno.lock is
+  # the lockfile). There is no package-lock.json, so Dependabot bumps ranges in
+  # package.json; `increase` makes it propose in-range minor/patch updates too.
+  # Majors arrive as separate PRs and need a manual smoke test before merging
+  # (puppeteer drives the PNG export). After merging any Dependabot PR, run
+  # `deno install` and commit deno.lock — see CONTRIBUTING.md.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    versioning-strategy: increase
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

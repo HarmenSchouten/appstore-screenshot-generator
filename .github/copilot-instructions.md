@@ -73,5 +73,6 @@ Aliases are defined in `tsconfig.json`, `vite.config.ts`, and `deno.json`. All t
 ## Build and Test
 
 - `deno task dev` — Start dev server (Deno backend + Vite frontend)
-- `npx vite build` — Production build
+- `deno task build` — Production UI build (Vite, run under Deno)
+- `deno task verify` — fmt check + lint + type check + build (what CI runs)
 - `deno task check` — Type check (server + UI graphs). This is the only type-check command; `tsc` is not used.

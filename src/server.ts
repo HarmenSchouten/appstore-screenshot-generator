@@ -244,7 +244,7 @@ function getDevModeHTML(): string {
       </div>
       <div class="bg-zinc-800 rounded p-4">
         <p class="text-zinc-500 text-sm mb-2">Production build:</p>
-        <code class="text-sm text-zinc-400">npm run build</code>
+        <code class="text-sm text-zinc-400">deno task build</code>
         <p class="text-zinc-500 text-xs mt-2">Then restart this server</p>
       </div>
     </div>

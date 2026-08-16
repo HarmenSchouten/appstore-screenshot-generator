@@ -24,8 +24,7 @@ and a shared render pipeline for preview and export.
 
 ### Prerequisites
 
-- Deno 2.x
-- Node.js 20+
+- Deno 2.x (Node.js is not required — Deno runs the Vite toolchain too)
 - Google Chrome or Chromium (for PNG export)
 
 ### Run locally
@@ -33,7 +32,7 @@ and a shared render pipeline for preview and export.
 ```bash
 git clone https://github.com/HarmenSchouten/appstore-screenshot-generator.git
 cd appstore-screenshot-generator
-npm ci
+deno install
 deno task dev
 ```
 
@@ -45,8 +44,8 @@ Open http://localhost:5173
 # Start API + Vite UI
 deno task dev
 
-# Verify before a PR
-npm run verify
+# Verify before a PR (fmt, lint, type-check, UI build)
+deno task verify
 ```
 
 ## Output and Projects

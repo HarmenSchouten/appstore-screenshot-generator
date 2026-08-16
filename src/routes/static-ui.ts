@@ -22,7 +22,7 @@ export function createStaticUIRoutes(
     try {
       return await Deno.readTextFile("./dist/index.html");
     } catch {
-      throw new Error("dist/index.html not found. Run: npm run build");
+      throw new Error("dist/index.html not found. Run: deno task build");
     }
   };
 
@@ -75,7 +75,7 @@ export function createStaticUIRoutes(
         "Cache-Control": "no-cache",
       });
     } catch {
-      return c.text("Build not found. Run: npm run build", 404);
+      return c.text("Build not found. Run: deno task build", 404);
     }
   });
 
