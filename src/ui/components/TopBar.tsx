@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { useAppStore } from "../store/index.ts";
+import { useAppStore } from "@ui/store/index.ts";
 import { getFlagForCode, LanguagePicker } from "./LanguagePicker.tsx";
 import {
   useAddLanguage,

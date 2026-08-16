@@ -10,7 +10,7 @@ import { createGenerationSlice } from "./generation.ts";
 import { createUISlice } from "./ui.ts";
 import { createToastSlice } from "./toast.ts";
 import type { AppState } from "./types.ts";
-import type { Screenshot } from "../types.ts";
+import type { Screenshot } from "@ui/types.ts";
 
 // ── Store ───────────────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@
  */
 
 import { useSortable } from "@dnd-kit/sortable";
-import type { Layer } from "@types";
+import type { Layer } from "@app-types";
 import { LayerCard } from "./LayerCard.tsx";
 
 export function SortableLayerCard({

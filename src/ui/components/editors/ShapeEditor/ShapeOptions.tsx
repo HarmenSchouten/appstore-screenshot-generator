@@ -5,7 +5,7 @@
  * (or family of shapes). They receive the full layer + a `set` helper.
  */
 
-import type { ShapeLayerProps, ShapeType } from "@types";
+import type { ShapeLayerProps, ShapeType } from "@app-types";
 import { Slider } from "@ui/components/inputs/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
 

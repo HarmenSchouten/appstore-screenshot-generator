@@ -52,16 +52,20 @@ src/ui/
 
 ### Path Aliases
 
+Declared **once**, in `deno.json` `imports`; `vite.config.ts` derives its `resolve.alias` from that block at config-load time (there is no `tsconfig.json`). Edit `deno.json` only.
+
 | Alias | Target |
 |-------|--------|
-| `@hooks` | `src/ui/hooks/index.ts` |
-| `@ui` | `src/ui/` |
-| `@types` | `src/types/` |
-| `@device-presets` | `src/device-presets/` |
-| `@renderer` | `src/renderer-components/` |
-| `@lib` | `src/lib/` |
+| `@app-types` / `@app-types/` | `src/types/index.ts` / `src/types/` |
+| `@ui/` | `src/ui/` |
+| `@hooks` / `@hooks/` | `src/ui/hooks/index.ts` / `src/ui/hooks/` |
+| `@renderer` / `@renderer/` | `src/renderer-components/index.ts` / `src/renderer-components/` |
+| `@device-presets` / `@device-presets/` | `src/device-presets/index.ts` / `src/device-presets/` |
+| `@lib` / `@lib/` | `src/lib/index.ts` / `src/lib/` |
+| `@routes` / `@routes/` | `src/routes/index.ts` / `src/routes/` |
+| `@/` | `src/` — only for the server root modules (`src/projects.ts`, `src/convert.ts`, …) |
 
-Aliases are defined in `tsconfig.json`, `vite.config.ts`, and `deno.json`. All three must stay in sync.
+Rules: any import that leaves the current directory uses an alias (no `../`); same-directory imports stay relative (`./foo.ts`). Use the most specific alias (`@hooks/` over `@ui/hooks/`). The alias is `@app-types`, not `@types`, so it cannot shadow npm's `@types/*` scope.
 
 ## Code Style
 

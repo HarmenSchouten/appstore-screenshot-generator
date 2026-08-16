@@ -5,8 +5,8 @@
  */
 
 import { Hono } from "hono";
-import type { ProjectConfig, Screenshot } from "@types";
-import { saveProject } from "../projects.ts";
+import type { ProjectConfig, Screenshot } from "@app-types";
+import { saveProject } from "@/projects.ts";
 
 export function createConfigRoutes(
   getCurrentProjectId: () => string,

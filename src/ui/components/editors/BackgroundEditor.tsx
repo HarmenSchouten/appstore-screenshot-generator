@@ -25,7 +25,7 @@ import {
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { BackgroundLayerProps } from "@types";
+import type { BackgroundLayerProps } from "@app-types";
 import type { GradientType } from "@renderer/layers/BackgroundLayer.tsx";
 import { buildGradientCSS } from "@renderer/layers/BackgroundLayer.tsx";
 import { useAppStore } from "@ui/store/index.ts";

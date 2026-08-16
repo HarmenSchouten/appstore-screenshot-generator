@@ -1,8 +1,8 @@
 import type { StateCreator } from "zustand";
 import type { AppState, ScreenshotSlice } from "./types.ts";
-import type { Config, Screenshot } from "../types.ts";
-import type { Platform, PlatformConfig } from "@types";
-import { generateLayerId } from "../components/editors/layer-meta.ts";
+import type { Config, Screenshot } from "@ui/types.ts";
+import type { Platform, PlatformConfig } from "@app-types";
+import { generateLayerId } from "@ui/components/editors/layer-meta.ts";
 
 /**
  * Clone the config down to the selected platform's screenshots array

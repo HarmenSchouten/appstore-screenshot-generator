@@ -3,7 +3,7 @@ import type {
   DevicePresetId,
   Platform,
   PlatformDefaults,
-} from "@types";
+} from "@app-types";
 import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from "./presets/index.ts";
 
 export * from "./presets/index.ts";

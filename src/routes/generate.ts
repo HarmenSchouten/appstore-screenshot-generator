@@ -7,8 +7,8 @@
 import { Hono } from "hono";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { ProjectConfig } from "@types";
-import { getProjectAssetsDir, getProjectOutputDir } from "../projects.ts";
+import type { ProjectConfig } from "@app-types";
+import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
 import { renderScreenshot } from "@renderer/server.ts";
 
 function sanitizeFilename(name: string): string {
@@ -51,7 +51,7 @@ export function createGenerateRoutes(
     }[] = [];
 
     // Import convert module for HTML to PNG
-    const { convertHtmlFileToPng } = await import("../convert.ts");
+    const { convertHtmlFileToPng } = await import("@/convert.ts");
 
     for (const langConfig of config.languages) {
       if (languages && !languages.includes(langConfig.language)) continue;
@@ -157,7 +157,7 @@ export function createGenerateRoutes(
           );
         };
 
-        const { convertHtmlFileToPng } = await import("../convert.ts");
+        const { convertHtmlFileToPng } = await import("@/convert.ts");
         let completed = 0;
         const results: {
           path: string;

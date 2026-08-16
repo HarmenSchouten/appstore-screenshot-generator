@@ -7,7 +7,7 @@
 import { Hono } from "hono";
 import { join } from "@std/path";
 import { ensureDir } from "@std/fs";
-import { getProjectAssetsDir } from "../projects.ts";
+import { getProjectAssetsDir } from "@/projects.ts";
 
 export function createAssetRoutes(
   getCurrentProjectId: () => string,

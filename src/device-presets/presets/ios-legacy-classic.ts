@@ -1,4 +1,4 @@
-import type { DevicePreset } from "@types";
+import type { DevicePreset } from "@app-types";
 
 export const IOS_LEGACY_CLASSIC_PRESET = {
   id: "ios-legacy-classic",

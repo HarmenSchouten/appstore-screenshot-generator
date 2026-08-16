@@ -15,7 +15,6 @@
     "npm:@tanstack/react-query-devtools@^5.95.2": "5.95.2_@tanstack+react-query@5.95.2__react@18.3.1_react@18.3.1",
     "npm:@tanstack/react-query@^5.95.2": "5.95.2_react@18.3.1",
     "npm:@types/react-dom@^18.3.1": "18.3.7_@types+react@18.3.28",
-    "npm:@types/react@^18.3.1": "18.3.28",
     "npm:@types/react@^18.3.12": "18.3.28",
     "npm:@vitejs/plugin-react@^4.3.4": "4.7.0_vite@6.4.1",
     "npm:autoprefixer@^10.4.20": "10.4.27_postcss@8.5.8",
@@ -2204,8 +2203,7 @@
   "workspace": {
     "dependencies": [
       "jsr:@std/fs@1",
-      "jsr:@std/path@1",
-      "npm:@types/react@^18.3.1"
+      "jsr:@std/path@1"
     ],
     "packageJson": {
       "dependencies": [

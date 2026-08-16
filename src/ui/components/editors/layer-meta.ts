@@ -2,7 +2,7 @@
  * Shared layer metadata, display names, and default constructors.
  */
 
-import type { Layer } from "@types";
+import type { Layer } from "@app-types";
 import { DEVICE_PRESETS } from "@device-presets";
 
 // ── Layer metadata ──────────────────────────────────────────────────

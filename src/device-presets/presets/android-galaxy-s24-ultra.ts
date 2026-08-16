@@ -1,4 +1,4 @@
-import type { DevicePreset } from "@types";
+import type { DevicePreset } from "@app-types";
 
 export const ANDROID_GALAXY_S24_ULTRA_PRESET = {
   id: "android-galaxy-s24-ultra",

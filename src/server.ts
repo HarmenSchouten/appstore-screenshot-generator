@@ -14,7 +14,7 @@ import {
   listProjects,
   loadProject,
 } from "./projects.ts";
-import type { ProjectConfig } from "@types";
+import type { ProjectConfig } from "@app-types";
 
 // Import route modules
 import {

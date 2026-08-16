@@ -1,7 +1,7 @@
 import type { StateCreator } from "zustand";
 import { getDefaultDevicePresetId } from "@device-presets";
 import type { AppState, DevicePresetSlice } from "./types.ts";
-import type { DevicePresetId } from "../types.ts";
+import type { DevicePresetId } from "@ui/types.ts";
 
 export const createDevicePresetSlice: StateCreator<
   AppState,

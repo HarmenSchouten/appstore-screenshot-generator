@@ -1,5 +1,5 @@
-import type { ImageLayerProps } from "@types";
-import { assetUrl } from "../utils.ts";
+import type { ImageLayerProps } from "@app-types";
+import { assetUrl } from "@renderer/utils.ts";
 
 export interface ImageLayerRenderProps extends ImageLayerProps {
   assetUrlPrefix?: string;

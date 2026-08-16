@@ -2,9 +2,9 @@
  * API Client Utilities
  */
 
-import type { Assets, ProjectConfig, ProjectInfo } from "../types.ts";
+import type { Assets, ProjectConfig, ProjectInfo } from "@ui/types.ts";
 import type { AppData, GenerateResult } from "@ui/types.ts";
-import type { LanguageConfig } from "@types";
+import type { LanguageConfig } from "@app-types";
 
 /**
  * Fetch initial application data

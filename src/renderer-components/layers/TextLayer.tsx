@@ -1,4 +1,4 @@
-import type { TextLayerProps } from "@types";
+import type { TextLayerProps } from "@app-types";
 
 export const TextLayer = ({
   text,

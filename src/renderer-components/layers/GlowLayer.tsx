@@ -1,4 +1,4 @@
-import type { GlowLayerProps } from "@types";
+import type { GlowLayerProps } from "@app-types";
 
 export interface GlowLayerRenderProps extends GlowLayerProps {
   containerWidth: number;

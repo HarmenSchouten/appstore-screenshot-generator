@@ -6,7 +6,7 @@
  */
 
 import { useCallback } from "react";
-import type { TextLayerProps } from "@types";
+import type { TextLayerProps } from "@app-types";
 import {
   ColorInput,
   SegmentedControl,

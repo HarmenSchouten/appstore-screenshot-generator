@@ -8,7 +8,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Screenshot as ScreenshotComponent } from "./Screenshot.tsx";
-import type { RenderOptions } from "./types.ts";
+import type { RenderOptions } from "@app-types";
 
 /**
  * Render a screenshot to a complete HTML document string
@@ -19,4 +19,4 @@ export function renderScreenshot(options: RenderOptions): string {
 }
 
 // Re-export types for convenience
-export type { RenderOptions } from "./types.ts";
+export type { RenderOptions } from "@app-types";

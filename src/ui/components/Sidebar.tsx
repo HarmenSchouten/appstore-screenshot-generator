@@ -10,10 +10,10 @@ import {
   getDevicePresetsForPlatform,
   getDevicePresetSummary,
 } from "@device-presets";
-import type { DevicePresetId } from "../types.ts";
+import type { DevicePresetId } from "@ui/types.ts";
 import { SortableScreenshotCard } from "./SortableScreenshotCard.tsx";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
-import { selectScreenshots, useAppStore } from "../store/index.ts";
+import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import {
   closestCenter,
   DndContext,

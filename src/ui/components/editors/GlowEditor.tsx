@@ -3,7 +3,7 @@
  */
 
 import { useCallback } from "react";
-import type { GlowLayerProps } from "@types";
+import type { GlowLayerProps } from "@app-types";
 import { ColorInput, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 

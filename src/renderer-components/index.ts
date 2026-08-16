@@ -23,4 +23,4 @@ export type {
   Screenshot as ScreenshotData,
   ThemeConfig,
   TypographyOptions,
-} from "./types.ts";
+} from "@app-types";

@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { AppState, ConfigSlice } from "./types.ts";
-import type { Config } from "../types.ts";
+import type { Config } from "@ui/types.ts";
 
 export const createConfigSlice: StateCreator<
   AppState,
