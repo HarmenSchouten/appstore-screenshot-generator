@@ -12,6 +12,11 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { App } from "./components/App.tsx";
 import { ErrorBoundary } from "./components/ErrorBoundary.tsx";
 import { EmptyState } from "./components/EmptyState.tsx";
+// Font Awesome is bundled (not loaded from a CDN) so the editor works offline.
+// Only the icon styles actually used are imported; add regular.min.css if needed.
+import "@fortawesome/fontawesome-free/css/fontawesome.min.css";
+import "@fortawesome/fontawesome-free/css/solid.min.css";
+import "@fortawesome/fontawesome-free/css/brands.min.css";
 import "./styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools as _ReactQueryDevtools } from "@tanstack/react-query-devtools";

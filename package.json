@@ -8,6 +8,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@fortawesome/fontawesome-free": "^6.5.1",
     "@tanstack/react-devtools": "^0.10.1",
     "@tanstack/react-hotkeys": "^0.9.1",
     "@tanstack/react-hotkeys-devtools": "^0.6.6",
