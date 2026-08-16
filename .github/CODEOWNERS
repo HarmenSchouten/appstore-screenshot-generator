@@ -1,0 +1,5 @@
+# Auto-requests a review from the owner on outside contributions. Reviews are
+# not *required* by branch protection (solo repo: the author can't approve
+# their own PR and required reviews would block auto-merge); main is gated by
+# the `verify` status check and conversation resolution instead.
+* @HarmenSchouten

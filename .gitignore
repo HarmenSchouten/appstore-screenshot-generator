@@ -13,9 +13,11 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE (workspace settings + extension recommendations are committed on purpose)
 .idea/
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 *.swp
 *.swo
 
