@@ -1,7 +1,7 @@
 {
   "nodeModulesDir": "auto",
   "tasks": {
-    "dev": "deno run -A node_modules/concurrently/dist/bin/concurrently.js -n api,vite -c blue,magenta \"deno task dev:api\" \"deno task dev:vite\"",
+    "dev": "deno run -A node_modules/concurrently/dist/bin/index.js -n api,vite -c blue,magenta \"deno task dev:api\" \"deno task dev:vite\"",
     "dev:api": "deno run -A --watch=src/server.ts,src/routes/ src/server.ts",
     "dev:vite": "deno run -A node_modules/vite/bin/vite.js",
     "build": "deno run -A node_modules/vite/bin/vite.js build",
@@ -26,8 +26,8 @@
   },
   "exclude": ["dist/", "node_modules/"],
   "imports": {
-    "@std/path": "jsr:@std/path@^1.0.0",
-    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@std/path": "jsr:@std/path@^1.1.6",
+    "@std/fs": "jsr:@std/fs@^1.0.24",
     "@/": "./src/",
     "@app-types": "./src/types/index.ts",
     "@app-types/": "./src/types/",

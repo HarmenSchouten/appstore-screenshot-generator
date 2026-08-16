@@ -14,6 +14,24 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+      # React + its types must move together (react-dom 19 alone is broken).
+      react-major:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
+        update-types: [major]
+    # Deferred majors — each is a source migration tracked in its own issue.
+    # Remove the entry when that issue is done. Minor/patch (incl. security)
+    # updates for these packages still flow.
+    ignore:
+      - dependency-name: react # #97
+        update-types: [version-update:semver-major]
+      - dependency-name: react-dom # #97
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react" # #97
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react-dom" # #97
+        update-types: [version-update:semver-major]
+      - dependency-name: tailwindcss # #98
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
