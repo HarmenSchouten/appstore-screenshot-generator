@@ -21,15 +21,21 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+          cache: true
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
+      # Deno owns node_modules and deno.lock (package.json is the npm manifest,
+      # deno.lock the only lockfile). --frozen fails the build if deno.lock is
+      # out of date, so a manifest change without a lock update can't slip in.
       - name: Install dependencies
-        run: npm ci
+        if: github.actor != 'dependabot[bot]'
+        run: deno install --frozen
+
+      # Dependabot edits package.json but cannot regenerate deno.lock, so let
+      # its PRs resolve fresh; the lock is refreshed locally before merging
+      # (see CONTRIBUTING.md).
+      - name: Install dependencies (Dependabot PR)
+        if: github.actor == 'dependabot[bot]'
+        run: deno install
 
       - name: Format check
         run: deno fmt --check
@@ -41,4 +47,4 @@ jobs:
         run: deno task check
 
       - name: Build UI
-        run: npm run build
+        run: deno task build

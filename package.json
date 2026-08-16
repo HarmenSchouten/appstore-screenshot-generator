@@ -3,18 +3,6 @@
   "version": "2.4.0",
   "type": "module",
   "description": "Configuration-based screenshot generator for App Store and Google Play",
-  "scripts": {
-    "dev": "concurrently -n api,vite -c blue,magenta \"deno task dev:api\" \"vite\"",
-    "dev:vite": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "check": "deno task check",
-    "lint": "deno lint",
-    "fmt:check": "deno fmt --check",
-    "verify": "npm run fmt:check && npm run lint && npm run check && npm run build",
-    "generate": "deno task generate",
-    "convert": "deno task convert"
-  },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
@@ -24,11 +12,13 @@
     "@tanstack/react-hotkeys": "^0.9.1",
     "@tanstack/react-hotkeys-devtools": "^0.6.6",
     "@tanstack/react-query": "^5.95.2",
-    "puppeteer": "^24.0.0",
+    "hono": "^4.12.5",
+    "puppeteer": "^23.11.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.13.1",
     "react-zoom-pan-pinch": "^3.7.0",
+    "sharp": "^0.33.5",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
