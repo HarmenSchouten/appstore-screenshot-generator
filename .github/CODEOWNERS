@@ -1,4 +1,5 @@
-# Branch protection on main requires a code-owner review; this makes that rule
-# real for outside contributions (the repo owner can still merge own PRs since
-# enforce_admins is off).
+# Auto-requests a review from the owner on outside contributions. Reviews are
+# not *required* by branch protection (solo repo: the author can't approve
+# their own PR and required reviews would block auto-merge); main is gated by
+# the `verify` status check and conversation resolution instead.
 * @HarmenSchouten
