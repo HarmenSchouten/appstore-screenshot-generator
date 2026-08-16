@@ -19,8 +19,9 @@ Run:
 
 This runs:
 
+- deno fmt --check
 - deno lint
-- deno check src/server.ts
+- deno check src/server.ts src/ui/main.tsx (server + UI graphs — the only type-check step; `tsc` is not used)
 - vite build
 
 ## Scope guidance for this repo

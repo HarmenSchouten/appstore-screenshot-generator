@@ -32,7 +32,6 @@
     "npm:react@^18.3.1": "18.3.1",
     "npm:sharp@0.33.5": "0.33.5",
     "npm:tailwindcss@^3.4.17": "3.4.19_postcss@8.5.8_jiti@1.21.7",
-    "npm:typescript@^5.7.2": "5.9.3",
     "npm:vite@^6.0.7": "6.4.1_@types+node@22.5.4",
     "npm:zustand@^5.0.12": "5.0.12_@types+react@18.3.28_react@18.3.1"
   },
@@ -2306,7 +2305,6 @@
         "npm:react-zoom-pan-pinch@^3.7.0",
         "npm:react@^18.3.1",
         "npm:tailwindcss@^3.4.17",
-        "npm:typescript@^5.7.2",
         "npm:vite@^6.0.7",
         "npm:zustand@^5.0.12"
       ]
