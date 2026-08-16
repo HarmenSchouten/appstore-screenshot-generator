@@ -220,35 +220,40 @@ if (useStaticUI) {
  * Shown when accessing :3000 directly without a static build
  */
 function getDevModeHTML(): string {
+  // Self-contained on purpose: no CDN stylesheets/scripts, so this page (and
+  // the editor it points at) works offline.
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>App Store Screenshots - API Server</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>body { background: #0f0f0f; }</style>
+  <style>
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+           background: #0f0f0f; color: #fff; font-family: system-ui, sans-serif; }
+    main { text-align: center; padding: 2rem; max-width: 32rem; }
+    h1 { font-size: 1.5rem; margin: 0 0 1rem; }
+    p { color: #a1a1aa; margin: 0 0 1.5rem; }
+    .card { background: #27272a; border-radius: 0.375rem; padding: 1rem; margin-top: 1rem; }
+    .card p { color: #71717a; font-size: 0.875rem; margin: 0 0 0.5rem; }
+    code, a { color: #818cf8; }
+    small { display: block; color: #71717a; font-size: 0.75rem; margin-top: 0.5rem; }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center text-white">
-  <div class="text-center p-8 max-w-lg">
-    <i class="fa-solid fa-server text-6xl text-indigo-500 mb-6"></i>
-    <h1 class="text-2xl font-bold mb-4">API Server Running</h1>
-    <p class="text-zinc-400 mb-6">
-      This is the API server. The UI is served separately.
-    </p>
-    <div class="space-y-4">
-      <div class="bg-zinc-800 rounded p-4">
-        <p class="text-zinc-500 text-sm mb-2">Development mode:</p>
-        <code class="text-indigo-400"><a href="http://localhost:5173">http://localhost:5173</a></code>
-      </div>
-      <div class="bg-zinc-800 rounded p-4">
-        <p class="text-zinc-500 text-sm mb-2">Production build:</p>
-        <code class="text-sm text-zinc-400">deno task build</code>
-        <p class="text-zinc-500 text-xs mt-2">Then restart this server</p>
-      </div>
+<body>
+  <main>
+    <h1>API Server Running</h1>
+    <p>This is the API server. The UI is served separately.</p>
+    <div class="card">
+      <p>Development mode:</p>
+      <code><a href="http://localhost:5173">http://localhost:5173</a></code>
     </div>
-  </div>
+    <div class="card">
+      <p>Production build:</p>
+      <code>deno task build</code>
+      <small>Then restart this server</small>
+    </div>
+  </main>
 </body>
 </html>`;
 }
