@@ -16,6 +16,7 @@ import { useAppStore } from "@ui/store/index.ts";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import { ZoomControls } from "./ZoomControls.tsx";
+import { FEATURE_GRAPHIC_SIZE } from "@lib";
 import type {
   AppBranding,
   DevicePresetId,
@@ -104,10 +105,9 @@ export function Preview(
     };
   }, []);
 
-  const width = screenshot.role === "feature-graphic" ? 1024 : dimensions.width;
-  const height = screenshot.role === "feature-graphic"
-    ? 500
-    : dimensions.height;
+  const { width, height } = screenshot.role === "feature-graphic"
+    ? FEATURE_GRAPHIC_SIZE
+    : dimensions;
 
   const scale = useMemo(() => {
     const availableWidth = containerSize.width - 40;

@@ -5,7 +5,36 @@
  * used throughout the application.
  */
 
-import type { ColorPalette, GradientTemplate } from "@app-types";
+import type {
+  ColorPalette,
+  Dimensions,
+  GradientTemplate,
+  Platform,
+} from "@app-types";
+
+// ============================================================
+// Store dimensions
+// ============================================================
+
+/**
+ * Default canvas size for a new platform config.
+ *
+ * iOS: 6.5" (1242×2688) — still accepted by App Store Connect, though 6.9"
+ * (1290×2796) leads since 2024; the store-compliance work will formalise
+ * this. Android: Play wants 16:9 / 9:16 phone screenshots, 320–3840 px.
+ * Spread before storing (`{ ...DEFAULT_DIMENSIONS.ios }`) — configs are
+ * mutated in place.
+ */
+export const DEFAULT_DIMENSIONS: Readonly<Record<Platform, Dimensions>> = {
+  ios: { width: 1242, height: 2688 },
+  android: { width: 1080, height: 1920 },
+};
+
+/** Google Play feature graphic — fixed size. */
+export const FEATURE_GRAPHIC_SIZE: Readonly<Dimensions> = {
+  width: 1024,
+  height: 500,
+};
 
 // ============================================================
 // Gradient Templates

@@ -11,6 +11,7 @@ import { createUISlice } from "./ui.ts";
 import { createToastSlice } from "./toast.ts";
 import type { AppState } from "./types.ts";
 import type { Screenshot } from "@ui/types.ts";
+import { DEFAULT_DIMENSIONS } from "@lib";
 
 // ── Store ───────────────────────────────────────────────────────────
 
@@ -43,14 +44,13 @@ export const selectScreenshots = (state: AppState): Screenshot[] => {
     EMPTY_SCREENSHOTS;
 };
 
-const DEFAULT_DIMENSIONS = { width: 1242, height: 2688 } as const;
-
 export const selectDimensions = (state: AppState) => {
   const langConfig = state.config.languages?.find(
     (l) => l.language === state.selectedLang,
   );
   const platformConfig = langConfig?.platforms?.[state.selectedPlatform];
-  return platformConfig?.dimensions || DEFAULT_DIMENSIONS;
+  return platformConfig?.dimensions ||
+    DEFAULT_DIMENSIONS[state.selectedPlatform];
 };
 
 // Re-export types for convenience

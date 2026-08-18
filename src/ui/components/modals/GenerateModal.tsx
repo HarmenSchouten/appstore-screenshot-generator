@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { GenerateProgress, GenerateResult } from "@ui/types.ts";
 import { useOpenOutputFolder } from "@hooks";
+import { DEFAULT_DIMENSIONS, FEATURE_GRAPHIC_SIZE } from "@lib";
 
 interface GenerateModalProps {
   progress: GenerateProgress;
@@ -19,6 +20,11 @@ interface LanguageResults {
 }
 
 type GroupedResults = Record<string, LanguageResults>;
+
+/** CSS aspect-ratio value for a thumbnail box */
+function aspect({ width, height }: { width: number; height: number }): string {
+  return `${width} / ${height}`;
+}
 
 function langItemCount(data: LanguageResults): number {
   return (
@@ -109,7 +115,8 @@ export function GenerateModal(
                   <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden">
                     <img
                       src={`/output/${data.feature.relativePath}?t=${Date.now()}`}
-                      className="w-full aspect-[1024/500] object-contain bg-zinc-800"
+                      className="w-full object-contain bg-zinc-800"
+                      style={{ aspectRatio: aspect(FEATURE_GRAPHIC_SIZE) }}
                       loading="lazy"
                     />
                     <div
@@ -131,7 +138,10 @@ export function GenerateModal(
                     >
                       <img
                         src={`/output/${r.relativePath}?t=${Date.now()}`}
-                        className="w-full aspect-[1242/2688] object-contain bg-zinc-800"
+                        className="w-full object-contain bg-zinc-800"
+                        style={{
+                          aspectRatio: aspect(DEFAULT_DIMENSIONS[platform]),
+                        }}
                         loading="lazy"
                       />
                       <div
