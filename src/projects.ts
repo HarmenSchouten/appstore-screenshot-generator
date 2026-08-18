@@ -14,6 +14,7 @@ import {
   LEGACY_PLATFORM_DEFAULTS,
 } from "@device-presets";
 import type { ProjectConfig, ProjectInfo } from "@app-types";
+import { DEFAULT_DIMENSIONS } from "@lib";
 
 const PROJECTS_DIR = "projects";
 const DEFAULT_PROJECT_ID = "default";
@@ -78,11 +79,11 @@ export function getDefaultConfig(appName: string = "My App"): ProjectConfig {
         language: "en",
         platforms: {
           android: {
-            dimensions: { width: 1242, height: 2688 },
+            dimensions: { ...DEFAULT_DIMENSIONS.android },
             screenshots: [],
           },
           ios: {
-            dimensions: { width: 1242, height: 2688 },
+            dimensions: { ...DEFAULT_DIMENSIONS.ios },
             screenshots: [],
           },
         },

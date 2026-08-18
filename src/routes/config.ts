@@ -7,6 +7,7 @@
 import { Hono } from "hono";
 import type { ProjectConfig, Screenshot } from "@app-types";
 import { saveProject } from "@/projects.ts";
+import { DEFAULT_DIMENSIONS } from "@lib";
 
 export function createConfigRoutes(
   getCurrentProjectId: () => string,
@@ -83,9 +84,7 @@ export function createConfigRoutes(
       (config.languages[langIndex].platforms as Record<string, unknown>)[
         platform
       ] = {
-        dimensions: platform === "ios"
-          ? { width: 1242, height: 2688 }
-          : { width: 1242, height: 2688 },
+        dimensions: { ...DEFAULT_DIMENSIONS[platform as "android" | "ios"] },
         screenshots: [],
       };
       platformConfig =
@@ -146,11 +145,11 @@ export function createConfigRoutes(
         language,
         platforms: {
           android: {
-            dimensions: { width: 1242, height: 2688 },
+            dimensions: { ...DEFAULT_DIMENSIONS.android },
             screenshots: [],
           },
           ios: {
-            dimensions: { width: 1242, height: 2688 },
+            dimensions: { ...DEFAULT_DIMENSIONS.ios },
             screenshots: [],
           },
         },
@@ -212,9 +211,7 @@ export function createConfigRoutes(
     // Initialize target platform if needed
     if (!langConfig.platforms[targetPlatform]) {
       langConfig.platforms[targetPlatform] = {
-        dimensions: targetPlatform === "ios"
-          ? { width: 1242, height: 2688 }
-          : { width: 1080, height: 1920 },
+        dimensions: { ...DEFAULT_DIMENSIONS[targetPlatform] },
         screenshots: [],
       };
     }

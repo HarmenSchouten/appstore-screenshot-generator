@@ -16,12 +16,13 @@
       "platforms": {
         "android": {
           "dimensions": {
-            "width": 1242,
-            "height": 2688
+            "width": 1080,
+            "height": 1920
           },
           "screenshots": [
             {
               "id": "de4a9ed3-b2cd-451b-86b0-8afc72e7a331",
+              "name": "Feature graphic",
               "role": "feature-graphic",
               "layers": [
                 {
@@ -36,7 +37,7 @@
                   "opacity": 1,
                   "rotation": 3,
                   "type": "phone-frame",
-                  "model": "ios-iphone-15-pro",
+                  "model": "android-pixel-9-pro",
                   "scale": 19
                 },
                 {
@@ -59,6 +60,7 @@
             },
             {
               "id": "77d06538-4ffd-4e0d-8d07-fcd90eb66144",
+              "name": "Screenshot 1",
               "role": "screenshot",
               "layers": [
                 {
@@ -74,7 +76,7 @@
                   "rotation": 0,
                   "type": "text",
                   "text": "Captivating",
-                  "fontSize": 150,
+                  "fontSize": 120,
                   "fontWeight": 800,
                   "textAlign": "center",
                   "textColor": "#ffffff",
@@ -84,12 +86,12 @@
                 {
                   "id": "27ec39d8-42ff-48ce-bebc-f6e72021f0c7",
                   "posX": 50,
-                  "posY": 14,
+                  "posY": 16,
                   "opacity": 1,
                   "rotation": 0,
                   "type": "text",
                   "text": "Interesting headline",
-                  "fontSize": 99,
+                  "fontSize": 80,
                   "fontWeight": 400,
                   "textAlign": "center",
                   "textColor": "#ffffff",
@@ -99,12 +101,12 @@
                 {
                   "id": "4ebbd127-22e1-44c2-9004-f6b4ffeb2bed",
                   "posX": 50,
-                  "posY": 59,
+                  "posY": 61,
                   "opacity": 1,
                   "rotation": 0,
                   "type": "phone-frame",
                   "model": "android-pixel-9-pro",
-                  "scale": 70
+                  "scale": 64
                 }
               ]
             }
@@ -118,6 +120,7 @@
           "screenshots": [
             {
               "id": "ee35de1b-e718-4603-b09c-f25f0610efb8",
+              "name": "Screenshot 1",
               "role": "screenshot",
               "layers": [
                 {

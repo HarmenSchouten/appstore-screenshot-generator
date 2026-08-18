@@ -7,16 +7,27 @@
 import { Hono } from "hono";
 import { join, toFileUrl } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { ProjectConfig, ScreenshotRole } from "@app-types";
+import type { ProjectConfig, Screenshot, ScreenshotRole } from "@app-types";
 import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
 import { renderScreenshot } from "@renderer/server.ts";
 import { convertHtmlFileToPng } from "@/png-export.ts";
+import { FEATURE_GRAPHIC_SIZE } from "@lib";
 
 function sanitizeFilename(name: string): string {
   return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "") || "screenshot";
+}
+
+/**
+ * Human-readable name for a screenshot without one: numbered within its role
+ * so it matches the sidebar ("Screenshot 3" → "3-screenshot").
+ */
+function fallbackName(screenshot: Screenshot, siblings: Screenshot[]): string {
+  const n = siblings.filter((s) => s.role === screenshot.role)
+    .indexOf(screenshot) + 1;
+  return `${n}-${screenshot.role}`;
 }
 
 function uniqueName(base: string, used: Set<string>): string {
@@ -96,7 +107,8 @@ export function createGenerateRoutes(
             const usedNames = new Set<string>();
 
             for (const screenshot of platformConfig.screenshots) {
-              const displayName = screenshot.name || screenshot.id;
+              const displayName = screenshot.name ||
+                fallbackName(screenshot, platformConfig.screenshots);
               const baseName = sanitizeFilename(displayName);
               const fileName = uniqueName(baseName, usedNames);
               const htmlPath = join(langOutputDir, `${fileName}.html`);
@@ -105,7 +117,7 @@ export function createGenerateRoutes(
                 `${langConfig.language}/${platformName}/${fileName}.png`;
 
               const dimensions = screenshot.role === "feature-graphic"
-                ? { width: 1024, height: 500 }
+                ? FEATURE_GRAPHIC_SIZE
                 : platformConfig.dimensions;
 
               send({
