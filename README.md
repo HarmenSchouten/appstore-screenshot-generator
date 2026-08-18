@@ -41,8 +41,11 @@ Open http://localhost:5173
 ## Day-to-day Commands
 
 ```bash
-# Start API + Vite UI
+# Development: API on :3000 + Vite UI with HMR on :5173
 deno task dev
+
+# Single process: build the UI once, then serve it and the API on :3000
+deno task start
 
 # Verify before a PR (fmt, lint, type-check, UI build)
 deno task verify

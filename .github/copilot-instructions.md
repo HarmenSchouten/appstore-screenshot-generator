@@ -78,5 +78,6 @@ Rules: any import that leaves the current directory uses an alias (no `../`); sa
 
 - `deno task dev` — Start dev server (Deno backend + Vite frontend)
 - `deno task build` — Production UI build (Vite, run under Deno)
+- `deno task start` — Build the UI, then serve it and the API from one process on :3000
 - `deno task verify` — fmt check + lint + type check + build (what CI runs)
 - `deno task check` — Type check (server + UI graphs). This is the only type-check command; `tsc` is not used.

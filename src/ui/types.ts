@@ -19,24 +19,12 @@ export type {
 export type { ProjectConfig as Config } from "@app-types";
 
 /**
- * Gradient template strings with {primary}, {secondary}, {accent} placeholders
- */
-export type GradientTemplates = Record<string, string>;
-
-/**
- * Default color palettes
- */
-export type DefaultPalettes = Record<string, Palette>;
-
-/**
- * App initial data injected by server
+ * Initial app data from GET /api/init
  */
 export interface AppData {
   config: import("@app-types").ProjectConfig;
   projects: import("@app-types").ProjectInfo[];
   projectId: string;
-  gradientTemplates: GradientTemplates;
-  palettes: DefaultPalettes;
 }
 
 /**
@@ -75,6 +63,3 @@ export interface GenerateResult {
   error?: string;
   screenshotName?: string;
 }
-
-// Import Palette type
-import type { ColorPalette as Palette } from "@app-types";

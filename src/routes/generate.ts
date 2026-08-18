@@ -36,95 +36,6 @@ export function createGenerateRoutes(
   const routes = new Hono();
 
   /**
-   * Generate all screenshots for export
-   */
-  routes.post("/", async (c) => {
-    const { languages, platforms } = await c.req.json();
-    const config = await getConfig();
-    const outputDir = getProjectOutputDir(getCurrentProjectId());
-    const assetsDir = getProjectAssetsDir(getCurrentProjectId());
-
-    const results: {
-      path: string;
-      role: "screenshot" | "feature-graphic";
-      status: "success" | "error";
-      error?: string;
-    }[] = [];
-
-    for (const langConfig of config.languages) {
-      if (languages && !languages.includes(langConfig.language)) continue;
-
-      for (
-        const [platformName, platformConfig] of Object.entries(
-          langConfig.platforms,
-        )
-      ) {
-        if (platforms && !platforms.includes(platformName)) continue;
-        if (!platformConfig) continue;
-
-        const langOutputDir = join(
-          outputDir,
-          langConfig.language,
-          platformName,
-        );
-        await ensureDir(langOutputDir);
-
-        const usedNames = new Set<string>();
-
-        for (const screenshot of platformConfig.screenshots) {
-          const baseName = sanitizeFilename(
-            screenshot.name || screenshot.id,
-          );
-          const fileName = uniqueName(baseName, usedNames);
-          const htmlPath = join(langOutputDir, `${fileName}.html`);
-          const pngPath = join(langOutputDir, `${fileName}.png`);
-
-          const dimensions = screenshot.role === "feature-graphic"
-            ? { width: 1024, height: 500 }
-            : platformConfig.dimensions;
-
-          try {
-            const html = renderScreenshot({
-              screenshot,
-              theme: config.theme,
-              app: config.app,
-              platform: platformName as "android" | "ios",
-              defaultDevicePresetId:
-                config.platformDefaults[platformName as "android" | "ios"]
-                  .defaultDevicePresetId,
-              dimensions,
-              assetUrlPrefix: `${toFileUrl(assetsDir).href}/`,
-            });
-
-            await Deno.writeTextFile(htmlPath, html);
-
-            await convertHtmlFileToPng(
-              htmlPath,
-              pngPath,
-              dimensions,
-            );
-
-            results.push({
-              path: pngPath,
-              status: "success",
-              role: screenshot.role,
-            });
-          } catch (error) {
-            results.push({
-              path: pngPath,
-              status: "error",
-              role: screenshot.role,
-              error: error instanceof Error ? error.message : "Unknown error",
-            });
-          }
-        }
-      }
-    }
-
-    return c.json({ results, outputDir });
-  });
-
-  /**
    * Generate with streaming progress
    */
   routes.post("/stream", async (_c) => {
@@ -344,27 +255,6 @@ export function createGenerateRoutes(
 
     await scanDir(outputDir);
     return c.json({ results, outputDir });
-  });
-
-  /**
-   * Serve generated output files
-   */
-  routes.get("/output/:path{.+}", async (c) => {
-    const filePath = c.req.param("path");
-    const fullPath = join(getProjectOutputDir(getCurrentProjectId()), filePath);
-
-    try {
-      const file = await Deno.readFile(fullPath);
-      const ext = fullPath.split(".").pop()?.toLowerCase();
-      const contentType = ext === "png"
-        ? "image/png"
-        : ext === "jpg" || ext === "jpeg"
-        ? "image/jpeg"
-        : "application/octet-stream";
-      return new Response(file, { headers: { "Content-Type": contentType } });
-    } catch {
-      return c.notFound();
-    }
   });
 
   return routes;

@@ -35,6 +35,9 @@ export default defineConfig({
 
   build: {
     outDir: "dist",
+    // Built JS/CSS/fonts go under /_app/, not Vite's default /assets/, because
+    // /assets/* is the project-assets route on the API server (see server.ts).
+    assetsDir: "_app",
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
