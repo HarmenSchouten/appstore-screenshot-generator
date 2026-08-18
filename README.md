@@ -52,12 +52,11 @@ deno task verify
 
 - Project data: projects/{project-id}/
 - Generated images: projects/{project-id}/output/{language}/{platform}/
-- Root output mode: output/
 
 ## Architecture at a Glance
 
 - API and orchestration: `src/server.ts` and `src/routes/`
-- Screenshot generation: `src/generate.ts` and `src/convert.ts`
+- Screenshot generation: `src/routes/generate.ts` (render) and `src/png-export.ts` (Puppeteer PNG export)
 - Shared renderer and layers: `src/renderer-components/`
 - Device presets: `src/device-presets/`
 - Type definitions: `src/types/`

@@ -5,11 +5,12 @@
  */
 
 import { Hono } from "hono";
-import { join } from "@std/path";
+import { join, toFileUrl } from "@std/path";
 import { ensureDir } from "@std/fs";
 import type { ProjectConfig } from "@app-types";
 import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
 import { renderScreenshot } from "@renderer/server.ts";
+import { convertHtmlFileToPng } from "@/png-export.ts";
 
 function sanitizeFilename(name: string): string {
   return name
@@ -49,9 +50,6 @@ export function createGenerateRoutes(
       status: "success" | "error";
       error?: string;
     }[] = [];
-
-    // Import convert module for HTML to PNG
-    const { convertHtmlFileToPng } = await import("@/convert.ts");
 
     for (const langConfig of config.languages) {
       if (languages && !languages.includes(langConfig.language)) continue;
@@ -95,7 +93,7 @@ export function createGenerateRoutes(
                 config.platformDefaults[platformName as "android" | "ios"]
                   .defaultDevicePresetId,
               dimensions,
-              assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, "/")}/`,
+              assetUrlPrefix: `${toFileUrl(assetsDir).href}/`,
             });
 
             await Deno.writeTextFile(htmlPath, html);
@@ -157,7 +155,6 @@ export function createGenerateRoutes(
           );
         };
 
-        const { convertHtmlFileToPng } = await import("@/convert.ts");
         let completed = 0;
         const results: {
           path: string;
@@ -217,7 +214,7 @@ export function createGenerateRoutes(
                     config.platformDefaults[platformName as "android" | "ios"]
                       .defaultDevicePresetId,
                   dimensions,
-                  assetUrlPrefix: `file:///${assetsDir.replace(/\\/g, "/")}/`,
+                  assetUrlPrefix: `${toFileUrl(assetsDir).href}/`,
                 });
                 await Deno.writeTextFile(htmlPath, html);
                 await convertHtmlFileToPng(

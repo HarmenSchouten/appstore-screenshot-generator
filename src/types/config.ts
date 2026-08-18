@@ -53,6 +53,3 @@ export interface ProjectConfig {
   /** All language configurations */
   languages: LanguageConfig[];
 }
-
-/** Legacy alias for ScreenshotConfig - prefer using ProjectConfig */
-export type ScreenshotConfig = ProjectConfig;

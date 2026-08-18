@@ -6,7 +6,7 @@
  */
 
 import { join } from "@std/path";
-import { ensureDir, exists } from "@std/fs";
+import { copy, ensureDir, exists } from "@std/fs";
 
 import {
   DEFAULT_PLATFORM_DEFAULTS,
@@ -203,17 +203,8 @@ export async function loadProject(projectId: string): Promise<ProjectConfig> {
     const content = await Deno.readTextFile(configPath);
     return normalizeProjectConfig(JSON.parse(content));
   } catch {
-    // If config doesn't exist, check for legacy config locations
-
-    // Try legacy config.json in root
-    try {
-      const legacyPath = join(Deno.cwd(), "config", "config.json");
-      const content = await Deno.readTextFile(legacyPath);
-      return normalizeProjectConfig(JSON.parse(content));
-    } catch {
-      // Return default config
-      return getDefaultConfig();
-    }
+    // Config doesn't exist (or is unreadable) — fall back to defaults
+    return getDefaultConfig();
   }
 }
 
@@ -323,8 +314,9 @@ export async function duplicateProject(
   const sourceAssets = getProjectAssetsDir(sourceId);
   const destAssets = getProjectAssetsDir(newProject.id);
 
+  // createProject already made the (empty) assets tree, so overwrite to merge
   try {
-    await copyDir(sourceAssets, destAssets);
+    await copy(sourceAssets, destAssets, { overwrite: true });
   } catch {
     // Source assets may not exist
   }
@@ -333,26 +325,7 @@ export async function duplicateProject(
 }
 
 /**
- * Helper to recursively copy a directory
- */
-async function copyDir(src: string, dest: string): Promise<void> {
-  await ensureDir(dest);
-
-  for await (const entry of Deno.readDir(src)) {
-    const srcPath = join(src, entry.name);
-    const destPath = join(dest, entry.name);
-
-    if (entry.isDirectory) {
-      await copyDir(srcPath, destPath);
-    } else {
-      await Deno.copyFile(srcPath, destPath);
-    }
-  }
-}
-
-/**
- * Initialize projects directory with a default project
- * Migrates legacy config if exists
+ * Initialize projects directory, creating the default project if missing
  */
 export async function initializeProjects(): Promise<string> {
   const projectsDir = getProjectsDir();
@@ -360,64 +333,22 @@ export async function initializeProjects(): Promise<string> {
 
   const defaultDir = getProjectDir(DEFAULT_PROJECT_ID);
 
-  // Check if default project exists
   if (!(await exists(defaultDir))) {
-    // Try to migrate from legacy config
-    let config: ProjectConfig | null = null;
-
-    // Check for legacy JSON config
-    try {
-      const legacyJson = join(Deno.cwd(), "config", "config.json");
-      config = JSON.parse(await Deno.readTextFile(legacyJson));
-    } catch {
-      // No legacy JSON
-    }
-
-    // Check for legacy TypeScript config
-    if (!config) {
-      try {
-        const legacyTs = join(Deno.cwd(), "config", "config.ts");
-        const configUrl = Deno.build.os === "windows"
-          ? `file:///${legacyTs.replace(/\\/g, "/")}`
-          : `file://${legacyTs}`;
-        const module = await import(configUrl);
-        config = module.screenshotConfig;
-      } catch {
-        // No legacy TS config
-      }
-    }
-
-    // Create default project
     await ensureDir(defaultDir);
     await ensureDir(join(defaultDir, "assets", "images"));
     await ensureDir(join(defaultDir, "output"));
 
-    // Copy legacy assets if they exist
-    const legacyAssets = join(Deno.cwd(), "assets");
-    const newAssets = getProjectAssetsDir(DEFAULT_PROJECT_ID);
-    try {
-      await copyDir(legacyAssets, newAssets);
-    } catch {
-      // No legacy assets
-    }
-
-    // Save config
     await Deno.writeTextFile(
       getProjectConfigPath(DEFAULT_PROJECT_ID),
-      JSON.stringify(
-        normalizeProjectConfig(config || getDefaultConfig()),
-        null,
-        2,
-      ),
+      JSON.stringify(normalizeProjectConfig(getDefaultConfig()), null, 2),
     );
 
-    // Create project info
     await Deno.writeTextFile(
       join(defaultDir, "project.json"),
       JSON.stringify(
         {
           id: DEFAULT_PROJECT_ID,
-          name: config?.app?.name || "Default Project",
+          name: "Default Project",
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

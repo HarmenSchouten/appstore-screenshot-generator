@@ -6,12 +6,7 @@
     "dev:vite": "deno run -A node_modules/vite/bin/vite.js",
     "build": "deno run -A node_modules/vite/bin/vite.js build",
     "check": "deno check src/server.ts src/ui/main.tsx vite.config.ts",
-    "verify": "deno fmt --check && deno lint && deno task check && deno task build",
-    "generate": "deno run --allow-read --allow-write src/generate.ts",
-    "generate:en": "deno run --allow-read --allow-write src/generate.ts --lang en",
-    "convert": "deno run -A src/convert.ts",
-    "convert:en": "deno run -A src/convert.ts --lang en",
-    "build:en": "deno task generate:en && deno task convert:en"
+    "verify": "deno fmt --check && deno lint && deno task check && deno task build"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
