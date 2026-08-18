@@ -11,22 +11,36 @@ import { TextEditor } from "./TextEditor.tsx";
 import { PhoneFrameEditor } from "./PhoneFrameEditor.tsx";
 import { ImageEditor } from "./ImageEditor.tsx";
 import { GlowEditor } from "./GlowEditor.tsx";
-import { ShapeEditor } from "./ShapeEditor/index.ts";
+import { ShapeEditor } from "./ShapeEditor/ShapeEditor.tsx";
 
-// ── Editor registry ─────────────────────────────────────────
+// ── Type-specific editor ────────────────────────────────────
 
-const LAYER_EDITORS: Record<
-  Layer["type"],
-  React.ComponentType<{ layer: never; onUpdate: (u: Partial<Layer>) => void }>
-> = {
-  background: BackgroundEditor,
-  text: TextEditor,
-  "phone-frame": PhoneFrameEditor,
-  image: ImageEditor,
-  glow: GlowEditor,
-  shape: ShapeEditor,
-  // deno-lint-ignore no-explicit-any
-} as any;
+/**
+ * Narrowing on `layer.type` gives each editor its exact layer type; the
+ * shared onUpdate accepts Partial<Layer>, which each editor's narrower
+ * Partial<XLayerProps> is assignable to.
+ */
+function LayerEditor(
+  { layer, onUpdate }: {
+    layer: Layer;
+    onUpdate: (updates: Partial<Layer>) => void;
+  },
+): React.ReactElement {
+  switch (layer.type) {
+    case "background":
+      return <BackgroundEditor layer={layer} onUpdate={onUpdate} />;
+    case "text":
+      return <TextEditor layer={layer} onUpdate={onUpdate} />;
+    case "phone-frame":
+      return <PhoneFrameEditor layer={layer} onUpdate={onUpdate} />;
+    case "image":
+      return <ImageEditor layer={layer} onUpdate={onUpdate} />;
+    case "glow":
+      return <GlowEditor layer={layer} onUpdate={onUpdate} />;
+    case "shape":
+      return <ShapeEditor layer={layer} onUpdate={onUpdate} />;
+  }
+}
 
 // ── Component ───────────────────────────────────────────────
 
@@ -44,7 +58,6 @@ export function LayerDetail({
   onUpdate,
 }: LayerDetailProps) {
   const meta = LAYER_META[layer.type];
-  const Editor = LAYER_EDITORS[layer.type];
 
   return (
     <div className="flex flex-col h-full">
@@ -71,19 +84,7 @@ export function LayerDetail({
 
       {/* Editor content area */}
       <div className="flex-1 overflow-y-auto px-4 py-4">
-        {Editor
-          ? <Editor layer={layer as never} onUpdate={onUpdate} />
-          : (
-            <div className="text-center py-12 text-zinc-600">
-              <i className={`${meta.icon} text-3xl mb-3 block opacity-40`} />
-              <p className="text-sm">
-                {meta.label} editor coming soon
-              </p>
-              <p className="text-xs mt-1 text-zinc-700">
-                Layer-specific controls will appear here
-              </p>
-            </div>
-          )}
+        <LayerEditor layer={layer} onUpdate={onUpdate} />
       </div>
     </div>
   );

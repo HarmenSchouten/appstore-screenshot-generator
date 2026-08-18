@@ -9,24 +9,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background: #0f0f0f;
-}
-
-.editor-panel {
-  flex: 1;
-  min-width: 0;
-}
-
-.editor-sidebar {
-  width: 420px;
-  min-width: 420px;
-}
-
-.preview-container {
-  background: #1a1a1a;
-}
-
 /* Scrollbar styling - subtle and thin */
 ::-webkit-scrollbar {
   width: 6px;
@@ -45,13 +27,6 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-}
-
-/* Preview iframe */
-.preview-iframe {
-  background: #000;
-  border: none;
-  transform-origin: top left;
 }
 
 /* Input styling */
@@ -121,26 +96,4 @@ input[type="range"]:focus {
 }
 input[type="range"]:focus::-webkit-slider-thumb {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
-}
-
-/* Collapsible section styling */
-.section-header {
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.15s;
-}
-.section-header:hover {
-  background: rgba(255, 255, 255, 0.03);
-}
-.section-content {
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
-}
-
-/* Button styling */
-.btn-primary {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-}
-.btn-primary:hover {
-  background: linear-gradient(135deg, #7c7ff2 0%, #6366f1 100%);
 }

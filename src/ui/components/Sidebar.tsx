@@ -36,11 +36,11 @@ import {
 
 export function Sidebar() {
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const selectedItem = useAppStore((s) => s.selectedItem);
+  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
   const screenshots = useAppStore(selectScreenshots);
 
   const {
-    setSelectedItem,
+    setSelectedScreenshotId,
     addScreenshot,
     addFeatureGraphic,
     removeScreenshot,
@@ -106,10 +106,8 @@ export function Sidebar() {
                 key={screenshot.id}
                 id={screenshot.id}
                 title={`Screenshot ${index + 1}`}
-                isSelected={selectedItem?.type === "screenshot" &&
-                  selectedItem.id === screenshot.id}
-                onSelect={() =>
-                  setSelectedItem({ type: "screenshot", id: screenshot.id })}
+                isSelected={selectedScreenshotId === screenshot.id}
+                onSelect={() => setSelectedScreenshotId(screenshot.id)}
                 onDelete={() => removeScreenshot(screenshot.id)}
               />
             ))}
@@ -136,10 +134,8 @@ export function Sidebar() {
                 ? (
                   <SidebarItemCard
                     title="Feature Graphic"
-                    isSelected={selectedItem?.type === "screenshot" &&
-                      selectedItem.id === fg.id}
-                    onSelect={() =>
-                      setSelectedItem({ type: "screenshot", id: fg.id })}
+                    isSelected={selectedScreenshotId === fg.id}
+                    onSelect={() => setSelectedScreenshotId(fg.id)}
                     onDelete={removeFeatureGraphic}
                   />
                 )

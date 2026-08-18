@@ -17,7 +17,7 @@ export function useAppHotkeys() {
   const themeEditorOpen = useAppStore((s) => s.themeEditorOpen);
   const mediaManagerOpen = useAppStore((s) => s.mediaManagerOpen);
   const showGenerateModal = useAppStore((s) => s.showGenerateModal);
-  const selectedItem = useAppStore((s) => s.selectedItem);
+  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
 
   const shortcutCheatSheetOpen = useAppStore(
@@ -103,24 +103,24 @@ export function useAppHotkeys() {
     // Second press within window — execute
     deleteArmedAt.current = 0;
     const state = useAppStore.getState();
-    const item = state.selectedItem;
-    if (!item) return;
+    const id = state.selectedScreenshotId;
+    if (!id) return;
     const screenshots = selectScreenshots(state);
-    const screenshot = screenshots.find((s) => s.id === item.id);
+    const screenshot = screenshots.find((s) => s.id === id);
     if (screenshot?.role === "feature-graphic") {
       state.removeFeatureGraphic();
     } else {
-      state.removeScreenshot(item.id);
+      state.removeScreenshot(id);
     }
   }, []);
 
   useHotkey("Delete", handleDeleteScreenshot, {
-    enabled: noModalOpen && selectedItem !== null,
+    enabled: noModalOpen && selectedScreenshotId !== null,
     preventDefault: false,
   });
 
   useHotkey("Backspace", handleDeleteScreenshot, {
-    enabled: noModalOpen && selectedItem !== null,
+    enabled: noModalOpen && selectedScreenshotId !== null,
     preventDefault: false,
   });
 
@@ -136,13 +136,13 @@ export function useAppHotkeys() {
     const screenshots = selectScreenshots(state);
     const items = screenshots.filter((s) => s.role === "screenshot");
     if (items.length === 0) return;
-    const currentId = state.selectedItem?.id;
+    const currentId = state.selectedScreenshotId;
     const currentIndex = items.findIndex((s) => s.id === currentId);
     // If nothing (or the feature graphic) is selected, jump to first/last.
     const nextIndex = currentIndex === -1
       ? (direction === 1 ? 0 : items.length - 1)
       : (currentIndex + direction + items.length) % items.length;
-    state.setSelectedItem({ type: "screenshot", id: items[nextIndex].id });
+    state.setSelectedScreenshotId(items[nextIndex].id);
   }, []);
 
   useHotkey("]", () => stepScreenshot(1), {
@@ -162,7 +162,7 @@ export function useAppHotkeys() {
     const screenshots = selectScreenshots(state);
     const fg = screenshots.find((s) => s.role === "feature-graphic");
     if (fg) {
-      state.setSelectedItem({ type: "screenshot", id: fg.id });
+      state.setSelectedScreenshotId(fg.id);
     }
   }, { enabled: noModalOpen, preventDefault: false });
 
@@ -188,8 +188,8 @@ export function useAppHotkeys() {
       state.closeMediaManager();
     } else if (state.projectModalOpen) {
       state.closeProjectModal();
-    } else if (state.selectedItem) {
-      state.setSelectedItem(null);
+    } else if (state.selectedScreenshotId) {
+      state.setSelectedScreenshotId(null);
     }
   }, { preventDefault: false });
 }

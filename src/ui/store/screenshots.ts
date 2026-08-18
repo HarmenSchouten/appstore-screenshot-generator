@@ -54,7 +54,7 @@ export const createScreenshotSlice: StateCreator<
 
     result.platformConfig.screenshots.push(newScreenshot);
     get().updateConfig(result.newConfig);
-    get().setSelectedItem({ type: "screenshot", id });
+    get().setSelectedScreenshotId(id);
   },
 
   addFeatureGraphic: () => {
@@ -87,7 +87,7 @@ export const createScreenshotSlice: StateCreator<
 
     result.platformConfig.screenshots.push(newScreenshot);
     get().updateConfig(result.newConfig);
-    get().setSelectedItem({ type: "screenshot", id });
+    get().setSelectedScreenshotId(id);
   },
 
   removeScreenshot: (id) => {
@@ -95,8 +95,8 @@ export const createScreenshotSlice: StateCreator<
       config,
       selectedLang,
       selectedPlatform,
-      selectedItem,
-      setSelectedItem,
+      selectedScreenshotId,
+      setSelectedScreenshotId,
     } = get();
 
     const result = cloneConfigForPlatform(
@@ -108,8 +108,8 @@ export const createScreenshotSlice: StateCreator<
       result.platformConfig.screenshots = result.platformConfig.screenshots
         .filter((s) => s.id !== id);
       get().updateConfig(result.newConfig);
-      if (selectedItem?.type === "screenshot" && selectedItem.id === id) {
-        setSelectedItem(null);
+      if (selectedScreenshotId === id) {
+        setSelectedScreenshotId(null);
       }
     }
   },
@@ -165,8 +165,8 @@ export const createScreenshotSlice: StateCreator<
       config,
       selectedLang,
       selectedPlatform,
-      selectedItem,
-      setSelectedItem,
+      selectedScreenshotId,
+      setSelectedScreenshotId,
     } = get();
 
     const result = cloneConfigForPlatform(
@@ -181,12 +181,8 @@ export const createScreenshotSlice: StateCreator<
       result.platformConfig.screenshots = result.platformConfig.screenshots
         .filter((s) => s.role !== "feature-graphic");
       get().updateConfig(result.newConfig);
-      if (
-        fgId &&
-        selectedItem?.type === "screenshot" &&
-        selectedItem.id === fgId
-      ) {
-        setSelectedItem(null);
+      if (fgId && selectedScreenshotId === fgId) {
+        setSelectedScreenshotId(null);
       }
     }
   },

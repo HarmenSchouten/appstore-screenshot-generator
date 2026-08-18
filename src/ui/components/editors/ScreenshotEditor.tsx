@@ -122,11 +122,11 @@ export function ScreenshotEditor({
   const isDetail = activeLayer !== null;
 
   return (
-    <div className="editor-sidebar bg-zinc-900 border-l border-zinc-800 flex flex-col h-full overflow-hidden">
+    <div className="w-[420px] shrink-0 bg-zinc-900 border-l border-zinc-800 flex flex-col h-full overflow-hidden">
       <div className="relative flex-1 flex min-h-0">
         {/* Layer list panel */}
         <div
-          className={`absolute inset-0 flex flex-col transition-transform duration-250 ease-out ${
+          className={`absolute inset-0 flex flex-col transition-transform ease-out ${
             isDetail ? "-translate-x-full" : "translate-x-0"
           }`}
         >
@@ -147,7 +147,7 @@ export function ScreenshotEditor({
                   onClick={() => setShowInfo(!showInfo)}
                   className="text-zinc-500 hover:text-zinc-300 transition-colors p-1"
                 >
-                  <i className="fa-solid fa-circle-info text-m" />
+                  <i className="fa-solid fa-circle-info" />
                 </button>
                 {showInfo && (
                   <div
@@ -239,7 +239,7 @@ export function ScreenshotEditor({
 
         {/* Layer detail panel */}
         <div
-          className={`absolute inset-0 flex flex-col transition-transform duration-250 ease-out ${
+          className={`absolute inset-0 flex flex-col transition-transform ease-out ${
             isDetail ? "translate-x-0" : "translate-x-full"
           }`}
         >

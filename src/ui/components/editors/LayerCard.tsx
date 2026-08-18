@@ -137,7 +137,7 @@ export function LayerCard({
       {/* Confirm delete — full-width overlay */}
       {confirmingDelete && (
         <div
-          className="absolute inset-0 flex items-center justify-between rounded-lg bg-zinc-900/95 border border-red-500/30 px-3 animate-[fadeIn_150ms_ease-out]"
+          className="absolute inset-0 flex items-center justify-between rounded-lg bg-zinc-900/95 border border-red-500/30 px-3 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           <span className="text-xs text-zinc-400">Delete this layer?</span>

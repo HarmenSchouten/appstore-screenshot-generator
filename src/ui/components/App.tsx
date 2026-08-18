@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { TopBar } from "./TopBar.tsx";
 import { Sidebar } from "./Sidebar.tsx";
 import { Preview } from "./Preview.tsx";
-import { ScreenshotEditor } from "./editors/index.ts";
+import { ScreenshotEditor } from "./editors/ScreenshotEditor.tsx";
 import { ProjectModal } from "./modals/ProjectModal.tsx";
 import { GenerateModal } from "./modals/GenerateModal.tsx";
 import { ThemeEditorModal } from "./modals/ThemeEditorModal.tsx";
@@ -29,7 +29,6 @@ import {
   useConfigAutoSave,
   useGenerateAll,
   useLastGeneratedQuery,
-  useSwitchProject,
 } from "@hooks";
 
 export function App() {
@@ -38,17 +37,15 @@ export function App() {
   useAssetsQuery();
   useAppHotkeys();
 
-  const switchProject = useSwitchProject();
   const generateAll = useGenerateAll();
 
   useLastGeneratedQuery();
 
   const config = useAppStore((s) => s.config);
-  const selectedItem = useAppStore((s) => s.selectedItem);
+  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
   const assets = useAppStore((s) => s.assets);
   const currentProject = useAppStore((s) => s.currentProject);
-  const initialProjectId = useAppStore((s) => s.initialProjectId);
   const screenshots = useAppStore(selectScreenshots);
   const dimensions = useAppStore(selectDimensions);
 
@@ -65,7 +62,7 @@ export function App() {
 
   const {
     updateConfig,
-    setSelectedItem,
+    setSelectedScreenshotId,
     updateScreenshot,
     getDefaultDevicePreset,
     closeGenerateModal,
@@ -74,23 +71,17 @@ export function App() {
     closeShortcutCheatSheet,
   } = useAppStore.getState();
 
-  const selectedScreenshot = selectedItem?.type === "screenshot"
-    ? screenshots.find((s) => s.id === selectedItem.id)
+  const selectedScreenshot = selectedScreenshotId
+    ? screenshots.find((s) => s.id === selectedScreenshotId)
     : undefined;
 
   const defaultDevicePresetId = getDefaultDevicePreset();
 
   useEffect(() => {
-    if (currentProject !== initialProjectId) {
-      switchProject.mutate(currentProject);
+    if (selectedScreenshotId && !selectedScreenshot) {
+      setSelectedScreenshotId(null);
     }
-  }, []);
-
-  useEffect(() => {
-    if (selectedItem?.type === "screenshot" && !selectedScreenshot) {
-      setSelectedItem(null);
-    }
-  }, [selectedItem, selectedScreenshot]);
+  }, [selectedScreenshotId, selectedScreenshot]);
 
   return (
     <div className="flex flex-col h-screen bg-zinc-950 text-white overflow-hidden">
