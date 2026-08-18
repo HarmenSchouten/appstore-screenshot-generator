@@ -9,5 +9,4 @@ export const createProjectSlice: StateCreator<
 > = () => ({
   projects: [],
   currentProject: "",
-  initialProjectId: "",
 });

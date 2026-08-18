@@ -6,7 +6,6 @@ import type {
   GenerateResult,
   ProjectInfo,
   Screenshot,
-  SelectedItem,
 } from "@ui/types.ts";
 
 // ── Slice interfaces ────────────────────────────────────────────────
@@ -23,16 +22,16 @@ export interface ConfigSlice {
 export interface ProjectSlice {
   projects: ProjectInfo[];
   currentProject: string;
-  initialProjectId: string;
 }
 
 export interface SelectionSlice {
   selectedLang: string;
   selectedPlatform: "android" | "ios";
-  selectedItem: SelectedItem;
+  /** Id of the selected screenshot or feature graphic; null = nothing selected */
+  selectedScreenshotId: string | null;
   setSelectedLang: (lang: string) => void;
   setSelectedPlatform: (platform: "android" | "ios") => void;
-  setSelectedItem: (item: SelectedItem) => void;
+  setSelectedScreenshotId: (id: string | null) => void;
 }
 
 export interface AssetsSlice {

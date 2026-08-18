@@ -6,7 +6,6 @@
 
 // Re-export from main types
 export type {
-  ColorPalette as Palette,
   DevicePresetId,
   ProjectConfig,
   ProjectInfo,
@@ -34,13 +33,6 @@ export interface AppData {
 export interface Assets {
   images: string[];
 }
-
-/**
- * Selected item in sidebar
- */
-export type SelectedItem =
-  | { type: "screenshot"; id: string }
-  | null;
 
 /**
  * Generation progress state

@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /**
  * UI Entry Point
  *
@@ -19,10 +20,10 @@ import "@fortawesome/fontawesome-free/css/solid.min.css";
 import "@fortawesome/fontawesome-free/css/brands.min.css";
 import "./styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools as _ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HotkeysProvider } from "@tanstack/react-hotkeys";
-import { TanStackDevtools as _TanStackDevtools } from "@tanstack/react-devtools";
-import { hotkeysDevtoolsPlugin as _hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
+import { TanStackDevtools } from "@tanstack/react-devtools";
+import { hotkeysDevtoolsPlugin } from "@tanstack/react-hotkeys-devtools";
 import { queryClient } from "./utils/query.ts";
 import { useInitData } from "@hooks";
 
@@ -57,9 +58,9 @@ const container = document.getElementById("root")!;
 // Reuse the React root across HMR updates to prevent mounting duplicate trees.
 // import.meta.hot.data persists across HMR instances of the same module (Vite API).
 // Calling root.render() again on the same root is safe — React reconciles the tree.
-// deno-lint-ignore no-explicit-any
-const hot = (import.meta as any).hot;
-const root: Root = hot?.data?.root ?? createRoot(container);
+const hot = import.meta.hot;
+const root: Root = (hot?.data.root as Root | undefined) ??
+  createRoot(container);
 if (hot) {
   hot.data.root = root;
 }
@@ -72,13 +73,15 @@ root.render(
           <AppShell />
         </ErrorBoundary>
       </HotkeysProvider>
-      {
-        /* <ReactQueryDevtools />
-      <TanStackDevtools
-        config={{ triggerHidden: true }}
-        plugins={[hotkeysDevtoolsPlugin()]}
-      /> */
-      }
+      {import.meta.env.DEV && (
+        <>
+          <ReactQueryDevtools />
+          <TanStackDevtools
+            config={{ triggerHidden: true }}
+            plugins={[hotkeysDevtoolsPlugin()]}
+          />
+        </>
+      )}
     </QueryClientProvider>
   </React.StrictMode>,
 );

@@ -9,8 +9,9 @@ export const createSelectionSlice: StateCreator<
 > = (set) => ({
   selectedLang: "en",
   selectedPlatform: "android",
-  selectedItem: null,
+  selectedScreenshotId: null,
   setSelectedLang: (selectedLang) => set({ selectedLang }),
   setSelectedPlatform: (selectedPlatform) => set({ selectedPlatform }),
-  setSelectedItem: (selectedItem) => set({ selectedItem }),
+  setSelectedScreenshotId: (selectedScreenshotId) =>
+    set({ selectedScreenshotId }),
 });

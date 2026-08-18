@@ -1,16 +1,14 @@
 /**
  * ColorInput Component
  *
- * Color picker with swatch, hex input, and palette presets.
+ * Color picker with swatch, hex input, and common-colour swatches.
  */
 
 import { useEffect, useRef, useState } from "react";
-import type { Palette } from "@ui/types.ts";
 
 interface ColorInputProps {
   value: string;
   onChange: (value: string) => void;
-  palette?: Palette | null;
   className?: string;
 }
 
@@ -76,7 +74,6 @@ const COMMON_COLORS = [
 export function ColorInput({
   value,
   onChange,
-  palette = null,
   className = "",
 }: ColorInputProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -149,35 +146,6 @@ export function ColorInput({
 
       {isOpen && (
         <div className="absolute z-50 mt-1 p-3 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl w-64 left-0">
-          {palette && (
-            <div className="mb-3">
-              <div className="text-xs text-zinc-500 mb-1.5">Palette</div>
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => selectColor(palette.primary)}
-                  className="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
-                  style={{ backgroundColor: palette.primary }}
-                  title="Primary"
-                />
-                <button
-                  type="button"
-                  onClick={() => selectColor(palette.secondary)}
-                  className="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
-                  style={{ backgroundColor: palette.secondary }}
-                  title="Secondary"
-                />
-                <button
-                  type="button"
-                  onClick={() => selectColor(palette.accent)}
-                  className="flex-1 h-8 rounded border border-zinc-600 hover:border-zinc-400 transition-colors"
-                  style={{ backgroundColor: palette.accent }}
-                  title="Accent"
-                />
-              </div>
-            </div>
-          )}
-
           <div>
             <div className="text-xs text-zinc-500 mb-1.5">Colors</div>
             <div className="grid grid-cols-8 gap-1">

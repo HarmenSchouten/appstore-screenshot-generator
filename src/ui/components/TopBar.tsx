@@ -189,7 +189,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
       <div className="w-px h-5 bg-zinc-700 mx-1" />
 
       {/* Language tabs */}
-      <div className="flex gap-1 overflow-x-auto scrollbar-none">
+      <div className="flex gap-1 overflow-x-auto">
         {languages.map((lang) => (
           <div key={lang.language} className="shrink-0 group/lang">
             {confirmDeleteLang === lang.language

@@ -16,7 +16,6 @@ export function useSwitchProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationKey: [...queryKeys.projects.all, "switch"],
     mutationFn: async (projectId: string) => {
       await flushPersist();
       const data = await activateProject(projectId);
@@ -27,7 +26,7 @@ export function useSwitchProject() {
         currentProject: projectId,
         config: data.config,
         selectedLang: data.config.languages?.[0]?.language || "en",
-        selectedItem: null,
+        selectedScreenshotId: null,
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });

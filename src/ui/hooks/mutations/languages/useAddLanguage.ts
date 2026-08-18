@@ -7,11 +7,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { addLanguage } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
-import { queryKeys } from "@ui/utils/query.ts";
 
 export function useAddLanguage() {
   return useMutation({
-    mutationKey: [...queryKeys.config.current, "addLanguage"],
     mutationFn: (
       { language, copyFrom }: { language: string; copyFrom: string | null },
     ) => addLanguage(language, copyFrom),

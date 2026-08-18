@@ -56,7 +56,7 @@ function ZoomHotkeys() {
 }
 
 interface PreviewProps {
-  screenshot?: Screenshot;
+  screenshot: Screenshot;
   theme: ThemeConfig;
   app: AppBranding;
   platform: Platform;
@@ -104,10 +104,8 @@ export function Preview(
     };
   }, []);
 
-  const width = screenshot?.role === "feature-graphic"
-    ? 1024
-    : dimensions.width;
-  const height = screenshot?.role === "feature-graphic"
+  const width = screenshot.role === "feature-graphic" ? 1024 : dimensions.width;
+  const height = screenshot.role === "feature-graphic"
     ? 500
     : dimensions.height;
 
@@ -124,25 +122,15 @@ export function Preview(
     return Math.max(0.1, Math.min(scaleX, scaleY));
   }, [containerSize, width, height]);
 
-  const hasContent = !!screenshot;
-
   // Scoped base CSS for the preview container (structural styles for
   // .screenshot — width, height, position, overflow, font resets).
-  const scopeClass = screenshot?.role === "screenshot"
+  const scopeClass = screenshot.role === "screenshot"
     ? "screenshot-preview"
     : "fg-preview";
   const baseCSS = useMemo(
     () => getBaseStylesCSS(theme, { scopeSelector: `.${scopeClass}` }),
     [theme, scopeClass],
   );
-
-  if (!hasContent) {
-    return (
-      <div className="text-zinc-500">
-        No preview available
-      </div>
-    );
-  }
 
   return (
     <div
@@ -151,7 +139,7 @@ export function Preview(
     >
       <style dangerouslySetInnerHTML={{ __html: baseCSS }} />
       <TransformWrapper
-        key={screenshot?.id}
+        key={screenshot.id}
         initialScale={1}
         minScale={1}
         maxScale={5}
@@ -175,7 +163,7 @@ export function Preview(
               >
                 {/* Isolated preview container — uses zoom for resolution-independent scaling */}
                 <div
-                  className={screenshot?.role === "screenshot"
+                  className={screenshot.role === "screenshot"
                     ? "screenshot-preview"
                     : "fg-preview"}
                   style={{

@@ -6,11 +6,6 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        zinc: {
-          850: "#1f1f23",
-        },
-      },
       keyframes: {
         fadeIn: {
           from: { opacity: "0" },
@@ -22,6 +17,7 @@ export default {
         },
       },
       animation: {
+        fadeIn: "fadeIn 150ms ease-out",
         slideIn: "slideIn 150ms ease-out",
       },
     },

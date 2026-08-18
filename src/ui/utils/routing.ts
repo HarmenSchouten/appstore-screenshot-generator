@@ -79,19 +79,13 @@ export function useStoreRouteSync() {
 
     // Screenshot (regular or feature-graphic — both use their id)
     if (params.screenshotId) {
-      if (
-        state.selectedItem?.type !== "screenshot" ||
-        state.selectedItem.id !== params.screenshotId
-      ) {
+      if (state.selectedScreenshotId !== params.screenshotId) {
         isRouteChange.current = true;
-        state.setSelectedItem({
-          type: "screenshot",
-          id: params.screenshotId,
-        });
+        state.setSelectedScreenshotId(params.screenshotId);
       }
-    } else if (state.selectedItem !== null) {
+    } else if (state.selectedScreenshotId !== null) {
       isRouteChange.current = true;
-      state.setSelectedItem(null);
+      state.setSelectedScreenshotId(null);
     }
   }, [params.project, params.lang, params.platform, params.screenshotId]);
 
@@ -99,7 +93,7 @@ export function useStoreRouteSync() {
   const currentProject = useAppStore((s) => s.currentProject);
   const selectedLang = useAppStore((s) => s.selectedLang);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const selectedItem = useAppStore((s) => s.selectedItem);
+  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
 
   useEffect(() => {
     // Skip if this render was triggered by route → store sync
@@ -110,19 +104,21 @@ export function useStoreRouteSync() {
 
     if (!currentProject) return;
 
-    const screenshotId = selectedItem?.type === "screenshot"
-      ? selectedItem.id
-      : null;
-
     const target = buildPath(
       currentProject,
       selectedLang,
       selectedPlatform,
-      screenshotId,
+      selectedScreenshotId,
     );
 
     if (location.pathname !== target) {
       navigate(target, { replace: true });
     }
-  }, [currentProject, selectedLang, selectedPlatform, selectedItem, navigate]);
+  }, [
+    currentProject,
+    selectedLang,
+    selectedPlatform,
+    selectedScreenshotId,
+    navigate,
+  ]);
 }

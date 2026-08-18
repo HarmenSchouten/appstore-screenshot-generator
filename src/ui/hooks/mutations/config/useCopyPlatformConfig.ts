@@ -7,11 +7,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { copyPlatform } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
-import { queryKeys } from "@ui/utils/query.ts";
 
 export function useCopyPlatformConfig() {
   return useMutation({
-    mutationKey: [...queryKeys.config.current, "copyPlatform"],
     mutationFn: ({
       sourcePlatform,
       targetPlatform,
@@ -35,7 +33,7 @@ export function useCopyPlatformConfig() {
         return {
           config: newConfig,
           selectedPlatform: targetPlatform,
-          selectedItem: null,
+          selectedScreenshotId: null,
         };
       });
     },

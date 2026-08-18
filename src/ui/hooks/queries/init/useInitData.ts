@@ -32,7 +32,6 @@ export function useInitData() {
       config: query.data.config,
       projects: query.data.projects,
       currentProject: query.data.projectId,
-      initialProjectId: query.data.projectId,
     });
   }
 

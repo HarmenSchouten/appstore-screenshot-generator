@@ -14,7 +14,6 @@ import { useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { saveConfig } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
-import { queryKeys } from "@ui/utils/query.ts";
 import { registerFlush } from "@ui/utils/config-persistence.ts";
 import type { Config } from "@ui/types.ts";
 
@@ -22,7 +21,6 @@ const SAVE_DEBOUNCE_MS = 50;
 
 export function useConfigAutoSave() {
   const { mutateAsync } = useMutation({
-    mutationKey: [...queryKeys.config.current, "save"],
     mutationFn: saveConfig,
   });
 
