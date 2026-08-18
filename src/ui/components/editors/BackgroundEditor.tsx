@@ -182,6 +182,9 @@ const DIRECTION_PRESETS = [
   },
 ];
 
+const DEFAULT_COLORS = ["#8b5cf6", "#3b82f6"];
+const DEFAULT_DIRECTION = 180;
+
 export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   const themeBackground = useAppStore((s) => s.config.theme?.background);
 
@@ -194,10 +197,8 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
 
   // ── Resolve display values ────────────────────────────────
   const gradientType: GradientType = layer.gradientType ?? "linear";
-  const colors: string[] = layer.colors ??
-    themeBackground?.colors ?? ["#8b5cf6", "#3b82f6"];
-  const direction: number = layer.direction ?? themeBackground?.direction ??
-    180;
+  const colors: string[] = layer.colors ?? DEFAULT_COLORS;
+  const direction: number = layer.direction ?? DEFAULT_DIRECTION;
   const isCustomized = layer.colors !== undefined ||
     layer.gradient !== undefined;
 
@@ -281,16 +282,16 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   }, [cssDraft, cssFromVisual, onUpdate]);
 
   // ── Visual mode handlers ──────────────────────────────────
+  // The theme only stores a CSS gradient string, so customizing starts from
+  // fixed defaults rather than the theme's stops (see #65).
   const startCustomizing = useCallback(() => {
-    const themeColors = themeBackground?.colors ?? ["#8b5cf6", "#3b82f6"];
-    const themeDirection = themeBackground?.direction ?? 180;
     onUpdate({
       gradient: undefined,
       gradientType: "linear",
-      colors: [...themeColors],
-      direction: themeDirection,
+      colors: [...DEFAULT_COLORS],
+      direction: DEFAULT_DIRECTION,
     });
-  }, [themeBackground, onUpdate]);
+  }, [onUpdate]);
 
   const setType = useCallback(
     (t: GradientType) =>
