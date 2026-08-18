@@ -5,7 +5,8 @@
  */
 
 import { Hono } from "hono";
-import { join } from "@std/path";
+import { extname, join } from "@std/path";
+import { contentType } from "@std/media-types";
 import { ensureDir } from "@std/fs";
 import { getProjectAssetsDir } from "@/projects.ts";
 
@@ -146,17 +147,9 @@ export function createAssetMiddleware(getCurrentProjectId: () => string) {
 
     try {
       const file = await Deno.readFile(filePath);
-      const ext = filePath.split(".").pop()?.toLowerCase() || "";
-      const mimeTypes: Record<string, string> = {
-        "png": "image/png",
-        "jpg": "image/jpeg",
-        "jpeg": "image/jpeg",
-        "gif": "image/gif",
-        "webp": "image/webp",
-        "svg": "image/svg+xml",
-      };
       return c.body(file, 200, {
-        "Content-Type": mimeTypes[ext] || "application/octet-stream",
+        "Content-Type": contentType(extname(filePath)) ??
+          "application/octet-stream",
       });
     } catch {
       return c.text("Not found", 404);

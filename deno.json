@@ -5,6 +5,8 @@
     "dev:api": "deno run -A --watch=src/server.ts,src/routes/ src/server.ts",
     "dev:vite": "deno run -A node_modules/vite/bin/vite.js",
     "build": "deno run -A node_modules/vite/bin/vite.js build",
+    "serve": "deno run -A src/server.ts",
+    "start": "deno task build && deno task serve",
     "check": "deno check src/server.ts src/ui/main.tsx vite.config.ts",
     "verify": "deno fmt --check && deno lint && deno task check && deno task build"
   },
@@ -21,6 +23,7 @@
   },
   "exclude": ["dist/", "node_modules/"],
   "imports": {
+    "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.6",
     "@std/fs": "jsr:@std/fs@^1.0.24",
     "@/": "./src/",
