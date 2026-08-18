@@ -60,8 +60,6 @@ export function getDefaultConfig(appName: string = "My App"): ProjectConfig {
   return {
     app: {
       name: appName,
-      iconPath: "",
-      defaultMascotPath: "",
     },
     theme: {
       background: {

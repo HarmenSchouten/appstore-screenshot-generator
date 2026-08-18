@@ -41,7 +41,6 @@ export const ANDROID_ONEPLUS_13_PRESET = {
     borderWidth: 1,
     buttonFill: "#2a2c30",
     shadow: "0 24px 52px rgba(0, 0, 0, 0.34), 0 10px 22px rgba(0, 0, 0, 0.14)",
-    screenShadow: undefined,
   },
   summary:
     "Matte aluminum frame, alert slider, centered hole-punch, 2K BOE display",

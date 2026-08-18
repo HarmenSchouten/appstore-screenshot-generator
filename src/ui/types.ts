@@ -11,6 +11,7 @@ export type {
   ProjectConfig,
   ProjectInfo,
   Screenshot,
+  ScreenshotRole,
   ShapeType,
   ThemeConfig as Theme,
 } from "@app-types";
@@ -58,8 +59,10 @@ export interface GenerateProgress {
 export interface GenerateResult {
   path: string;
   relativePath: string;
-  role: "screenshot" | "feature-graphic";
+  role: ScreenshotRole;
   status: "success" | "error";
   error?: string;
   screenshotName?: string;
 }
+
+import type { ScreenshotRole } from "@app-types";

@@ -50,8 +50,6 @@ export interface ImageLayerProps extends BaseLayerProps, PositionalLayerProps {
   size: number;
   /** Border radius in pixels (0 = sharp corners) */
   borderRadius?: number;
-  /** How the image fills its container */
-  objectFit?: "cover" | "contain" | "fill";
 }
 
 // ============================================================
@@ -115,10 +113,10 @@ export interface ShapeLayerProps extends BaseLayerProps, PositionalLayerProps {
   /** Gap between stacked shapes in pixels */
   gap?: number;
 
-  // Star / sparkle-specific
+  // Star / sparkle / crescent-specific
   /** Number of points (4–8) */
   points?: number;
-  /** Inner radius ratio (0.2–0.8) */
+  /** Inner radius ratio (0.2–0.8); crescent uses it for the bite */
   innerRadius?: number;
 
   // Pattern-specific
@@ -136,10 +134,6 @@ export interface ShapeLayerProps extends BaseLayerProps, PositionalLayerProps {
   complexity?: number;
   /** Random seed for reproducible blobs */
   seed?: number;
-
-  // Crescent-specific
-  /** Arc percentage for crescents (10–90) */
-  arcPercentage?: number;
 }
 
 // ============================================================

@@ -40,7 +40,6 @@ export const ANDROID_PIXEL_9_PRO_PRESET = {
     borderWidth: 1,
     buttonFill: "#3a3d44",
     shadow: "0 26px 56px rgba(0, 0, 0, 0.34), 0 12px 24px rgba(0, 0, 0, 0.14)",
-    screenShadow: undefined,
   },
   summary: "Polished aluminum rail, centered hole-punch, 20:9 screen",
 } satisfies DevicePreset;

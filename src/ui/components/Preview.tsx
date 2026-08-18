@@ -17,7 +17,7 @@ import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import { ZoomControls } from "./ZoomControls.tsx";
 import type {
-  AppConfig,
+  AppBranding,
   DevicePresetId,
   Platform,
   Screenshot,
@@ -58,7 +58,7 @@ function ZoomHotkeys() {
 interface PreviewProps {
   screenshot?: Screenshot;
   theme: ThemeConfig;
-  app: AppConfig;
+  app: AppBranding;
   platform: Platform;
   defaultDevicePresetId: DevicePresetId;
   dimensions: { width: number; height: number };

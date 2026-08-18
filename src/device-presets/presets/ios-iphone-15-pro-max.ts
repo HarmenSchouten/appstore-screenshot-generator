@@ -42,7 +42,6 @@ export const IOS_IPHONE_15_PRO_MAX_PRESET = {
     borderWidth: 1,
     buttonFill: "#97918a",
     shadow: "0 18px 40px rgba(0, 0, 0, 0.24), 0 8px 18px rgba(0, 0, 0, 0.10)",
-    screenShadow: undefined,
   },
   summary: "Titanium rails, slimmer bezels, compact Dynamic Island",
 } satisfies DevicePreset;
