@@ -13,7 +13,7 @@ export { PhoneFrame } from "./layers/PhoneFrameLayer.tsx";
 export { getBaseStylesCSS } from "./BaseStyles.tsx";
 export { assetUrl } from "./utils.ts";
 
-// Server-side rendering (for Deno generate.ts)
+// Server-side rendering (used by the generation routes)
 export { renderScreenshot } from "./server.ts";
 
 // Re-export types

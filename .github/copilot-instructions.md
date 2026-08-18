@@ -63,7 +63,7 @@ Declared **once**, in `deno.json` `imports`; `vite.config.ts` derives its `resol
 | `@device-presets` / `@device-presets/` | `src/device-presets/index.ts` / `src/device-presets/` |
 | `@lib` / `@lib/` | `src/lib/index.ts` / `src/lib/` |
 | `@routes` / `@routes/` | `src/routes/index.ts` / `src/routes/` |
-| `@/` | `src/` — only for the server root modules (`src/projects.ts`, `src/convert.ts`, …) |
+| `@/` | `src/` — only for the server root modules (`src/projects.ts`, `src/png-export.ts`, …) |
 
 Rules: any import that leaves the current directory uses an alias (no `../`); same-directory imports stay relative (`./foo.ts`). Use the most specific alias (`@hooks/` over `@ui/hooks/`). The alias is `@app-types`, not `@types`, so it cannot shadow npm's `@types/*` scope.
 

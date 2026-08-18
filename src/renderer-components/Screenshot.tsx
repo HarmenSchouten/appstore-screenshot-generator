@@ -103,7 +103,6 @@ export function Screenshot({ options }: ScreenshotProps): React.ReactElement {
           name="viewport"
           content={`width=${dimensions.width}, height=${dimensions.height}`}
         />
-        <meta name="screenshot-role" content={screenshot.role} />
         <title>{`${app.name} - ${screenshot.id}`}</title>
         <style dangerouslySetInnerHTML={{ __html: getBaseStylesCSS(theme) }} />
       </head>
