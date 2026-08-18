@@ -59,7 +59,7 @@ Declared **once**, in `deno.json` `imports`; `vite.config.ts` derives its `resol
 | `@app-types` / `@app-types/` | `src/types/index.ts` / `src/types/` |
 | `@ui/` | `src/ui/` |
 | `@hooks` / `@hooks/` | `src/ui/hooks/index.ts` / `src/ui/hooks/` |
-| `@renderer` / `@renderer/` | `src/renderer-components/index.ts` / `src/renderer-components/` |
+| `@renderer/` | `src/renderer-components/` |
 | `@device-presets` / `@device-presets/` | `src/device-presets/index.ts` / `src/device-presets/` |
 | `@lib` / `@lib/` | `src/lib/index.ts` / `src/lib/` |
 | `@routes` / `@routes/` | `src/routes/index.ts` / `src/routes/` |

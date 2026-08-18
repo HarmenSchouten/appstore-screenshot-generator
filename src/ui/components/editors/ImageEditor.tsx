@@ -7,7 +7,6 @@ import type { ImageLayerProps } from "@app-types";
 import { useAppStore } from "@ui/store/index.ts";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
-import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
 
 interface ImageEditorProps {
   layer: ImageLayerProps;
@@ -108,19 +107,6 @@ export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
           step={1}
           unit="%"
         />
-
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1.5">Fit</label>
-          <SegmentedControl
-            value={layer.objectFit ?? "contain"}
-            onChange={(v) => set("objectFit", v)}
-            options={[
-              { value: "contain", label: "Contain" },
-              { value: "cover", label: "Cover" },
-              { value: "fill", label: "Fill" },
-            ]}
-          />
-        </div>
       </section>
     </div>
   );

@@ -1,8 +1,6 @@
 {
   "app": {
-    "name": "Default project",
-    "iconPath": "assets/icons/mascot.png",
-    "defaultMascotPath": ""
+    "name": "Default project"
   },
   "theme": {
     "background": {

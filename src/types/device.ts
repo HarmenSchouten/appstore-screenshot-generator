@@ -15,8 +15,6 @@ export type DevicePresetId =
   | "android-oneplus-13"
   | "android-legacy-classic";
 
-export type DeviceMode = "inherit" | "override";
-
 export interface DeviceButtonPreset {
   side: "left" | "right";
   top: number;
@@ -24,7 +22,6 @@ export interface DeviceButtonPreset {
   width: number;
   offset: number;
   radius: number;
-  background?: string;
 }
 
 export interface DeviceCutoutPreset {
@@ -55,10 +52,8 @@ export interface DeviceMaterialPreset {
   faceBorderColor?: string;
   faceBorderWidth?: number;
   faceShadow?: string;
-  innerFill?: string;
   borderColor?: string;
   borderWidth?: number;
-  innerBorderColor?: string;
   buttonFill?: string;
   shadow?: string;
   screenShadow?: string;

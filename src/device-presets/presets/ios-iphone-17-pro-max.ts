@@ -42,7 +42,6 @@ export const IOS_IPHONE_17_PRO_MAX_PRESET = {
     borderWidth: 1,
     buttonFill: "#a8a9ad",
     shadow: "0 18px 40px rgba(0, 0, 0, 0.24), 0 8px 18px rgba(0, 0, 0, 0.10)",
-    screenShadow: undefined,
   },
   summary: 'Aluminum alloy body, Dynamic Island, expansive 6.9" display',
 } satisfies DevicePreset;

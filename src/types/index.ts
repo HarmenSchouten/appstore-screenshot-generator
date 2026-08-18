@@ -2,18 +2,18 @@
  * Consolidated Type Definitions for App Store Screenshots
  *
  * This module is the single source of truth for all type definitions.
- * Import from '@types' throughout the application.
+ * Import from '@app-types' throughout the application.
  *
  * Types are organized into logical modules:
- * - base.ts       - Platform, Language, Dimensions
+ * - base.ts       - Platform, Dimensions
  * - effects.ts    - ShapeType
  * - typography.ts - TypographyOptions
  * - device.ts     - DevicePreset, DevicePresetId, PlatformDefaults
- * - screenshot.ts - Screenshot, FeatureGraphic
+ * - screenshot.ts - Screenshot, ScreenshotRole
  * - theme.ts      - ThemeConfig, ColorPalette, AppBranding
  * - config.ts     - PlatformConfig, LanguageConfig, ProjectConfig
- * - renderer.ts   - RenderOptions, FeatureGraphicRenderOptions
- * - generation.ts - GenerationResult, GenerationProgress, AssetLists
+ * - renderer.ts   - RenderOptions
+ * - layers.ts     - Layer and the per-type *LayerProps
  */
 
 // Base types
@@ -39,9 +39,6 @@ export * from "./config.ts";
 
 // Renderer options
 export * from "./renderer.ts";
-
-// Generation and assets
-export * from "./generation.ts";
 
 // Layer types
 export * from "./layers.ts";

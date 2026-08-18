@@ -1,8 +1,5 @@
 /**
  * ShapeLayer — renders a decorative SVG shape as a layer.
- *
- * Adapts SVG generation from the legacy Shape.tsx component
- * to work within the layer-based composition system.
  */
 
 import type { ShapeLayerProps } from "@app-types";

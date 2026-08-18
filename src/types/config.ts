@@ -2,7 +2,7 @@
  * Project and Configuration types
  */
 
-import type { Dimensions, Language } from "./base.ts";
+import type { Dimensions } from "./base.ts";
 import type { Screenshot } from "./screenshot.ts";
 import type { AppBranding, ColorPalette, ThemeConfig } from "./theme.ts";
 import type { PlatformDefaults } from "./device.ts";
@@ -20,7 +20,7 @@ export interface PlatformConfig {
 
 export interface LanguageConfig {
   /** Language code */
-  language: Language;
+  language: string;
   /** Screenshots per platform for this language */
   platforms: {
     android: PlatformConfig;

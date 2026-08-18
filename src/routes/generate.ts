@@ -7,7 +7,7 @@
 import { Hono } from "hono";
 import { join, toFileUrl } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { ProjectConfig } from "@app-types";
+import type { ProjectConfig, ScreenshotRole } from "@app-types";
 import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
 import { renderScreenshot } from "@renderer/server.ts";
 import { convertHtmlFileToPng } from "@/png-export.ts";
@@ -70,7 +70,7 @@ export function createGenerateRoutes(
         const results: {
           path: string;
           relativePath: string;
-          role: "screenshot" | "feature-graphic";
+          role: ScreenshotRole;
           status: "success" | "error";
           error?: string;
           screenshotName?: string;
@@ -205,7 +205,7 @@ export function createGenerateRoutes(
     const results: {
       relativePath: string;
       status: string;
-      role: "screenshot" | "feature-graphic";
+      role: ScreenshotRole;
     }[] = [];
 
     /** Read PNG width/height from the IHDR chunk (bytes 16-23). */

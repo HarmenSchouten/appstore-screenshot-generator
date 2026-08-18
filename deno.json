@@ -36,7 +36,6 @@
     "@lib/": "./src/lib/",
     "@device-presets": "./src/device-presets/index.ts",
     "@device-presets/": "./src/device-presets/",
-    "@renderer": "./src/renderer-components/index.ts",
     "@renderer/": "./src/renderer-components/",
     "@hooks": "./src/ui/hooks/index.ts",
     "@hooks/": "./src/ui/hooks/"

@@ -1,9 +1,7 @@
 /**
  * Visual effect types - Shape type enum
  *
- * Note: GlowEffect and Shape interfaces have been replaced by
- * GlowLayerProps and ShapeLayerProps in layers.ts.
- * GlowColor is now inlined in the Glow renderer constants.
+ * Glow and shape layer props live in layers.ts (GlowLayerProps, ShapeLayerProps).
  */
 
 // ============================================================

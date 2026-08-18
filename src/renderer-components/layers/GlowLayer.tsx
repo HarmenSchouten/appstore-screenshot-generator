@@ -1,9 +1,5 @@
 import type { GlowLayerProps } from "@app-types";
 
-export interface GlowLayerRenderProps extends GlowLayerProps {
-  containerWidth: number;
-}
-
 export const GlowLayer = ({
   color,
   size,
@@ -12,7 +8,7 @@ export const GlowLayer = ({
   posY,
   rotation,
   opacity,
-}: GlowLayerRenderProps) => {
+}: GlowLayerProps) => {
   return (
     <div
       style={{

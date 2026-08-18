@@ -3,7 +3,6 @@
  * positioned absolutely inside the screenshot container.
  *
  * Contains the single source of truth for phone frame rendering.
- * Also exports a standalone PhoneFrame for non-layer contexts (e.g. FeatureGraphic).
  */
 
 import React from "react";
@@ -57,42 +56,6 @@ export const PhoneFrameLayer = ({
   );
 };
 
-// ── Standalone PhoneFrame (for FeatureGraphic etc.) ─────────
-
-interface PhoneFrameProps {
-  imageUrl: string;
-  presetId: DevicePresetId;
-  widthPercent: number;
-  rotation?: number;
-  extraStyles?: React.CSSProperties;
-  pixelWidth?: number;
-}
-
-export function PhoneFrame({
-  imageUrl,
-  presetId,
-  widthPercent,
-  rotation = 0,
-  extraStyles = {},
-  pixelWidth = DEVICE_PRESET_REFERENCE_WIDTH,
-}: PhoneFrameProps): React.ReactElement {
-  const containerStyle: React.CSSProperties = {
-    width: `${widthPercent}%`,
-    ...(rotation !== 0 && { transform: `rotate(${rotation}deg)` }),
-    ...extraStyles,
-  };
-
-  return (
-    <div style={containerStyle}>
-      <PhoneFrameCore
-        presetId={presetId}
-        imageUrl={imageUrl}
-        pixelWidth={pixelWidth}
-      />
-    </div>
-  );
-}
-
 // ── Core frame rendering ────────────────────────────────────
 
 interface PhoneFrameCoreProps {
@@ -117,7 +80,6 @@ function PhoneFrameCore({
     ? Math.max(1, (preset.material.faceBorderWidth ?? 1) * s)
     : 0;
   const innerInset = Math.max(1, frameBorderWidth);
-  const innerBorderWidth = Math.max(1, Math.round(s));
 
   // ── Frame styles ──────────────────────────────────────────
 
@@ -146,20 +108,6 @@ function PhoneFrameCore({
       pointerEvents: "none",
     }
     : null;
-
-  const frameInnerStyle: React.CSSProperties | null =
-    preset.material.innerFill || preset.material.innerBorderColor
-      ? {
-        position: "absolute",
-        inset: `${innerInset}px`,
-        borderRadius: `${Math.max((preset.outerRadius * s) - innerInset, 0)}px`,
-        background: preset.material.innerFill,
-        border: preset.material.innerBorderColor
-          ? `${innerBorderWidth}px solid ${preset.material.innerBorderColor}`
-          : undefined,
-        pointerEvents: "none",
-      }
-      : null;
 
   const topHighlightStyle: React.CSSProperties | null =
     preset.material.topHighlight
@@ -222,7 +170,7 @@ function PhoneFrameCore({
     }, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.04) 40%, transparent 100%)`;
     const topEdge =
       "linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 20%)";
-    const bg = button.background ?? `${outerCatch}, ${topEdge}, ${buttonFill}`;
+    const bg = `${outerCatch}, ${topEdge}, ${buttonFill}`;
 
     // Scale-aware shadow values — no hard border, just soft depth
     const sp = Math.max(0.5, 0.5 * s);
@@ -314,7 +262,6 @@ function PhoneFrameCore({
         index: number,
       ) => renderButton(index, button))}
       {frameFaceStyle && <div style={frameFaceStyle} />}
-      {frameInnerStyle && <div style={frameInnerStyle} />}
       {topHighlightStyle && <div style={topHighlightStyle} />}
 
       <div style={screenStyle}>

@@ -13,7 +13,6 @@ export const ImageLayer = ({
   rotation,
   opacity,
   borderRadius = 0,
-  objectFit = "contain",
   assetUrlPrefix = "/assets/",
 }: ImageLayerRenderProps) => {
   const src = assetUrl(imagePath, assetUrlPrefix);
@@ -39,7 +38,6 @@ export const ImageLayer = ({
           height: "auto",
           display: "block",
           borderRadius: borderRadius > 0 ? `${borderRadius}px` : undefined,
-          objectFit,
         }}
       />
     </div>

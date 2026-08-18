@@ -73,12 +73,7 @@ const ScreenshotLayer = (
     case "image":
       return <ImageLayer {...layer} assetUrlPrefix={assetUrlPrefix} />;
     case "glow":
-      return (
-        <GlowLayer
-          {...layer}
-          containerWidth={containerWidth}
-        />
-      );
+      return <GlowLayer {...layer} />;
     case "shape":
       return <ShapeLayer {...layer} />;
     default:
@@ -112,5 +107,3 @@ export function Screenshot({ options }: ScreenshotProps): React.ReactElement {
     </html>
   );
 }
-
-// Server-side rendering is handled by ./server.ts

@@ -40,7 +40,6 @@ export const ANDROID_GALAXY_S24_ULTRA_PRESET = {
     borderWidth: 1,
     buttonFill: "#87827b",
     shadow: "0 24px 50px rgba(0, 0, 0, 0.36), 0 10px 22px rgba(0, 0, 0, 0.14)",
-    screenShadow: undefined,
   },
   summary: "Titanium rail, centered hole-punch, squared flagship silhouette",
 } satisfies DevicePreset;
