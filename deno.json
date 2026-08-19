@@ -8,7 +8,8 @@
     "serve": "deno run -A src/server.ts",
     "start": "deno task build && deno task serve",
     "check": "deno check src/server.ts src/ui/main.tsx vite.config.ts",
-    "verify": "deno fmt --check && deno lint && deno task check && deno task build"
+    "test": "deno test --allow-read --allow-write --allow-env src/",
+    "verify": "deno fmt --check && deno lint && deno task check && deno task test && deno task build"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
@@ -23,6 +24,7 @@
   },
   "exclude": ["dist/", "node_modules/"],
   "imports": {
+    "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/media-types": "jsr:@std/media-types@^1.1.0",
     "@std/path": "jsr:@std/path@^1.1.6",
     "@std/fs": "jsr:@std/fs@^1.0.24",
@@ -31,6 +33,7 @@
     "@app-types/": "./src/types/",
     "@routes": "./src/routes/index.ts",
     "@routes/": "./src/routes/",
+    "@std/testing": "jsr:@std/testing@^1.0.20",
     "@ui/": "./src/ui/",
     "@lib": "./src/lib/index.ts",
     "@lib/": "./src/lib/",
