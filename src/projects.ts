@@ -21,9 +21,12 @@ const DEFAULT_PROJECT_ID = "default";
 
 /**
  * Get projects directory path
+ *
+ * PROJECTS_DIR env var overrides the default location so tests can point
+ * the whole module at a temp directory.
  */
 export function getProjectsDir(): string {
-  return join(Deno.cwd(), PROJECTS_DIR);
+  return Deno.env.get("PROJECTS_DIR") ?? join(Deno.cwd(), PROJECTS_DIR);
 }
 
 /**
