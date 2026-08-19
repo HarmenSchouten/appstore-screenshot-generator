@@ -4,8 +4,8 @@ import { join } from "@std/path";
 import { Hono } from "hono";
 import type { ProjectConfig, Screenshot } from "@app-types";
 import { createConfigRoutes } from "./config.ts";
-import { getDefaultConfig } from "../projects.ts";
-import { makeDefaultScreenshot, withTempProjectsDir } from "../test-helpers.ts";
+import { getDefaultConfig } from "@/projects.ts";
+import { makeDefaultScreenshot, withTempProjectsDir } from "@/test-helpers.ts";
 
 const PROJECT_ID = "config-routes-test";
 

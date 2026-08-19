@@ -1,12 +1,12 @@
 import { assertSnapshot } from "@std/testing/snapshot";
 import { assertStringIncludes } from "@std/assert";
 import { FEATURE_GRAPHIC_SIZE } from "@lib";
-import { getDefaultConfig } from "../projects.ts";
+import { getDefaultConfig } from "@/projects.ts";
 import {
   makeDefaultScreenshot,
   makeEffectsScreenshot,
   makeFeatureGraphic,
-} from "../test-helpers.ts";
+} from "@/test-helpers.ts";
 import { renderScreenshot } from "./server.ts";
 
 // renderToStaticMarkup is deterministic, so full-document snapshots catch
