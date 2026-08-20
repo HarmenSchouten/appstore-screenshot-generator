@@ -165,7 +165,7 @@ export function Sidebar() {
               selectedPlatform,
               (e.target as HTMLSelectElement).value as DevicePresetId,
             )}
-          className="w-full px-2.5 py-1.5 rounded text-xs bg-zinc-800 border border-zinc-700"
+          className="w-full px-2.5 py-1.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           {platformPresets.map((preset) => (
             <option key={preset.id} value={preset.id}>

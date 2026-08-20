@@ -179,7 +179,7 @@ export function MediaManagerModal(
                                   setNewName("");
                                 }
                               }}
-                              className="w-full px-2 py-1 text-xs rounded bg-zinc-700 border border-zinc-600"
+                              className="w-full px-2 py-1 text-xs rounded bg-zinc-700 border border-zinc-600 text-zinc-200 focus:outline-none focus:border-indigo-500"
                               autoFocus
                             />
                             <div className="flex gap-1 mt-1">

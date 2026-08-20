@@ -123,7 +123,7 @@ export function LanguagePicker(
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by language or code..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500"
+              className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
         </div>

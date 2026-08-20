@@ -53,7 +53,7 @@ export function ImageSelect({
         <select
           value={value || ""}
           onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
-          className="flex-1 px-3 py-2 rounded text-sm"
+          className="flex-1 px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
         >
           <option value="">{placeholder}</option>
           {options.map((p) => (

@@ -227,7 +227,7 @@ export function ThemeEditorModal(
                   value={customGradient}
                   onInput={(e) =>
                     setCustomGradient((e.target as HTMLInputElement).value)}
-                  className="w-full px-3 py-2 rounded text-sm font-mono bg-zinc-800 border border-zinc-700"
+                  className="w-full px-3 py-2 rounded text-sm font-mono bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
                   placeholder="linear-gradient(135deg, #a855f7 0%, #0a0a0a 100%)"
                 />
                 <div
@@ -262,7 +262,7 @@ export function ThemeEditorModal(
                   value={fontFamily}
                   onInput={(e) =>
                     setFontFamily((e.target as HTMLInputElement).value)}
-                  className="w-full px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700"
+                  className="w-full px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
                   placeholder="Inter, sans-serif"
                 />
               </div>
@@ -275,7 +275,7 @@ export function ThemeEditorModal(
                   value={googleFontsUrl}
                   onInput={(e) =>
                     setGoogleFontsUrl((e.target as HTMLInputElement).value)}
-                  className="w-full px-3 py-2 rounded text-sm font-mono bg-zinc-800 border border-zinc-700"
+                  className="w-full px-3 py-2 rounded text-sm font-mono bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
                   placeholder="@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');"
                 />
               </div>

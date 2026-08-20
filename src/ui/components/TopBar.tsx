@@ -149,7 +149,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
                     }
                   }}
                   placeholder="New project name..."
-                  className="flex-1 px-2.5 py-1.5 rounded text-xs bg-zinc-900 border border-zinc-600 text-white placeholder-zinc-500 min-w-0"
+                  className="flex-1 px-2.5 py-1.5 rounded text-xs bg-zinc-900 border border-zinc-600 text-white placeholder-zinc-500 min-w-0 focus:outline-none focus:border-indigo-500"
                 />
                 <button
                   type="button"

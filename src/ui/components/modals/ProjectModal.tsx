@@ -133,7 +133,7 @@ export function ProjectModal({
                         if (e.key === "Enter") handleRename(p.id);
                         if (e.key === "Escape") setEditingProject(null);
                       }}
-                      className="flex-1 px-3 py-1.5 rounded text-sm bg-zinc-800 border border-zinc-600 min-w-0"
+                      className="flex-1 px-3 py-1.5 rounded text-sm bg-zinc-800 border border-zinc-600 text-zinc-200 min-w-0 focus:outline-none focus:border-indigo-500"
                       autoFocus
                     />
                     <button
