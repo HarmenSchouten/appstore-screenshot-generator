@@ -29,30 +29,12 @@
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-/* Input styling */
-input,
-select,
-textarea {
-  background: #252525 !important;
-  border: 1px solid #333 !important;
-  color: white !important;
-}
-input:focus,
-select:focus,
-textarea:focus {
-  border-color: #6366f1 !important;
-  outline: none !important;
-}
-input[type="color"] {
-  padding: 0 !important;
-  height: 32px !important;
-  cursor: pointer;
-}
+/* Range inputs — custom track/thumb; Tailwind can't reach these pseudo-elements */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  background: transparent !important;
-  border: none !important;
+  background: transparent;
+  border: none;
   cursor: pointer;
   height: 20px;
 }

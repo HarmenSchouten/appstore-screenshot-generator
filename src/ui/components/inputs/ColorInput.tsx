@@ -139,7 +139,7 @@ export function ColorInput({
           onInput={handleHexChange}
           onBlur={handleHexBlur}
           maxLength={7}
-          className="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 rounded-r focus:outline-none focus:border-indigo-500 font-mono uppercase"
+          className="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 text-zinc-200 rounded-r focus:outline-none focus:border-indigo-500 font-mono uppercase"
           placeholder="#ffffff"
         />
       </div>
