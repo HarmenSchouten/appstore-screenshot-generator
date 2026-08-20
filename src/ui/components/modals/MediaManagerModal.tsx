@@ -44,10 +44,7 @@ export function MediaManagerModal(
           message: `Uploaded ${file.name}`,
         });
       } catch {
-        useAppStore.getState().addToast({
-          type: "error",
-          message: `Upload failed: ${file.name}`,
-        });
+        // error toast comes from the global mutation cache; keep uploading
       }
     }
     e.target.value = "";
@@ -59,17 +56,7 @@ export function MediaManagerModal(
     setEditingItem(null);
     setNewName("");
 
-    renameAsset.mutate(
-      { oldPath, newName: newName.trim() },
-      {
-        onError: () => {
-          useAppStore.getState().addToast({
-            type: "error",
-            message: "Rename failed",
-          });
-        },
-      },
-    );
+    renameAsset.mutate({ oldPath, newName: newName.trim() });
   };
 
   const handleDelete = (path: string) => {
@@ -80,12 +67,6 @@ export function MediaManagerModal(
         useAppStore.getState().addToast({
           type: "success",
           message: "File deleted",
-        });
-      },
-      onError: () => {
-        useAppStore.getState().addToast({
-          type: "error",
-          message: "Delete failed",
         });
       },
     });

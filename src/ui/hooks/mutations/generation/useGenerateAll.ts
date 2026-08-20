@@ -16,6 +16,8 @@ export function useGenerateAll() {
   const queryClient = useQueryClient();
 
   return useMutation({
+    // onError below already toasts with context and closes the modal
+    meta: { suppressErrorToast: true },
     mutationFn: async () => {
       await flushPersist();
 
