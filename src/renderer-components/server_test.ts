@@ -1,6 +1,10 @@
 import { assertSnapshot } from "@std/testing/snapshot";
-import { assertStringIncludes } from "@std/assert";
-import { FEATURE_GRAPHIC_SIZE } from "@lib";
+import { assert, assertStringIncludes } from "@std/assert";
+import {
+  DEVICE_PRESET_REFERENCE_WIDTH,
+  getDevicePreset,
+} from "@device-presets";
+import { FEATURE_GRAPHIC_SIZE, getScreenshotDimensions } from "@lib";
 import { getDefaultConfig } from "@/projects.ts";
 import {
   makeDefaultScreenshot,
@@ -44,6 +48,41 @@ Deno.test("renderScreenshot: feature graphic snapshot", async (t) => {
 
   assertStringIncludes(html, "Plan. Track. Done.");
   await assertSnapshot(t, html);
+});
+
+// Phone-frame geometry (radii, bezels, insets) scales from the canvas
+// width. A feature graphic must derive it from FEATURE_GRAPHIC_SIZE, not
+// the platform dimensions — the 1080-vs-1024 mismatch was #60's preview
+// bug, so this pins the export side both ways.
+Deno.test("renderScreenshot: feature-graphic frame geometry scales from FEATURE_GRAPHIC_SIZE", () => {
+  const fg = makeFeatureGraphic();
+  const phone = fg.layers.find((l) => l.type === "phone-frame");
+  assert(phone && phone.type === "phone-frame");
+
+  const platformDimensions =
+    baseConfig.languages[0].platforms.android.dimensions;
+  const html = renderScreenshot({
+    screenshot: fg,
+    theme: baseConfig.theme,
+    app: baseConfig.app,
+    platform: "android",
+    defaultDevicePresetId: "android-pixel-9-pro",
+    dimensions: getScreenshotDimensions(fg, platformDimensions),
+    assetUrlPrefix: "/assets/",
+  });
+
+  const preset = getDevicePreset(phone.model);
+  const radiusFor = (canvasWidth: number) => {
+    const pixelWidth = Math.round(canvasWidth * (phone.scale! / 100));
+    const s = pixelWidth / DEVICE_PRESET_REFERENCE_WIDTH;
+    return `border-radius:${preset.outerRadius * s}px`;
+  };
+
+  assertStringIncludes(html, radiusFor(FEATURE_GRAPHIC_SIZE.width));
+  assert(
+    !html.includes(radiusFor(platformDimensions.width)),
+    "frame geometry must not derive from platform dimensions",
+  );
 });
 
 Deno.test("renderScreenshot: shape, glow and image layers snapshot", async (t) => {

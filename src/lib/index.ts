@@ -10,6 +10,7 @@ import type {
   Dimensions,
   GradientTemplate,
   Platform,
+  ScreenshotRole,
 } from "@app-types";
 
 // ============================================================
@@ -35,6 +36,21 @@ export const FEATURE_GRAPHIC_SIZE: Readonly<Dimensions> = {
   width: 1024,
   height: 500,
 };
+
+/**
+ * Effective canvas size for a screenshot: feature graphics always render at
+ * the fixed Play Store size, everything else at the platform dimensions.
+ * Preview and export must both derive dimensions from this — phone-frame
+ * geometry scales from the canvas width, so a mismatch breaks WYSIWYG.
+ */
+export function getScreenshotDimensions(
+  screenshot: { role: ScreenshotRole },
+  platformDimensions: Readonly<Dimensions>,
+): Readonly<Dimensions> {
+  return screenshot.role === "feature-graphic"
+    ? FEATURE_GRAPHIC_SIZE
+    : platformDimensions;
+}
 
 // ============================================================
 // Gradient Templates
