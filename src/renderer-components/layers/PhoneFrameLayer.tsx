@@ -16,8 +16,9 @@ import { assetUrl } from "@renderer/utils.ts";
 interface PhoneFrameLayerRenderProps extends PhoneFrameLayerProps {
   /** Prefix for resolving asset paths (e.g. "/assets/" in preview) */
   assetUrlPrefix?: string;
-  /** Screenshot container width in pixels — used to scale geometry correctly */
-  containerWidth?: number;
+  /** Screenshot container width in pixels — used to scale geometry correctly.
+   * Required: a fallback here would silently mask preview/export mismatches. */
+  containerWidth: number;
 }
 
 export const PhoneFrameLayer = ({
@@ -29,7 +30,7 @@ export const PhoneFrameLayer = ({
   rotation,
   opacity,
   assetUrlPrefix = "/assets/",
-  containerWidth = 1290,
+  containerWidth,
 }: PhoneFrameLayerRenderProps) => {
   const imageUrl = assetUrl(imagePath, assetUrlPrefix);
   const pixelWidth = Math.round(containerWidth * (scale / 100));

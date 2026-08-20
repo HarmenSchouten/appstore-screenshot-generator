@@ -11,7 +11,7 @@ import type { ProjectConfig, Screenshot, ScreenshotRole } from "@app-types";
 import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
 import { renderScreenshot } from "@renderer/server.ts";
 import { convertHtmlFileToPng } from "@/png-export.ts";
-import { FEATURE_GRAPHIC_SIZE } from "@lib";
+import { getScreenshotDimensions } from "@lib";
 
 function sanitizeFilename(name: string): string {
   return name
@@ -116,9 +116,10 @@ export function createGenerateRoutes(
               const relativePath =
                 `${langConfig.language}/${platformName}/${fileName}.png`;
 
-              const dimensions = screenshot.role === "feature-graphic"
-                ? FEATURE_GRAPHIC_SIZE
-                : platformConfig.dimensions;
+              const dimensions = getScreenshotDimensions(
+                screenshot,
+                platformConfig.dimensions,
+              );
 
               send({
                 type: "progress",

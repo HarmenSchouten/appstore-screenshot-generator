@@ -16,7 +16,7 @@ import { useAppStore } from "@ui/store/index.ts";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import { ZoomControls } from "./ZoomControls.tsx";
-import { FEATURE_GRAPHIC_SIZE } from "@lib";
+import { getScreenshotDimensions } from "@lib";
 import type {
   AppBranding,
   DevicePresetId,
@@ -105,9 +105,11 @@ export function Preview(
     };
   }, []);
 
-  const { width, height } = screenshot.role === "feature-graphic"
-    ? FEATURE_GRAPHIC_SIZE
-    : dimensions;
+  // Same dimensions export uses — phone-frame geometry scales from the
+  // canvas width, so passing platform dimensions for a feature graphic
+  // would render frames ~21% larger in preview than in the PNG (#60).
+  const effectiveDimensions = getScreenshotDimensions(screenshot, dimensions);
+  const { width, height } = effectiveDimensions;
 
   const scale = useMemo(() => {
     const availableWidth = containerSize.width - 40;
@@ -184,7 +186,7 @@ export function Preview(
                       app,
                       platform,
                       defaultDevicePresetId,
-                      dimensions,
+                      dimensions: effectiveDimensions,
                       assetUrlPrefix: "/assets/",
                     }}
                   />
