@@ -2,9 +2,9 @@ import type { DevicePreset } from "@app-types";
 
 export const ANDROID_LEGACY_CLASSIC_PRESET = {
   id: "android-legacy-classic",
-  label: "Legacy Classic",
+  label: "Generic",
   platform: "android",
-  family: "Legacy",
+  family: "Generic",
   bodyHeight: 855,
   outerRadius: 24,
   screen: {
@@ -30,5 +30,5 @@ export const ANDROID_LEGACY_CLASSIC_PRESET = {
     topHighlight:
       "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 12%, transparent 24%)",
   },
-  summary: "Original generic premium frame",
+  summary: "Generic frame without camera cutout",
 } satisfies DevicePreset;

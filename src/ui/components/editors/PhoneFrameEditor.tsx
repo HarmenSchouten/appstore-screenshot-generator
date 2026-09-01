@@ -4,9 +4,9 @@
 
 import { useCallback } from "react";
 import type { PhoneFrameLayerProps } from "@app-types";
-import { getAllDevicePresets } from "@device-presets";
+import { getAllDevicePresets, getDevicePreset } from "@device-presets";
 import type { DevicePresetId } from "@app-types";
-import { useAppStore } from "@ui/store/index.ts";
+import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 
@@ -19,6 +19,18 @@ export function PhoneFrameEditor(
   { layer, onUpdate }: PhoneFrameEditorProps,
 ) {
   const assets = useAppStore((s) => s.assets);
+
+  // The preset an inheriting layer resolves to — feature graphics always
+  // render in the Android export pass, so they inherit the Android default.
+  const platformDefaultId = useAppStore((s) => {
+    const selected = selectScreenshots(s).find(
+      (x) => x.id === s.selectedScreenshotId,
+    );
+    const platform = selected?.role === "feature-graphic"
+      ? "android"
+      : s.selectedPlatform;
+    return s.getDefaultDevicePreset(platform);
+  });
 
   const set = useCallback(
     <K extends keyof PhoneFrameLayerProps>(
@@ -41,14 +53,19 @@ export function PhoneFrameEditor(
         <div>
           <label className="text-xs text-zinc-500 block mb-1.5">Model</label>
           <select
-            value={layer.model}
-            onChange={(e) =>
+            value={layer.model ?? ""}
+            onChange={(e) => {
+              const value = (e.target as HTMLSelectElement).value;
               set(
                 "model",
-                (e.target as HTMLSelectElement).value as DevicePresetId,
-              )}
+                value === "" ? undefined : value as DevicePresetId,
+              );
+            }}
             className="w-full px-3 py-2 rounded-lg text-sm bg-zinc-800 border border-zinc-700/60 text-zinc-200 focus:outline-none focus:border-zinc-500"
           >
+            <option value="">
+              Platform default ({getDevicePreset(platformDefaultId).label})
+            </option>
             <optgroup
               label="iOS"
               style={{

@@ -43,6 +43,7 @@ export function ScreenshotContent(
           theme={options.theme}
           assetUrlPrefix={assetUrlPrefix}
           containerWidth={options.dimensions.width}
+          defaultDevicePresetId={options.defaultDevicePresetId}
         />
       ))}
     </div>
@@ -50,11 +51,12 @@ export function ScreenshotContent(
 }
 
 const ScreenshotLayer = (
-  { layer, theme, assetUrlPrefix, containerWidth }: {
+  { layer, theme, assetUrlPrefix, containerWidth, defaultDevicePresetId }: {
     layer: Layer;
     theme: ThemeConfig;
     assetUrlPrefix: string;
     containerWidth: number;
+    defaultDevicePresetId: RenderOptions["defaultDevicePresetId"];
   },
 ) => {
   switch (layer.type) {
@@ -68,6 +70,7 @@ const ScreenshotLayer = (
           {...layer}
           assetUrlPrefix={assetUrlPrefix}
           containerWidth={containerWidth}
+          defaultDevicePresetId={defaultDevicePresetId}
         />
       );
     case "image":

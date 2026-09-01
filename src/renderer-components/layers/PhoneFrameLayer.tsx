@@ -19,6 +19,9 @@ interface PhoneFrameLayerRenderProps extends PhoneFrameLayerProps {
   /** Screenshot container width in pixels — used to scale geometry correctly.
    * Required: a fallback here would silently mask preview/export mismatches. */
   containerWidth: number;
+  /** Preset rendered when the layer has no explicit `model`.
+   * Required so preview and export can't resolve differently. */
+  defaultDevicePresetId: DevicePresetId;
 }
 
 export const PhoneFrameLayer = ({
@@ -31,6 +34,7 @@ export const PhoneFrameLayer = ({
   opacity,
   assetUrlPrefix = "/assets/",
   containerWidth,
+  defaultDevicePresetId,
 }: PhoneFrameLayerRenderProps) => {
   const imageUrl = assetUrl(imagePath, assetUrlPrefix);
   const pixelWidth = Math.round(containerWidth * (scale / 100));
@@ -49,7 +53,7 @@ export const PhoneFrameLayer = ({
       }}
     >
       <PhoneFrameCore
-        presetId={model}
+        presetId={model ?? defaultDevicePresetId}
         imageUrl={imageUrl}
         pixelWidth={pixelWidth}
       />

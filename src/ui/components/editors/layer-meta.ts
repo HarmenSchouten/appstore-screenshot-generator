@@ -49,7 +49,9 @@ function layerBaseName(layer: Layer): string {
     case "text":
       return layer.text || "Text";
     case "phone-frame":
-      return DEVICE_PRESETS[layer.model]?.label ?? "Phone Frame";
+      return layer.model
+        ? DEVICE_PRESETS[layer.model]?.label ?? "Phone Frame"
+        : "Phone Frame";
     case "image":
       if (layer.imagePath) {
         const file = layer.imagePath.split("/").pop() ?? "";
@@ -118,10 +120,10 @@ export function createDefaultLayer(type: Layer["type"]): Layer {
         lineHeight: 1.2,
       };
     case "phone-frame":
+      // No `model`: the layer inherits the platform's default device.
       return {
         ...base,
         type: "phone-frame",
-        model: "ios-iphone-15-pro",
         scale: 70,
       };
     case "image":
