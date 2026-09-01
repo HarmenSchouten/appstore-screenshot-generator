@@ -156,7 +156,7 @@ export function Sidebar() {
       {/* Device Preset */}
       <div className="px-3 py-3 border-t border-zinc-800">
         <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1.5 font-medium">
-          Device
+          Default device
         </div>
         <select
           value={platformDefaultDevicePresetId}

@@ -2,9 +2,9 @@ import type { DevicePreset } from "@app-types";
 
 export const IOS_LEGACY_CLASSIC_PRESET = {
   id: "ios-legacy-classic",
-  label: "Legacy Classic",
+  label: "Generic",
   platform: "ios",
-  family: "Legacy",
+  family: "Generic",
   bodyHeight: 855,
   outerRadius: 24,
   screen: {
@@ -30,5 +30,5 @@ export const IOS_LEGACY_CLASSIC_PRESET = {
     topHighlight:
       "linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 12%, transparent 24%)",
   },
-  summary: "Original generic premium frame",
+  summary: "Generic frame without notch or cutout",
 } satisfies DevicePreset;

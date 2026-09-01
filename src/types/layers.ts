@@ -33,8 +33,8 @@ export interface TextLayerProps
 export interface PhoneFrameLayerProps
   extends BaseLayerProps, PositionalLayerProps {
   type: "phone-frame";
-  /** Device preset to render */
-  model: DevicePresetId;
+  /** Device preset to render. Omitted = inherit the platform's default device. */
+  model?: DevicePresetId;
   /** Path to the screenshot image shown inside the frame (relative to assets) */
   imagePath?: string;
   /** Phone size as percentage of container width (e.g. 70 for single, 42 for side-by-side) */
