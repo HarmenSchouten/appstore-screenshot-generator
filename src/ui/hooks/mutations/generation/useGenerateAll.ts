@@ -1,11 +1,13 @@
 /**
  * useGenerateAll Mutation
  *
- * Kicks off screenshot generation via SSE stream.
- * Progressively updates Zustand with streaming progress events,
- * then invalidates the last-generated query on completion.
+ * Kicks off screenshot generation via the SSE stream, feeds progress events
+ * into the store, and exposes `cancel()`: aborting the fetch closes the
+ * stream, which the server turns into cancellation after the screenshot in
+ * flight.
  */
 
+import { useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { generateStream } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
@@ -14,37 +16,44 @@ import { flushPersist } from "@ui/utils/config-persistence.ts";
 
 export function useGenerateAll() {
   const queryClient = useQueryClient();
+  const abortRef = useRef<AbortController | null>(null);
 
-  return useMutation({
-    // onError below already toasts with context and closes the modal
+  const mutation = useMutation({
+    // onError below reports with context; the global toast would duplicate it
     meta: { suppressErrorToast: true },
     mutationFn: async () => {
       await flushPersist();
 
-      await generateStream((data) => {
-        if (data.type === "start") {
-          useAppStore.setState((s) => ({
-            generateProgress: { ...s.generateProgress, total: data.total! },
-          }));
-        } else if (data.type === "progress") {
-          useAppStore.setState((s) => ({
-            generateProgress: {
-              ...s.generateProgress,
-              current: data.current!,
-              item: data.item!,
-            },
-          }));
-        } else if (data.type === "complete") {
-          useAppStore.setState((s) => ({
-            generateProgress: {
-              ...s.generateProgress,
-              results: data.results!,
-              outputDir: data.outputDir!,
-              current: s.generateProgress.total,
-            },
-          }));
-        }
-      });
+      const controller = new AbortController();
+      abortRef.current = controller;
+      try {
+        await generateStream((event) => {
+          if (event.type === "start") {
+            useAppStore.setState((s) => ({
+              generateProgress: { ...s.generateProgress, total: event.total },
+            }));
+          } else if (event.type === "progress") {
+            useAppStore.setState((s) => ({
+              generateProgress: {
+                ...s.generateProgress,
+                current: event.current,
+                item: event.item,
+              },
+            }));
+          } else {
+            useAppStore.setState((s) => ({
+              generateProgress: {
+                ...s.generateProgress,
+                results: event.results,
+                outputDir: event.outputDir,
+                current: s.generateProgress.total,
+              },
+            }));
+          }
+        }, controller.signal);
+      } finally {
+        abortRef.current = null;
+      }
     },
     onMutate: () => {
       useAppStore.setState({
@@ -56,11 +65,11 @@ export function useGenerateAll() {
           item: "Starting...",
           results: null,
           outputDir: "",
+          error: null,
         },
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
       const results = useAppStore.getState().generateProgress.results;
       const count = results?.filter((r) => r.status === "success").length ?? 0;
       if (count > 0) {
@@ -72,15 +81,33 @@ export function useGenerateAll() {
         });
       }
     },
-    onSettled: () => {
-      useAppStore.setState({ generating: false });
-    },
     onError: (error) => {
+      if (error.name === "AbortError") {
+        // The user cancelled; nothing to report beyond closing the modal
+        useAppStore.setState({ showGenerateModal: false });
+        useAppStore.getState().addToast({
+          type: "info",
+          message: "Generation cancelled",
+        });
+        return;
+      }
+      // Keep the modal open so the reason is visible where the user is looking
+      useAppStore.setState((s) => ({
+        generateProgress: { ...s.generateProgress, error: error.message },
+      }));
       useAppStore.getState().addToast({
         type: "error",
         message: "Generation failed: " + error.message,
       });
-      useAppStore.setState({ showGenerateModal: false });
+    },
+    onSettled: () => {
+      useAppStore.setState({ generating: false });
+      // A cancelled run still wrote a manifest for what it finished
+      queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
     },
   });
+
+  const cancel = useCallback(() => abortRef.current?.abort(), []);
+
+  return { ...mutation, cancel };
 }

@@ -7,6 +7,7 @@ interface GenerateModalProps {
   progress: GenerateProgress;
   generating: boolean;
   onClose: () => void;
+  onCancel: () => void;
 }
 
 interface PlatformResults {
@@ -35,15 +36,19 @@ function langItemCount(data: LanguageResults): number {
 }
 
 export function GenerateModal(
-  { progress, generating, onClose }: GenerateModalProps,
+  { progress, generating, onClose, onCancel }: GenerateModalProps,
 ) {
-  const { current, total, item, results } = progress;
+  const { current, total, item, results, error } = progress;
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
-  const isDone = !generating && results !== null;
+  const isDone = !generating && (results !== null || error !== null);
 
   const successCount = results?.filter((r) => r.status === "success").length ||
     0;
-  const errorCount = results?.filter((r) => r.status === "error").length || 0;
+  const failed = useMemo(
+    () => results?.filter((r) => r.status === "error") ?? [],
+    [results],
+  );
+  const errorCount = failed.length;
 
   const openFolder = useOpenOutputFolder();
   const [collapsedLangs, setCollapsedLangs] = useState<Set<string>>(new Set());
@@ -66,7 +71,7 @@ export function GenerateModal(
     results
       .filter((r) => r.status === "success")
       .forEach((r) => {
-        const [lang, platform] = r.relativePath.split("/");
+        const { language: lang, platform } = r;
 
         if (!grouped[lang]) {
           grouped[lang] = {
@@ -75,12 +80,10 @@ export function GenerateModal(
           };
         }
 
-        if (platform === "android" || platform === "ios") {
-          if (r.role === "feature-graphic" && platform === "android") {
-            grouped[lang][platform].feature = r;
-          } else {
-            grouped[lang][platform].screenshots.push(r);
-          }
+        if (r.role === "feature-graphic" && platform === "android") {
+          grouped[lang][platform].feature = r;
+        } else {
+          grouped[lang][platform].screenshots.push(r);
         }
       });
 
@@ -189,6 +192,12 @@ export function GenerateModal(
     );
   };
 
+  const title = error
+    ? "Generation Failed"
+    : isDone
+    ? "Generation Complete"
+    : "Generating...";
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
       <div
@@ -199,26 +208,19 @@ export function GenerateModal(
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <div>
             <h2 className="font-bold text-lg">
-              {isDone
-                ? (
-                  <>
-                    <i className="fa-solid fa-wand-magic-sparkles text-sm text-indigo-400 mr-2" />
-                    Generation Complete
-                  </>
-                )
-                : (
-                  <>
-                    <i className="fa-solid fa-wand-magic-sparkles text-sm text-indigo-400 mr-2" />
-                    Generating...
-                  </>
-                )}
+              <i
+                className={`fa-solid fa-wand-magic-sparkles text-sm mr-2 ${
+                  error ? "text-red-400" : "text-indigo-400"
+                }`}
+              />
+              {title}
             </h2>
             {!isDone && (
               <p className="text-xs text-zinc-500 mt-0.5 truncate max-w-[500px]">
                 {item}
               </p>
             )}
-            {isDone && (
+            {isDone && !error && (
               <p className="text-xs text-zinc-500 mt-0.5">
                 {successCount} {successCount === 1 ? "file" : "files"} generated
                 {errorCount > 0 && (
@@ -229,15 +231,25 @@ export function GenerateModal(
               </p>
             )}
           </div>
-          {isDone && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-zinc-500 hover:text-white text-xl p-1"
-            >
-              <i className="fa-solid fa-xmark" />
-            </button>
-          )}
+          {isDone
+            ? (
+              <button
+                type="button"
+                onClick={onClose}
+                className="text-zinc-500 hover:text-white text-xl p-1"
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            )
+            : (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="text-xs px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+              >
+                Cancel
+              </button>
+            )}
         </div>
 
         {/* Progress bar — visible in both states */}
@@ -245,11 +257,13 @@ export function GenerateModal(
           <div className="bg-zinc-800 rounded-full h-1 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-300 ${
-                isDone
-                  ? errorCount > 0 ? "bg-amber-500" : "bg-indigo-500"
+                error
+                  ? "bg-red-500"
+                  : isDone && errorCount > 0
+                  ? "bg-amber-500"
                   : "bg-indigo-500"
               }`}
-              style={{ width: `${isDone ? 100 : percent}%` }}
+              style={{ width: `${isDone && !error ? 100 : percent}%` }}
             />
           </div>
           {!isDone && (
@@ -261,7 +275,28 @@ export function GenerateModal(
           )}
         </div>
 
-        {isDone && (
+        {/* Run-level failure: the export could not run at all */}
+        {error && (
+          <>
+            <div className="mx-5 mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm">
+              <div className="font-medium text-red-300 mb-0.5">
+                The export could not run
+              </div>
+              <div className="text-xs text-red-300/80 break-words">{error}</div>
+            </div>
+            <div className="flex px-5 py-4 border-t border-zinc-800">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </>
+        )}
+
+        {isDone && !error && (
           <>
             {/* Toolbar */}
             <div className="flex items-center justify-between px-5 pb-3">
@@ -282,8 +317,35 @@ export function GenerateModal(
               </button>
             </div>
 
-            {/* Results by language → platform */}
             <div className="flex-1 overflow-y-auto min-h-0 px-5 pb-2">
+              {/* Failures first, with the real reason */}
+              {failed.length > 0 && (
+                <div className="mb-3">
+                  <div className="text-[11px] uppercase tracking-wider text-red-400 mb-1.5 font-medium">
+                    Failed
+                  </div>
+                  <div className="space-y-1">
+                    {failed.map((r) => (
+                      <div
+                        key={r.relativePath}
+                        className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs"
+                      >
+                        <div className="flex items-center gap-2 text-zinc-300">
+                          <i className="fa-solid fa-triangle-exclamation text-[10px] text-red-400" />
+                          <span>
+                            {r.language}/{r.platform}: {r.screenshotName}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 pl-[18px] text-red-300/80 break-words">
+                          {r.error}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Results by language → platform */}
               {languages.map((lang) => {
                 const langData = groupedResults[lang];
                 const isCollapsed = collapsedLangs.has(lang);

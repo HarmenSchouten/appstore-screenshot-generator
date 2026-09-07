@@ -7,7 +7,11 @@
 
 import type { Assets, ProjectConfig, ProjectInfo } from "@ui/types.ts";
 import type { AppData, GenerateResult } from "@ui/types.ts";
-import type { LanguageConfig } from "@app-types";
+import type {
+  GenerationEvent,
+  GenerationProgressEvent,
+  LanguageConfig,
+} from "@app-types";
 
 /** Error thrown for non-2xx API responses, carrying the server's message. */
 export class ApiError extends Error {
@@ -174,19 +178,20 @@ export async function fetchGenerated(): Promise<
 
 /**
  * Start generation via SSE stream.
- * Calls `onProgress` for each SSE event; resolves when the stream ends.
+ *
+ * Calls `onProgress` for each progress event and resolves when the stream
+ * ends. Rejects with the server's message on an `error` event, and with an
+ * AbortError when `signal` is aborted — the server sees the closed stream
+ * and stops after the screenshot in flight.
  */
 export async function generateStream(
-  onProgress: (data: {
-    type: "start" | "progress" | "complete";
-    total?: number;
-    current?: number;
-    item?: string;
-    results?: GenerateResult[];
-    outputDir?: string;
-  }) => void,
+  onProgress: (event: GenerationProgressEvent) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
-  const response = await requestRaw("/api/generate/stream", json("POST", {}));
+  const response = await requestRaw("/api/generate/stream", {
+    ...json("POST", {}),
+    signal,
+  });
 
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No response body");
@@ -205,12 +210,9 @@ export async function generateStream(
 
     for (const line of lines) {
       if (!line.startsWith("data: ")) continue;
-      try {
-        const data = JSON.parse(line.slice(6));
-        onProgress(data);
-      } catch {
-        // Ignore parse errors from malformed events
-      }
+      const event = JSON.parse(line.slice(6)) as GenerationEvent;
+      if (event.type === "error") throw new Error(event.message);
+      onProgress(event);
     }
   }
 }

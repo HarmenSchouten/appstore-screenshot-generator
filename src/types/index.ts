@@ -14,6 +14,7 @@
  * - config.ts     - PlatformConfig, LanguageConfig, ProjectConfig
  * - renderer.ts   - RenderOptions
  * - layers.ts     - Layer and the per-type *LayerProps
+ * - generation.ts - GenerationResult, GenerationManifest, GenerationEvent
  */
 
 // Base types
@@ -42,3 +43,6 @@ export * from "./renderer.ts";
 
 // Layer types
 export * from "./layers.ts";
+
+// Generation pipeline
+export * from "./generation.ts";
