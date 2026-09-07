@@ -4,7 +4,9 @@
  * Only imported from *_test.ts files — never from production code.
  */
 
+import { Hono } from "hono";
 import type { Screenshot } from "@app-types";
+import { notFound, onError } from "@routes/http.ts";
 
 /**
  * Run `fn` with the projects module pointed at a fresh temp directory
@@ -27,6 +29,31 @@ export async function withTempProjectsDir(
     }
     await Deno.remove(dir, { recursive: true });
   }
+}
+
+/**
+ * A Hono app carrying the production error and 404 handlers, so route tests
+ * see the same `{ error }` JSON the client does.
+ */
+export function makeRouteApp(): Hono {
+  const app = new Hono();
+  app.onError(onError);
+  app.notFound(notFound);
+  return app;
+}
+
+/** Send a JSON body the way the frontend's api.ts does. */
+export function jsonRequest(
+  app: Hono,
+  method: string,
+  path: string,
+  body: unknown,
+): Promise<Response> {
+  return Promise.resolve(app.request(path, {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }));
 }
 
 /** A representative store screenshot: background + headline + phone frame. */
