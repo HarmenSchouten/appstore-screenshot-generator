@@ -5,9 +5,94 @@
  */
 
 import { Hono } from "hono";
-import type { ProjectConfig, Screenshot } from "@app-types";
-import { saveProject } from "@/projects.ts";
-import { DEFAULT_DIMENSIONS } from "@lib";
+import type {
+  LanguageConfig,
+  PlatformConfig,
+  ProjectConfig,
+  Screenshot,
+} from "@app-types";
+import { createLanguageConfig, saveProject } from "@/projects.ts";
+import { isScreenshotRole, SCREENSHOT_ROLES } from "@lib";
+import { ConflictError, NotFoundError, ValidationError } from "@/errors.ts";
+import {
+  isRecord,
+  optionalString,
+  readJsonBody,
+  requireObject,
+  requirePlatform,
+  requireString,
+} from "./http.ts";
+
+function findLanguage(config: ProjectConfig, lang: string): LanguageConfig {
+  const langConfig = config.languages.find((l) => l.language === lang);
+  if (!langConfig) throw new NotFoundError("Language not found");
+  return langConfig;
+}
+
+function findPlatform(
+  config: ProjectConfig,
+  lang: string,
+  platform: string,
+): PlatformConfig {
+  return findLanguage(config, lang).platforms[requirePlatform(platform)];
+}
+
+function findScreenshotIndex(
+  platformConfig: PlatformConfig,
+  id: string,
+): number {
+  const index = platformConfig.screenshots.findIndex((s) => s.id === id);
+  if (index === -1) throw new NotFoundError("Screenshot not found");
+  return index;
+}
+
+/**
+ * Minimal shape check for a whole config: the top-level sections the server
+ * and renderer dereference unconditionally. Everything below that is the
+ * editor's business; `normalizeProjectConfig` fills in platform gaps.
+ */
+function requireConfig(body: unknown): ProjectConfig {
+  const config = requireObject(body, "Config");
+  if (
+    !isRecord(config.app) || !isRecord(config.theme) ||
+    !Array.isArray(config.languages)
+  ) {
+    throw new ValidationError(
+      'Config must have "app" and "theme" objects and a "languages" array',
+    );
+  }
+  for (const lang of config.languages) {
+    if (
+      !isRecord(lang) || typeof lang.language !== "string" ||
+      (lang.platforms !== undefined && !isRecord(lang.platforms))
+    ) {
+      throw new ValidationError(
+        'Every "languages" entry must have a "language" string and, if present, a "platforms" object',
+      );
+    }
+  }
+  return config as unknown as ProjectConfig;
+}
+
+/** A new screenshot from a client body; the id is always server-generated. */
+function requireNewScreenshot(body: unknown): Screenshot {
+  const shot = requireObject(body, "Screenshot");
+  if (!isScreenshotRole(shot.role)) {
+    throw new ValidationError(
+      `"role" must be one of: ${SCREENSHOT_ROLES.join(", ")}`,
+    );
+  }
+  if (!Array.isArray(shot.layers)) {
+    throw new ValidationError('"layers" must be an array');
+  }
+  const name = optionalString(shot, "name");
+  return {
+    id: crypto.randomUUID(),
+    role: shot.role,
+    layers: shot.layers as Screenshot["layers"],
+    ...(name !== undefined && { name }),
+  };
+}
 
 export function createConfigRoutes(
   getCurrentProjectId: () => string,
@@ -16,21 +101,21 @@ export function createConfigRoutes(
 ) {
   const routes = new Hono();
 
+  /** Persist a mutated config; memory and disk both get the normalized copy. */
+  async function persist(config: ProjectConfig): Promise<void> {
+    setConfig(await saveProject(getCurrentProjectId(), config));
+  }
+
   /**
    * Get config
    */
-  routes.get("/", async (c) => {
-    const config = await getConfig();
-    return c.json(config);
-  });
+  routes.get("/", async (c) => c.json(await getConfig()));
 
   /**
    * Update full config
    */
   routes.put("/", async (c) => {
-    const config = await c.req.json() as ProjectConfig;
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
+    await persist(requireConfig(await readJsonBody(c)));
     return c.json({ success: true });
   });
 
@@ -39,31 +124,20 @@ export function createConfigRoutes(
    */
   routes.put("/screenshot/:lang/:platform/:id", async (c) => {
     const { lang, platform, id } = c.req.param();
-    const updates = await c.req.json();
+    const updates = requireObject(await readJsonBody(c), "Screenshot updates");
+    // The id is the address and the role drives canvas size; neither is patchable
+    const { id: _id, role: _role, ...patch } = updates;
+
     const config = await getConfig();
-
-    const langIndex = config.languages.findIndex((l) => l.language === lang);
-    if (langIndex === -1) return c.json({ error: "Language not found" }, 404);
-
-    const platformConfig =
-      config.languages[langIndex].platforms[platform as "android" | "ios"];
-    if (!platformConfig) return c.json({ error: "Platform not found" }, 404);
-
-    const screenshotIndex = platformConfig.screenshots.findIndex((s) =>
-      s.id === id
-    );
-    if (screenshotIndex === -1) {
-      return c.json({ error: "Screenshot not found" }, 404);
-    }
-
-    platformConfig.screenshots[screenshotIndex] = {
-      ...platformConfig.screenshots[screenshotIndex],
-      ...updates,
+    const platformConfig = findPlatform(config, lang, platform);
+    const index = findScreenshotIndex(platformConfig, id);
+    platformConfig.screenshots[index] = {
+      ...platformConfig.screenshots[index],
+      ...patch,
     };
 
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
-    return c.json(platformConfig.screenshots[screenshotIndex]);
+    await persist(config);
+    return c.json(platformConfig.screenshots[index]);
   });
 
   /**
@@ -71,29 +145,12 @@ export function createConfigRoutes(
    */
   routes.post("/screenshot/:lang/:platform", async (c) => {
     const { lang, platform } = c.req.param();
-    const screenshot = await c.req.json() as Screenshot;
+    const screenshot = requireNewScreenshot(await readJsonBody(c));
+
     const config = await getConfig();
+    findPlatform(config, lang, platform).screenshots.push(screenshot);
 
-    const langIndex = config.languages.findIndex((l) => l.language === lang);
-    if (langIndex === -1) return c.json({ error: "Language not found" }, 404);
-
-    let platformConfig =
-      config.languages[langIndex].platforms[platform as "android" | "ios"];
-    if (!platformConfig) {
-      // Create platform config
-      (config.languages[langIndex].platforms as Record<string, unknown>)[
-        platform
-      ] = {
-        dimensions: { ...DEFAULT_DIMENSIONS[platform as "android" | "ios"] },
-        screenshots: [],
-      };
-      platformConfig =
-        config.languages[langIndex].platforms[platform as "android" | "ios"];
-    }
-
-    platformConfig.screenshots.push(screenshot);
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
+    await persist(config);
     return c.json(screenshot);
   });
 
@@ -102,20 +159,15 @@ export function createConfigRoutes(
    */
   routes.delete("/screenshot/:lang/:platform/:id", async (c) => {
     const { lang, platform, id } = c.req.param();
+
     const config = await getConfig();
-
-    const langIndex = config.languages.findIndex((l) => l.language === lang);
-    if (langIndex === -1) return c.json({ error: "Language not found" }, 404);
-
-    const platformConfig =
-      config.languages[langIndex].platforms[platform as "android" | "ios"];
-    if (!platformConfig) return c.json({ error: "Platform not found" }, 404);
-
-    platformConfig.screenshots = platformConfig.screenshots.filter((s) =>
-      s.id !== id
+    const platformConfig = findPlatform(config, lang, platform);
+    platformConfig.screenshots.splice(
+      findScreenshotIndex(platformConfig, id),
+      1,
     );
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
+
+    await persist(config);
     return c.json({ success: true });
   });
 
@@ -123,42 +175,28 @@ export function createConfigRoutes(
    * Add new language
    */
   routes.post("/language", async (c) => {
-    const { language, copyFrom } = await c.req.json();
+    const body = requireObject(await readJsonBody(c));
+    const language = requireString(body, "language");
+    const copyFrom = optionalString(body, "copyFrom");
+
     const config = await getConfig();
-
-    // Check if language already exists
-    if (config.languages.find((l) => l.language === language)) {
-      return c.json({ error: "Language already exists" }, 400);
+    if (config.languages.some((l) => l.language === language)) {
+      throw new ConflictError("Language already exists");
     }
 
-    let newLangConfig;
-    if (copyFrom) {
+    let newLangConfig: LanguageConfig;
+    if (copyFrom !== undefined) {
       const source = config.languages.find((l) => l.language === copyFrom);
-      if (source) {
-        newLangConfig = JSON.parse(JSON.stringify(source));
-        newLangConfig.language = language;
+      if (!source) {
+        throw new NotFoundError(`Source language "${copyFrom}" not found`);
       }
-    }
-
-    if (!newLangConfig) {
-      newLangConfig = {
-        language,
-        platforms: {
-          android: {
-            dimensions: { ...DEFAULT_DIMENSIONS.android },
-            screenshots: [],
-          },
-          ios: {
-            dimensions: { ...DEFAULT_DIMENSIONS.ios },
-            screenshots: [],
-          },
-        },
-      };
+      newLangConfig = { ...structuredClone(source), language };
+    } else {
+      newLangConfig = createLanguageConfig(language);
     }
 
     config.languages.push(newLangConfig);
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
+    await persist(config);
     return c.json(newLangConfig);
   });
 
@@ -167,15 +205,15 @@ export function createConfigRoutes(
    */
   routes.delete("/language/:lang", async (c) => {
     const { lang } = c.req.param();
-    const config = await getConfig();
 
+    const config = await getConfig();
+    findLanguage(config, lang);
     if (config.languages.length <= 1) {
-      return c.json({ error: "Cannot delete the only language" }, 400);
+      throw new ValidationError("Cannot delete the only language");
     }
 
     config.languages = config.languages.filter((l) => l.language !== lang);
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
+    await persist(config);
     return c.json({ success: true });
   });
 
@@ -183,44 +221,32 @@ export function createConfigRoutes(
    * Copy platform screenshots
    */
   routes.post("/copy-platform", async (c) => {
-    const { language, sourcePlatform, targetPlatform } = await c.req.json() as {
-      language: string;
-      sourcePlatform: "android" | "ios";
-      targetPlatform: "android" | "ios";
-    };
+    const body = requireObject(await readJsonBody(c));
+    const language = requireString(body, "language");
+    const sourcePlatform = requirePlatform(
+      body.sourcePlatform,
+      "sourcePlatform",
+    );
+    const targetPlatform = requirePlatform(
+      body.targetPlatform,
+      "targetPlatform",
+    );
+    if (sourcePlatform === targetPlatform) {
+      throw new ValidationError(
+        "sourcePlatform and targetPlatform must differ",
+      );
+    }
+
     const config = await getConfig();
+    const langConfig = findLanguage(config, language);
 
-    const langConfig = config.languages.find((l) => l.language === language);
-    if (!langConfig) {
-      return c.json({ error: "Language not found" }, 404);
-    }
-
-    const source = langConfig.platforms[sourcePlatform];
-    if (!source) {
-      return c.json({ error: "Source platform not found" }, 404);
-    }
-
-    // Deep clone source screenshots with new IDs, excluding feature graphics
-    const copiedScreenshots = source.screenshots
+    // Deep clone source screenshots with new ids, excluding feature graphics
+    langConfig.platforms[targetPlatform].screenshots = langConfig
+      .platforms[sourcePlatform].screenshots
       .filter((s) => s.role !== "feature-graphic")
-      .map((s) => ({
-        ...JSON.parse(JSON.stringify(s)),
-        id: crypto.randomUUID(),
-      }));
+      .map((s) => ({ ...structuredClone(s), id: crypto.randomUUID() }));
 
-    // Initialize target platform if needed
-    if (!langConfig.platforms[targetPlatform]) {
-      langConfig.platforms[targetPlatform] = {
-        dimensions: { ...DEFAULT_DIMENSIONS[targetPlatform] },
-        screenshots: [],
-      };
-    }
-
-    // Replace target screenshots
-    langConfig.platforms[targetPlatform].screenshots = copiedScreenshots;
-
-    await saveProject(getCurrentProjectId(), config);
-    setConfig(config);
+    await persist(config);
     return c.json(langConfig);
   });
 

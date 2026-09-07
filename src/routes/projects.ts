@@ -4,19 +4,27 @@
  * Handles project management: list, create, switch, delete, rename, duplicate.
  */
 
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import type { ProjectConfig } from "@app-types";
 import {
   createProject,
   deleteProject,
   duplicateProject,
+  initializeProjects,
   listProjects,
+  loadProject,
   renameProject,
 } from "@/projects.ts";
+import { readJsonBody, requireObject, requireString } from "./http.ts";
 
 export interface ProjectState {
   currentProjectId: string;
   currentConfig: ProjectConfig | null;
+}
+
+/** The `{ name }` body shared by create, rename and duplicate. */
+async function readName(c: Context): Promise<string> {
+  return requireString(requireObject(await readJsonBody(c)), "name");
 }
 
 export function createProjectRoutes(
@@ -46,8 +54,7 @@ export function createProjectRoutes(
    * Create new project
    */
   routes.post("/", async (c) => {
-    const { name } = await c.req.json();
-    const project = await createProject(name);
+    const project = await createProject(await readName(c));
     return c.json(project);
   });
 
@@ -56,8 +63,9 @@ export function createProjectRoutes(
    */
   routes.put("/:id/activate", async (c) => {
     const { id } = c.req.param();
-    setState({ currentProjectId: id, currentConfig: null });
-    const config = await getConfig();
+    // Load before switching: an unknown id 404s and leaves the current project alone
+    const config = await loadProject(id);
+    setState({ currentProjectId: id, currentConfig: config });
     return c.json({ projectId: id, config });
   });
 
@@ -68,9 +76,11 @@ export function createProjectRoutes(
     const { id } = c.req.param();
     await deleteProject(id);
 
-    // If deleted current project, switch to default
     if (id === getState().currentProjectId) {
-      setState({ currentProjectId: "default", currentConfig: null });
+      // Land on another existing project; recreate the default if none are left
+      const remaining = await listProjects();
+      const nextId = remaining[0]?.id ?? await initializeProjects();
+      setState({ currentProjectId: nextId, currentConfig: null });
     }
 
     return c.json({ success: true });
@@ -81,8 +91,7 @@ export function createProjectRoutes(
    */
   routes.patch("/:id", async (c) => {
     const { id } = c.req.param();
-    const { name } = await c.req.json();
-    const project = await renameProject(id, name);
+    const project = await renameProject(id, await readName(c));
 
     // If renamed current project, reload config
     if (id === getState().currentProjectId) {
@@ -97,8 +106,7 @@ export function createProjectRoutes(
    */
   routes.post("/:id/duplicate", async (c) => {
     const { id } = c.req.param();
-    const { name } = await c.req.json();
-    const project = await duplicateProject(id, name);
+    const project = await duplicateProject(id, await readName(c));
     return c.json(project);
   });
 

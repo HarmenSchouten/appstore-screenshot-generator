@@ -6,14 +6,8 @@
 
 import { Hono } from "hono";
 import { serveStatic } from "hono/deno";
-import { extname, join } from "@std/path";
-import { contentType } from "@std/media-types";
-import {
-  getProjectOutputDir,
-  initializeProjects,
-  listProjects,
-  loadProject,
-} from "./projects.ts";
+import { initializeProjects, listProjects, loadProject } from "./projects.ts";
+import { NotFoundError } from "./errors.ts";
 import type { ProjectConfig } from "@app-types";
 
 // Import route modules
@@ -22,10 +16,18 @@ import {
   createAssetRoutes,
   createConfigRoutes,
   createGenerateRoutes,
+  createOutputRoutes,
   createProjectRoutes,
+  notFound,
+  onError,
 } from "@routes";
 
 const app = new Hono();
+
+// Every failure — a thrown HttpError or an unexpected exception — leaves as
+// `{ error }` JSON, and so does every unmatched path
+app.onError(onError);
+app.notFound(notFound);
 
 // Current active project
 let currentProjectId: string = "default";
@@ -37,11 +39,22 @@ await initializeProjects().then((id) => {
 });
 
 /**
- * Get current config, loading if necessary
+ * Get current config, loading if necessary.
+ *
+ * If the current project vanished from disk (deleted outside the app), land
+ * on the default project — recreated if needed — rather than serving a
+ * phantom config that the next save would materialise, or 404ing every
+ * request until restart.
  */
 async function getConfig(): Promise<ProjectConfig> {
   if (!currentConfig) {
-    currentConfig = await loadProject(currentProjectId);
+    try {
+      currentConfig = await loadProject(currentProjectId);
+    } catch (error) {
+      if (!(error instanceof NotFoundError)) throw error;
+      currentProjectId = await initializeProjects();
+      currentConfig = await loadProject(currentProjectId);
+    }
   }
   return currentConfig;
 }
@@ -121,18 +134,7 @@ app.route(
 );
 
 // Serve generated output files
-app.get("/output/:path{.+}", async (c) => {
-  const filePath = c.req.param("path");
-  const fullPath = join(getProjectOutputDir(currentProjectId), filePath);
-
-  try {
-    const file = await Deno.readFile(fullPath);
-    const type = contentType(extname(fullPath)) ?? "application/octet-stream";
-    return new Response(file, { headers: { "Content-Type": type } });
-  } catch {
-    return c.notFound();
-  }
-});
+app.route("/output", createOutputRoutes(getCurrentProjectId));
 
 // Unmatched API paths must not fall through to the SPA shell below
 app.all("/api/*", (c) => c.notFound());
@@ -150,7 +152,8 @@ async function hasStaticUIBuild(): Promise<boolean> {
   try {
     await Deno.stat("./dist/index.html");
     return true;
-  } catch {
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
     return false;
   }
 }

@@ -21,7 +21,11 @@ export interface PlatformConfig {
 export interface LanguageConfig {
   /** Language code */
   language: string;
-  /** Screenshots per platform for this language */
+  /**
+   * Screenshots per platform for this language. Both platforms are required
+   * because `normalizeProjectConfig` fills any missing one on every load and
+   * save — handlers never need to check for an absent platform.
+   */
   platforms: {
     android: PlatformConfig;
     ios: PlatformConfig;

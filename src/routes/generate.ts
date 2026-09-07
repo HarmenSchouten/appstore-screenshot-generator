@@ -188,25 +188,20 @@ export function createGenerateRoutes(
    * Open folder in system file explorer
    */
   routes.post("/open-folder", async (c) => {
-    const { path } = await c.req.json();
-    const folderPath = path || getProjectOutputDir(getCurrentProjectId());
+    // The server knows the output dir. Taking a path from the client would
+    // let any web page launch the file manager on an arbitrary location.
+    const folderPath = getProjectOutputDir(getCurrentProjectId());
+    await ensureDir(folderPath);
 
-    try {
-      // Windows: explorer, macOS: open, Linux: xdg-open
-      const cmd = Deno.build.os === "windows"
-        ? ["explorer", folderPath]
-        : Deno.build.os === "darwin"
-        ? ["open", folderPath]
-        : ["xdg-open", folderPath];
+    // Windows: explorer, macOS: open, Linux: xdg-open
+    const cmd = Deno.build.os === "windows"
+      ? ["explorer", folderPath]
+      : Deno.build.os === "darwin"
+      ? ["open", folderPath]
+      : ["xdg-open", folderPath];
 
-      const command = new Deno.Command(cmd[0], { args: cmd.slice(1) });
-      await command.spawn();
-      return c.json({ success: true });
-    } catch (error) {
-      return c.json({
-        error: error instanceof Error ? error.message : "Failed to open folder",
-      }, 500);
-    }
+    new Deno.Command(cmd[0], { args: cmd.slice(1) }).spawn();
+    return c.json({ success: true });
   });
 
   /**
@@ -261,8 +256,9 @@ export function createGenerateRoutes(
             });
           }
         }
-      } catch {
-        // Directory doesn't exist or can't be read
+      } catch (error) {
+        // Nothing generated yet
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
       }
     }
 

@@ -13,11 +13,34 @@ import {
   isDevicePresetId,
   LEGACY_PLATFORM_DEFAULTS,
 } from "@device-presets";
-import type { ProjectConfig, ProjectInfo } from "@app-types";
+import type {
+  LanguageConfig,
+  Platform,
+  PlatformConfig,
+  ProjectConfig,
+  ProjectInfo,
+} from "@app-types";
 import { DEFAULT_DIMENSIONS } from "@lib";
+import { ConflictError, NotFoundError, ValidationError } from "@/errors.ts";
 
 const PROJECTS_DIR = "projects";
 const DEFAULT_PROJECT_ID = "default";
+
+/**
+ * Project ids are the slugs `createProject` produces; nothing else is ever a
+ * valid id. Every lookup is checked against the same shape, so a
+ * client-supplied id can't name a path (`..`, `a/b`, `C:`) and reach
+ * `Deno.remove`.
+ */
+const PROJECT_ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+
+export function isValidProjectId(id: string): boolean {
+  return PROJECT_ID_PATTERN.test(id);
+}
+
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 /**
  * Get projects directory path
@@ -30,9 +53,13 @@ export function getProjectsDir(): string {
 }
 
 /**
- * Get project directory path
+ * Get project directory path. Throws a 400 for anything that isn't a slug —
+ * this is the single chokepoint every project-relative path goes through.
  */
 export function getProjectDir(projectId: string): string {
+  if (!isValidProjectId(projectId)) {
+    throw new ValidationError(`Invalid project id "${projectId}"`);
+  }
   return join(getProjectsDir(), projectId);
 }
 
@@ -57,6 +84,29 @@ export function getProjectOutputDir(projectId: string): string {
   return join(getProjectDir(projectId), "output");
 }
 
+function getProjectInfoPath(projectId: string): string {
+  return join(getProjectDir(projectId), "project.json");
+}
+
+/** An empty platform config at the platform's default store dimensions. */
+export function createPlatformConfig(platform: Platform): PlatformConfig {
+  return {
+    dimensions: { ...DEFAULT_DIMENSIONS[platform] },
+    screenshots: [],
+  };
+}
+
+/** A language with an empty config for every platform. */
+export function createLanguageConfig(language: string): LanguageConfig {
+  return {
+    language,
+    platforms: {
+      android: createPlatformConfig("android"),
+      ios: createPlatformConfig("ios"),
+    },
+  };
+}
+
 /**
  * Default project configuration template
  */
@@ -77,24 +127,16 @@ export function getDefaultConfig(appName: string = "My App"): ProjectConfig {
     },
     platformDefaults: structuredClone(DEFAULT_PLATFORM_DEFAULTS),
     assetsBasePath: "assets",
-    languages: [
-      {
-        language: "en",
-        platforms: {
-          android: {
-            dimensions: { ...DEFAULT_DIMENSIONS.android },
-            screenshots: [],
-          },
-          ios: {
-            dimensions: { ...DEFAULT_DIMENSIONS.ios },
-            screenshots: [],
-          },
-        },
-      },
-    ],
+    languages: [createLanguageConfig("en")],
   };
 }
 
+/**
+ * Bring a config up to the invariants the rest of the code relies on: valid
+ * platform defaults, and every language carrying a config for every
+ * platform. `LanguageConfig.platforms` can type both platforms as required
+ * because this runs on every load and save.
+ */
 export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
   const fallbackPlatformDefaults = config.platformDefaults
     ? DEFAULT_PLATFORM_DEFAULTS
@@ -117,36 +159,53 @@ export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
             fallbackPlatformDefaults.ios.defaultDevicePresetId,
       },
     },
+    languages: (config.languages ?? []).map((lang) => ({
+      ...lang,
+      platforms: {
+        android: lang.platforms?.android ?? createPlatformConfig("android"),
+        ios: lang.platforms?.ios ?? createPlatformConfig("ios"),
+      },
+    })),
   };
+}
+
+/**
+ * Read project.json, or synthesise one for a directory that predates it.
+ * Only a missing file is tolerated: a corrupt or unreadable one is a real
+ * error the user should see, not a silent reset of their metadata.
+ */
+async function readProjectInfo(projectId: string): Promise<ProjectInfo> {
+  try {
+    return JSON.parse(await Deno.readTextFile(getProjectInfoPath(projectId)));
+  } catch (error) {
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
+    const now = new Date().toISOString();
+    return { id: projectId, name: projectId, createdAt: now, updatedAt: now };
+  }
+}
+
+async function assertProjectExists(projectId: string): Promise<void> {
+  if (!(await exists(getProjectDir(projectId), { isDirectory: true }))) {
+    throw new NotFoundError(`Project "${projectId}" not found`);
+  }
 }
 
 /**
  * List all projects
  */
 export async function listProjects(): Promise<ProjectInfo[]> {
-  const projectsDir = getProjectsDir();
   const projects: ProjectInfo[] = [];
 
   try {
-    for await (const entry of Deno.readDir(projectsDir)) {
-      if (entry.isDirectory) {
-        const infoPath = join(projectsDir, entry.name, "project.json");
-        try {
-          const info = JSON.parse(await Deno.readTextFile(infoPath));
-          projects.push(info);
-        } catch {
-          // Project info doesn't exist, create default entry
-          projects.push({
-            id: entry.name,
-            name: entry.name,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-        }
-      }
+    for await (const entry of Deno.readDir(getProjectsDir())) {
+      // Only slugs are addressable (see getProjectDir); anything else in the
+      // directory is not a project and would 400 on every route.
+      if (!entry.isDirectory || !isValidProjectId(entry.name)) continue;
+      projects.push(await readProjectInfo(entry.name));
     }
-  } catch {
+  } catch (error) {
     // Projects directory doesn't exist yet
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
   }
 
   return projects.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
@@ -156,15 +215,16 @@ export async function listProjects(): Promise<ProjectInfo[]> {
  * Create a new project
  */
 export async function createProject(name: string): Promise<ProjectInfo> {
-  const id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(
-    /^-|-$/g,
-    "",
-  );
+  const id = slugify(name);
+  if (!id) {
+    throw new ValidationError(
+      "Project name must contain at least one letter or number",
+    );
+  }
   const projectDir = getProjectDir(id);
 
-  // Check if project already exists
   if (await exists(projectDir)) {
-    throw new Error(`Project "${id}" already exists`);
+    throw new ConflictError(`Project "${id}" already exists`);
   }
 
   // Create project directories
@@ -181,7 +241,7 @@ export async function createProject(name: string): Promise<ProjectInfo> {
   };
 
   await Deno.writeTextFile(
-    join(projectDir, "project.json"),
+    getProjectInfoPath(id),
     JSON.stringify(info, null, 2),
   );
 
@@ -196,106 +256,76 @@ export async function createProject(name: string): Promise<ProjectInfo> {
 }
 
 /**
- * Load project configuration
+ * Load project configuration. Unknown ids are a 404 — there is deliberately
+ * no default-config fallback, which used to materialise phantom projects on
+ * the next save.
  */
 export async function loadProject(projectId: string): Promise<ProjectConfig> {
-  const configPath = getProjectConfigPath(projectId);
-
+  let content: string;
   try {
-    const content = await Deno.readTextFile(configPath);
-    return normalizeProjectConfig(JSON.parse(content));
-  } catch {
-    // Config doesn't exist (or is unreadable) — fall back to defaults
-    return getDefaultConfig();
+    content = await Deno.readTextFile(getProjectConfigPath(projectId));
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      throw new NotFoundError(`Project "${projectId}" not found`);
+    }
+    throw error;
   }
+  return normalizeProjectConfig(JSON.parse(content));
 }
 
 /**
- * Save project configuration
+ * Save project configuration to an existing project. Returns the normalized
+ * config that was written so callers can keep memory and disk identical.
  */
 export async function saveProject(
   projectId: string,
   config: ProjectConfig,
-): Promise<void> {
-  const projectDir = getProjectDir(projectId);
+): Promise<ProjectConfig> {
+  await assertProjectExists(projectId);
   const normalizedConfig = normalizeProjectConfig(config);
 
-  // Ensure project directory exists
-  await ensureDir(projectDir);
-
-  // Save config
   await Deno.writeTextFile(
     getProjectConfigPath(projectId),
     JSON.stringify(normalizedConfig, null, 2),
   );
 
-  // Update project info
-  const infoPath = join(projectDir, "project.json");
-  try {
-    const info: ProjectInfo = JSON.parse(await Deno.readTextFile(infoPath));
-    info.updatedAt = new Date().toISOString();
-    info.name = normalizedConfig.app.name;
-    await Deno.writeTextFile(infoPath, JSON.stringify(info, null, 2));
-  } catch {
-    // Create project info if it doesn't exist
-    const info: ProjectInfo = {
-      id: projectId,
-      name: normalizedConfig.app.name,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    await Deno.writeTextFile(infoPath, JSON.stringify(info, null, 2));
-  }
+  const info = await readProjectInfo(projectId);
+  info.updatedAt = new Date().toISOString();
+  info.name = normalizedConfig.app.name;
+  await Deno.writeTextFile(
+    getProjectInfoPath(projectId),
+    JSON.stringify(info, null, 2),
+  );
+
+  return normalizedConfig;
 }
 
 /**
  * Delete a project
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  const projectDir = getProjectDir(projectId);
-  await Deno.remove(projectDir, { recursive: true });
+  try {
+    await Deno.remove(getProjectDir(projectId), { recursive: true });
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      throw new NotFoundError(`Project "${projectId}" not found`);
+    }
+    throw error;
+  }
 }
 
 /**
- * Rename a project
+ * Rename a project. The app name in the config is the source of truth;
+ * `saveProject` mirrors it into project.json.
  */
 export async function renameProject(
   projectId: string,
   newName: string,
 ): Promise<ProjectInfo> {
-  const projectDir = getProjectDir(projectId);
-  const infoPath = join(projectDir, "project.json");
-  const configPath = getProjectConfigPath(projectId);
-
-  // Update project info
-  let info: ProjectInfo;
-  try {
-    info = JSON.parse(await Deno.readTextFile(infoPath));
-    info.name = newName;
-    info.updatedAt = new Date().toISOString();
-  } catch {
-    info = {
-      id: projectId,
-      name: newName,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-  }
-
-  await Deno.writeTextFile(infoPath, JSON.stringify(info, null, 2));
-
-  // Update config app name
-  try {
-    const config = normalizeProjectConfig(
-      JSON.parse(await Deno.readTextFile(configPath)),
-    );
-    config.app.name = newName;
-    await Deno.writeTextFile(configPath, JSON.stringify(config, null, 2));
-  } catch {
-    // Config might not exist
-  }
-
-  return info;
+  const config = await loadProject(projectId);
+  config.app.name = newName;
+  await saveProject(projectId, config);
+  return readProjectInfo(projectId);
 }
 
 /**
@@ -319,8 +349,9 @@ export async function duplicateProject(
   // createProject already made the (empty) assets tree, so overwrite to merge
   try {
     await copy(sourceAssets, destAssets, { overwrite: true });
-  } catch {
+  } catch (error) {
     // Source assets may not exist
+    if (!(error instanceof Deno.errors.NotFound)) throw error;
   }
 
   return newProject;
@@ -346,7 +377,7 @@ export async function initializeProjects(): Promise<string> {
     );
 
     await Deno.writeTextFile(
-      join(defaultDir, "project.json"),
+      getProjectInfoPath(DEFAULT_PROJECT_ID),
       JSON.stringify(
         {
           id: DEFAULT_PROJECT_ID,

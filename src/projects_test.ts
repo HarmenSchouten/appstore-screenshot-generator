@@ -1,15 +1,29 @@
-import { assert, assertEquals, assertFalse, assertRejects } from "@std/assert";
+import {
+  assert,
+  assertEquals,
+  assertFalse,
+  assertRejects,
+  assertThrows,
+} from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
+import type { LanguageConfig } from "@app-types";
+import { DEFAULT_DIMENSIONS } from "@lib";
 import {
   createProject,
   deleteProject,
   getDefaultConfig,
+  getProjectDir,
+  listProjects,
   loadProject,
+  normalizeProjectConfig,
   renameProject,
   saveProject,
 } from "./projects.ts";
+import { ConflictError, NotFoundError, ValidationError } from "./errors.ts";
 import { withTempProjectsDir } from "./test-helpers.ts";
+
+type Platforms = Partial<LanguageConfig["platforms"]>;
 
 Deno.test("createProject: slugifies the name and scaffolds the project", async () => {
   await withTempProjectsDir(async (dir) => {
@@ -24,15 +38,52 @@ Deno.test("createProject: slugifies the name and scaffolds the project", async (
   });
 });
 
-Deno.test("createProject: rejects a duplicate id", async () => {
+Deno.test("createProject: a duplicate id is a conflict", async () => {
   await withTempProjectsDir(async () => {
     await createProject("Twice");
     await assertRejects(
       () => createProject("Twice"),
-      Error,
+      ConflictError,
       "already exists",
     );
   });
+});
+
+Deno.test("createProject: a name with no letters or digits is rejected, not 'already exists'", async () => {
+  await withTempProjectsDir(async (dir) => {
+    await assertRejects(
+      () => createProject("!!!"),
+      ValidationError,
+      "at least one letter or number",
+    );
+    assertEquals((await Array.fromAsync(Deno.readDir(dir))).length, 0);
+  });
+});
+
+Deno.test("getProjectDir: only slugs are valid ids", () => {
+  const rejected = [
+    "",
+    ".",
+    "..",
+    "../default",
+    "a/b",
+    "a\\b",
+    "Upper",
+    "-leading",
+    "with space",
+    "%2e%2e",
+    "C:",
+  ];
+  for (const id of rejected) {
+    assertThrows(
+      () => getProjectDir(id),
+      ValidationError,
+      "Invalid project id",
+    );
+  }
+  for (const id of ["default", "my-cool-app", "a", "2fast"]) {
+    getProjectDir(id);
+  }
 });
 
 Deno.test("loadProject: round-trips the created config", async () => {
@@ -48,12 +99,14 @@ Deno.test("loadProject: round-trips the created config", async () => {
   });
 });
 
-Deno.test("loadProject: unknown id falls back to the default config", async () => {
-  await withTempProjectsDir(async () => {
-    // TODO(#62): this becomes a NotFound error; the fallback materialises
-    // phantom projects on the next save. Asserting current behaviour.
-    const config = await loadProject("does-not-exist");
-    assertEquals(config.app.name, getDefaultConfig().app.name);
+Deno.test("loadProject: unknown id is a NotFoundError, not a default config", async () => {
+  await withTempProjectsDir(async (dir) => {
+    await assertRejects(
+      () => loadProject("does-not-exist"),
+      NotFoundError,
+      "not found",
+    );
+    assertFalse(await exists(join(dir, "does-not-exist")));
   });
 });
 
@@ -71,6 +124,33 @@ Deno.test("saveProject: persists config and updates project info name", async ()
       await Deno.readTextFile(join(dir, info.id, "project.json")),
     );
     assertEquals(savedInfo.name, "Renamed via config");
+  });
+});
+
+Deno.test("saveProject: refuses to materialise a project that does not exist", async () => {
+  await withTempProjectsDir(async (dir) => {
+    await assertRejects(
+      () => saveProject("phantom", getDefaultConfig()),
+      NotFoundError,
+    );
+    assertFalse(await exists(join(dir, "phantom")));
+  });
+});
+
+Deno.test("saveProject: returns the normalized config it wrote", async () => {
+  await withTempProjectsDir(async () => {
+    const info = await createProject("Normalize Me");
+    const config = getDefaultConfig("Normalize Me");
+    delete (config.languages[0].platforms as Platforms).ios;
+
+    const saved = await saveProject(info.id, config);
+
+    assertEquals(saved.languages[0].platforms.ios.screenshots, []);
+    const onDisk = await loadProject(info.id);
+    assertEquals(
+      onDisk.languages[0].platforms.ios,
+      saved.languages[0].platforms.ios,
+    );
   });
 });
 
@@ -95,4 +175,38 @@ Deno.test("deleteProject: removes the project directory", async () => {
 
     assertFalse(await exists(join(dir, info.id)));
   });
+});
+
+Deno.test("deleteProject / renameProject: unknown id is a NotFoundError", async () => {
+  await withTempProjectsDir(async () => {
+    await assertRejects(() => deleteProject("nope"), NotFoundError);
+    await assertRejects(() => renameProject("nope", "x"), NotFoundError);
+  });
+});
+
+Deno.test("listProjects: skips directories whose names are not valid ids", async () => {
+  await withTempProjectsDir(async (dir) => {
+    await createProject("Real");
+    await Deno.mkdir(join(dir, "Not A Project"));
+    await Deno.writeTextFile(join(dir, "stray.txt"), "");
+
+    assertEquals((await listProjects()).map((p) => p.id), ["real"]);
+  });
+});
+
+Deno.test("normalizeProjectConfig: fills a missing platform with an empty default", () => {
+  const config = getDefaultConfig();
+  delete (config.languages[0].platforms as Platforms).android;
+
+  const normalized = normalizeProjectConfig(config);
+
+  assertEquals(normalized.languages[0].platforms.android, {
+    dimensions: DEFAULT_DIMENSIONS.android,
+    screenshots: [],
+  });
+  // The other platform is untouched
+  assertEquals(
+    normalized.languages[0].platforms.ios,
+    config.languages[0].platforms.ios,
+  );
 });

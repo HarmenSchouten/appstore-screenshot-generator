@@ -14,6 +14,29 @@ import type {
 } from "@app-types";
 
 // ============================================================
+// Platforms & roles
+// ============================================================
+
+/** Every store platform this tool targets; the runtime twin of `Platform`. */
+export const PLATFORMS: readonly Platform[] = ["android", "ios"];
+
+export function isPlatform(value: unknown): value is Platform {
+  return typeof value === "string" &&
+    (PLATFORMS as readonly string[]).includes(value);
+}
+
+/** Runtime twin of `ScreenshotRole`. */
+export const SCREENSHOT_ROLES: readonly ScreenshotRole[] = [
+  "screenshot",
+  "feature-graphic",
+];
+
+export function isScreenshotRole(value: unknown): value is ScreenshotRole {
+  return typeof value === "string" &&
+    (SCREENSHOT_ROLES as readonly string[]).includes(value);
+}
+
+// ============================================================
 // Store dimensions
 // ============================================================
 
