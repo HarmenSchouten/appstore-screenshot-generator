@@ -1,187 +1,78 @@
 /**
  * Generation Routes
  *
- * Handles screenshot generation and export functionality.
+ * Thin HTTP adapter over the generation pipeline: an SSE stream that relays
+ * progress and turns a client disconnect into cancellation, the last run's
+ * manifest, and opening the output folder.
  */
 
 import { Hono } from "hono";
-import { join, toFileUrl } from "@std/path";
 import { ensureDir } from "@std/fs";
-import type { ProjectConfig, Screenshot, ScreenshotRole } from "@app-types";
+import type { GenerationEvent, ProjectConfig } from "@app-types";
 import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
-import { renderScreenshot } from "@renderer/server.ts";
-import { convertHtmlFileToPng } from "@/png-export.ts";
-import { getScreenshotDimensions } from "@lib";
+import {
+  generateAll,
+  type HtmlToPngConverter,
+  readManifest,
+} from "@/generation.ts";
 
-function sanitizeFilename(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "") || "screenshot";
-}
-
-/**
- * Human-readable name for a screenshot without one: numbered within its role
- * so it matches the sidebar ("Screenshot 3" → "3-screenshot").
- */
-function fallbackName(screenshot: Screenshot, siblings: Screenshot[]): string {
-  const n = siblings.filter((s) => s.role === screenshot.role)
-    .indexOf(screenshot) + 1;
-  return `${n}-${screenshot.role}`;
-}
-
-function uniqueName(base: string, used: Set<string>): string {
-  let name = base;
-  let i = 2;
-  while (used.has(name)) {
-    name = `${base}-${i++}`;
-  }
-  used.add(name);
-  return name;
-}
+const SSE_HEADERS = {
+  "Content-Type": "text/event-stream",
+  "Cache-Control": "no-cache",
+  "Connection": "keep-alive",
+};
 
 export function createGenerateRoutes(
   getCurrentProjectId: () => string,
   getConfig: () => Promise<ProjectConfig>,
+  convert: HtmlToPngConverter,
 ) {
   const routes = new Hono();
 
   /**
-   * Generate with streaming progress
+   * Generate with streaming progress. Cancelling the fetch (or closing the
+   * tab) aborts the run after the screenshot in flight.
    */
-  routes.post("/stream", async (_c) => {
+  routes.post("/stream", async () => {
     const config = await getConfig();
-    const outputDir = getProjectOutputDir(getCurrentProjectId());
-    const assetsDir = getProjectAssetsDir(getCurrentProjectId());
+    const projectId = getCurrentProjectId();
+    const outputDir = getProjectOutputDir(projectId);
+    const assetsDir = getProjectAssetsDir(projectId);
+    const abort = new AbortController();
+    const encoder = new TextEncoder();
 
-    // Calculate total items
-    let totalItems = 0;
-    for (const langConfig of config.languages) {
-      for (
-        const [_platformName, platformConfig] of Object.entries(
-          langConfig.platforms,
-        )
-      ) {
-        if (!platformConfig) continue;
-        totalItems += platformConfig.screenshots.length;
-      }
-    }
-
-    // Stream response
-    const stream = new ReadableStream({
+    const stream = new ReadableStream<Uint8Array>({
       async start(controller) {
-        const encoder = new TextEncoder();
-        const send = (data: unknown) => {
+        const send = (event: GenerationEvent) => {
+          // Once the client is gone the controller is closed; the aborted
+          // signal ends the loop after the current screenshot
+          if (abort.signal.aborted) return;
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+            encoder.encode(`data: ${JSON.stringify(event)}\n\n`),
           );
         };
-
-        let completed = 0;
-        const results: {
-          path: string;
-          relativePath: string;
-          role: ScreenshotRole;
-          status: "success" | "error";
-          error?: string;
-          screenshotName?: string;
-        }[] = [];
-
-        send({ type: "start", total: totalItems });
-
-        for (const langConfig of config.languages) {
-          for (
-            const [platformName, platformConfig] of Object.entries(
-              langConfig.platforms,
-            )
-          ) {
-            if (!platformConfig) continue;
-
-            const langOutputDir = join(
-              outputDir,
-              langConfig.language,
-              platformName,
-            );
-            await ensureDir(langOutputDir);
-
-            const usedNames = new Set<string>();
-
-            for (const screenshot of platformConfig.screenshots) {
-              const displayName = screenshot.name ||
-                fallbackName(screenshot, platformConfig.screenshots);
-              const baseName = sanitizeFilename(displayName);
-              const fileName = uniqueName(baseName, usedNames);
-              const htmlPath = join(langOutputDir, `${fileName}.html`);
-              const pngPath = join(langOutputDir, `${fileName}.png`);
-              const relativePath =
-                `${langConfig.language}/${platformName}/${fileName}.png`;
-
-              const dimensions = getScreenshotDimensions(
-                screenshot,
-                platformConfig.dimensions,
-              );
-
-              send({
-                type: "progress",
-                current: completed + 1,
-                total: totalItems,
-                item: `${langConfig.language}/${platformName}: ${displayName}`,
-              });
-
-              try {
-                const html = renderScreenshot({
-                  screenshot,
-                  theme: config.theme,
-                  app: config.app,
-                  platform: platformName as "android" | "ios",
-                  defaultDevicePresetId:
-                    config.platformDefaults[platformName as "android" | "ios"]
-                      .defaultDevicePresetId,
-                  dimensions,
-                  assetUrlPrefix: `${toFileUrl(assetsDir).href}/`,
-                });
-                await Deno.writeTextFile(htmlPath, html);
-                await convertHtmlFileToPng(
-                  htmlPath,
-                  pngPath,
-                  dimensions,
-                );
-                results.push({
-                  path: pngPath,
-                  relativePath,
-                  role: screenshot.role,
-                  status: "success",
-                  screenshotName: displayName,
-                });
-              } catch (error) {
-                results.push({
-                  path: pngPath,
-                  relativePath,
-                  role: screenshot.role,
-                  status: "error",
-                  error: error instanceof Error
-                    ? error.message
-                    : "Unknown error",
-                  screenshotName: displayName,
-                });
-              }
-              completed++;
-            }
-          }
+        try {
+          await generateAll(config, {
+            outputDir,
+            assetsDir,
+            convert,
+            onEvent: send,
+            signal: abort.signal,
+          });
+        } catch (error) {
+          send({
+            type: "error",
+            message: error instanceof Error ? error.message : String(error),
+          });
         }
-
-        send({ type: "complete", results, outputDir });
-        controller.close();
+        if (!abort.signal.aborted) controller.close();
+      },
+      cancel() {
+        abort.abort();
       },
     });
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-      },
-    });
+    return new Response(stream, { headers: SSE_HEADERS });
   });
 
   /**
@@ -205,65 +96,12 @@ export function createGenerateRoutes(
   });
 
   /**
-   * Get previously generated images
+   * The last run's results, from the manifest the pipeline wrote
    */
   routes.get("/generated", async (c) => {
     const outputDir = getProjectOutputDir(getCurrentProjectId());
-
-    const results: {
-      relativePath: string;
-      status: string;
-      role: ScreenshotRole;
-    }[] = [];
-
-    /** Read PNG width/height from the IHDR chunk (bytes 16-23). */
-    async function readPngDimensions(
-      path: string,
-    ): Promise<{ width: number; height: number } | null> {
-      let file: Deno.FsFile | undefined;
-      try {
-        file = await Deno.open(path);
-        const buf = new Uint8Array(24);
-        await file.read(buf);
-        const view = new DataView(buf.buffer);
-        return { width: view.getUint32(16), height: view.getUint32(20) };
-      } catch {
-        return null;
-      } finally {
-        file?.close();
-      }
-    }
-
-    async function scanDir(dir: string, prefix: string = "") {
-      try {
-        for await (const entry of Deno.readDir(dir)) {
-          const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
-          if (entry.isDirectory) {
-            await scanDir(join(dir, entry.name), relativePath);
-          } else if (
-            entry.isFile &&
-            (entry.name.endsWith(".png") || entry.name.endsWith(".jpg"))
-          ) {
-            // Only parse PNG dimensions via IHDR; default other formats to screenshot
-            const dims = entry.name.endsWith(".png")
-              ? await readPngDimensions(join(dir, entry.name))
-              : null;
-            const isLandscape = dims ? dims.width > dims.height : false;
-            results.push({
-              relativePath,
-              status: "success",
-              role: isLandscape ? "feature-graphic" : "screenshot",
-            });
-          }
-        }
-      } catch (error) {
-        // Nothing generated yet
-        if (!(error instanceof Deno.errors.NotFound)) throw error;
-      }
-    }
-
-    await scanDir(outputDir);
-    return c.json({ results, outputDir });
+    const manifest = await readManifest(outputDir);
+    return c.json({ results: manifest?.results ?? [], outputDir });
   });
 
   return routes;

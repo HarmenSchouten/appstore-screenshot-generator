@@ -14,6 +14,7 @@ export const createGenerationSlice: StateCreator<
     item: "",
     results: null,
     outputDir: "",
+    error: null,
   },
   showGenerateModal: false,
   lastGenerated: null,
@@ -30,6 +31,7 @@ export const createGenerationSlice: StateCreator<
           item: "",
           results: lastGenerated.results,
           outputDir: lastGenerated.outputDir,
+          error: null,
         },
         showGenerateModal: true,
       });

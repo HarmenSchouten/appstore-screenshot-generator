@@ -7,6 +7,7 @@
 import { Hono } from "hono";
 import { serveStatic } from "hono/deno";
 import { initializeProjects, listProjects, loadProject } from "./projects.ts";
+import { closeBrowser, killBrowser, renderHtmlToPng } from "./png-export.ts";
 import { NotFoundError } from "./errors.ts";
 import type { ProjectConfig } from "@app-types";
 
@@ -124,13 +125,10 @@ app.route(
 // Asset routes (list, upload, rename, delete)
 app.route("/api/assets", createAssetRoutes(getCurrentProjectId));
 
-// Generation routes (export screenshots to PNG)
+// Generation routes (export screenshots to PNG via headless Chrome)
 app.route(
   "/api/generate",
-  createGenerateRoutes(
-    getCurrentProjectId,
-    getConfig,
-  ),
+  createGenerateRoutes(getCurrentProjectId, getConfig, renderHtmlToPng),
 );
 
 // Serve generated output files
@@ -173,6 +171,16 @@ if (useStaticUI) {
       ].join("\n"),
     ));
 }
+
+// Chrome is a child of this process; without these a Ctrl-C leaves it running
+Deno.addSignalListener("SIGINT", async () => {
+  await Promise.race([
+    closeBrowser(),
+    new Promise((resolve) => setTimeout(resolve, 2000)),
+  ]);
+  Deno.exit(0);
+});
+globalThis.addEventListener("unload", killBrowser);
 
 // Start server
 const port = 3000;

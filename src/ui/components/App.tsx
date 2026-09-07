@@ -133,6 +133,7 @@ export function App() {
           progress={generateProgress}
           generating={generating}
           onClose={closeGenerateModal}
+          onCancel={generateAll.cancel}
         />
       )}
 

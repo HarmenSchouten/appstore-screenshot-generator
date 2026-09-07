@@ -7,6 +7,7 @@
 // Re-export from main types
 export type {
   DevicePresetId,
+  GenerationResult as GenerateResult,
   ProjectConfig,
   ProjectInfo,
   Screenshot,
@@ -41,20 +42,11 @@ export interface GenerateProgress {
   current: number;
   total: number;
   item: string;
-  results: GenerateResult[] | null;
+  results: import("@app-types").GenerationResult[] | null;
   outputDir: string;
+  /**
+   * Run-level failure (the export could not run at all). Per-screenshot
+   * failures, Chrome errors included, are carried in `results`.
+   */
+  error: string | null;
 }
-
-/**
- * Generation result for single item
- */
-export interface GenerateResult {
-  path: string;
-  relativePath: string;
-  role: ScreenshotRole;
-  status: "success" | "error";
-  error?: string;
-  screenshotName?: string;
-}
-
-import type { ScreenshotRole } from "@app-types";
