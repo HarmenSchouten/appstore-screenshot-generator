@@ -71,11 +71,15 @@ export function ThemeEditorModal({ onClose, onSave }: ThemeEditorModalProps) {
       ? customGradient
       : gradients.find((g) => g.id === selectedGradient)?.css || customGradient;
 
+    // Merge onto the store's current config, not this render's: a save that
+    // lands while the modal is open (auto-save retry, another edit) must not
+    // be overwritten with a stale snapshot (#65)
+    const current = useAppStore.getState().config;
     onSave({
-      ...config,
+      ...current,
       palette,
       theme: {
-        ...config.theme,
+        ...current.theme,
         background: { gradient },
         fontFamily,
         googleFontsUrl: googleFontsUrl || undefined,
