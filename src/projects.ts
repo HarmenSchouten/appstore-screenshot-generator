@@ -300,10 +300,11 @@ export async function loadProject(projectId: string): Promise<ProjectConfig> {
     }
     throw error;
   }
-  const config = normalizeProjectConfig(JSON.parse(content));
-  const normalized = JSON.stringify(config, null, 2);
-  if (normalized !== content) {
-    await Deno.writeTextFile(path, normalized);
+  const parsed = JSON.parse(content);
+  const config = normalizeProjectConfig(parsed);
+  // Compare structure, not text: a formatting difference is not a migration
+  if (JSON.stringify(config) !== JSON.stringify(parsed)) {
+    await Deno.writeTextFile(path, JSON.stringify(config, null, 2));
   }
   return config;
 }
