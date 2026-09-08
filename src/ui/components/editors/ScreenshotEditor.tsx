@@ -27,6 +27,7 @@ import {
 } from "@dnd-kit/sortable";
 import type { Screenshot } from "@ui/types.ts";
 import type { Layer } from "@app-types";
+import { usePopover } from "@hooks";
 import { createDefaultLayer, generateLayerId } from "./layer-meta.ts";
 import { SortableLayerCard } from "./SortableLayerCard.tsx";
 import { AddLayerMenu } from "./AddLayerMenu.tsx";
@@ -46,6 +47,8 @@ export function ScreenshotEditor({
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+
+  usePopover(showInfo, () => setShowInfo(false));
 
   // Every layer has an id: the server assigns missing ones on load (#65)
   const layers = screenshot.layers;

@@ -7,12 +7,18 @@
 import { useMutation } from "@tanstack/react-query";
 import { addLanguage } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
+import { flushPersist } from "@ui/utils/config-persistence.ts";
 
 export function useAddLanguage() {
   return useMutation({
-    mutationFn: (
+    mutationFn: async (
       { language, copyFrom }: { language: string; copyFrom: string | null },
-    ) => addLanguage(language, copyFrom),
+    ) => {
+      // The server edits its own copy of the config; a debounced local edit
+      // still in flight would otherwise be built on and then overwritten
+      await flushPersist();
+      return addLanguage(language, copyFrom);
+    },
     onSuccess: (newLang, { language }) => {
       useAppStore.setState((s) => {
         const newConfig = { ...s.config };

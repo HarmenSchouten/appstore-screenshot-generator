@@ -17,6 +17,7 @@ import {
   useCreateProject,
   useDeleteLanguage,
   useLastGeneratedQuery,
+  usePopover,
   useSwitchProject,
 } from "@hooks";
 
@@ -61,6 +62,8 @@ function TopBarInner({ onGenerate }: TopBarProps) {
   );
   const [confirmCopyPlatform, setConfirmCopyPlatform] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  usePopover(projectDropdownOpen, () => setProjectDropdownOpen(false));
 
   const currentProjectInfo = projects.find((p) => p.id === currentProject);
   const assetCount = assets.images.length;
@@ -223,37 +226,46 @@ function TopBarInner({ onGenerate }: TopBarProps) {
                 </div>
               )
               : (
-                <button
-                  type="button"
-                  onClick={() => setSelectedLang(lang)}
-                  className={`${btnH} flex items-center gap-1.5 px-2.5 rounded text-xs uppercase font-medium transition-colors ${
+                <div
+                  className={`${btnH} flex items-center rounded text-xs uppercase font-medium transition-colors ${
                     selectedLang === lang
                       ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
                       : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300"
                   }`}
                 >
-                  <span className="text-sm leading-none">
-                    {getFlagForCode(lang)}
-                  </span>
-                  {lang}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLang(lang)}
+                    className={`h-full flex items-center gap-1.5 pl-2.5 rounded ${
+                      languages.length > 1 ? "pr-1" : "pr-2.5"
+                    }`}
+                  >
+                    <span className="text-sm leading-none">
+                      {getFlagForCode(lang)}
+                    </span>
+                    {lang}
+                  </button>
+                  {
+                    /* A sibling of the tab button, not a child: interactive
+                      content inside <button> is invalid HTML and the remove
+                      action was unreachable by keyboard */
+                  }
                   {languages.length > 1 && (
-                    <span
-                      role="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirmDeleteLang(lang);
-                      }}
-                      className={`ml-1 rounded px-1 transition-colors hover:bg-red-600 hover:text-white ${
+                    <button
+                      type="button"
+                      onClick={() => setConfirmDeleteLang(lang)}
+                      className={`mr-1.5 rounded px-1 transition-colors hover:bg-red-600 hover:text-white ${
                         selectedLang === lang
                           ? "text-indigo-300"
                           : "text-zinc-600"
                       }`}
                       title={`Remove ${lang}`}
+                      aria-label={`Remove ${lang}`}
                     >
                       <i className="fa-solid fa-xmark text-[10px]" />
-                    </span>
+                    </button>
                   )}
-                </button>
+                </div>
               )}
           </div>
         ))}

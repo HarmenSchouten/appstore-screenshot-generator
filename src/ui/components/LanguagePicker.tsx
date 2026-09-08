@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { usePopover } from "@hooks";
 
 /** Common app-store languages with flag emoji and display name. */
 const LANGUAGES = [
@@ -87,6 +88,9 @@ export function LanguagePicker(
   useEffect(() => {
     searchRef.current?.focus();
   }, []);
+
+  // Only mounted while open: Escape closes the picker, not the selection
+  usePopover(true, onClose);
 
   const handleAdd = (code: string) => {
     onAdd(code, copyFromCurrent ? currentLanguage : null);

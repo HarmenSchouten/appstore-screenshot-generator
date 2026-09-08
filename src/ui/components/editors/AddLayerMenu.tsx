@@ -3,6 +3,7 @@
  */
 
 import type { Layer } from "@app-types";
+import { usePopover } from "@hooks";
 import { ADDABLE_LAYERS, LAYER_META } from "./layer-meta.ts";
 
 export function AddLayerMenu({
@@ -12,6 +13,9 @@ export function AddLayerMenu({
   onAdd: (type: Layer["type"]) => void;
   onClose: () => void;
 }) {
+  // Only mounted while open: Escape closes the menu, not the selection
+  usePopover(true, onClose);
+
   return (
     <>
       <div className="fixed inset-0 z-10" onClick={onClose} />
