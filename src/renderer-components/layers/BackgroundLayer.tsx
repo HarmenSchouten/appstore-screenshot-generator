@@ -1,20 +1,5 @@
 import type { BackgroundLayerProps, ThemeConfig } from "@app-types";
-
-export type GradientType = "solid" | "linear" | "radial";
-
-/** Build a CSS background string from structured gradient data. */
-export function buildGradientCSS(
-  gradientType: GradientType,
-  colors: string[],
-  direction: number,
-): string {
-  if (colors.length === 0) return "transparent";
-  if (gradientType === "solid" || colors.length === 1) return colors[0];
-  if (gradientType === "radial") {
-    return `radial-gradient(circle, ${colors.join(", ")})`;
-  }
-  return `linear-gradient(${direction}deg, ${colors.join(", ")})`;
-}
+import { buildGradientCSS, DEFAULT_GRADIENT_DIRECTION } from "@lib";
 
 interface BackgroundLayerRendererProps extends BackgroundLayerProps {
   theme: ThemeConfig;
@@ -32,7 +17,7 @@ export function resolveBackground(
     return buildGradientCSS(
       layer.gradientType ?? "linear",
       layer.colors,
-      layer.direction ?? 180,
+      layer.direction ?? DEFAULT_GRADIENT_DIRECTION,
     );
   }
   return theme.background.gradient;
