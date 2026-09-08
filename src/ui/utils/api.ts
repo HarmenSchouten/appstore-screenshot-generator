@@ -6,7 +6,7 @@
  */
 
 import type { Assets, ProjectConfig, ProjectInfo } from "@ui/types.ts";
-import type { AppData, GenerateResult } from "@ui/types.ts";
+import type { AppData, LastGenerated } from "@ui/types.ts";
 import type {
   GenerationEvent,
   GenerationProgressEvent,
@@ -160,15 +160,9 @@ export function copyPlatform(
 /**
  * Fetch previously generated images
  */
-export async function fetchGenerated(): Promise<
-  { results: GenerateResult[]; outputDir: string } | null
-> {
+export async function fetchGenerated(): Promise<LastGenerated | null> {
   try {
-    const data = await request<
-      { results: GenerateResult[]; outputDir: string }
-    >(
-      "/api/generate/generated",
-    );
+    const data = await request<LastGenerated>("/api/generate/generated");
     return data.results && data.results.length > 0 ? data : null;
   } catch {
     // probe — no prior output (or an unreachable server) is not an error here

@@ -16,6 +16,7 @@ import {
   useCopyPlatformConfig,
   useCreateProject,
   useDeleteLanguage,
+  useLastGeneratedQuery,
   useSwitchProject,
 } from "@hooks";
 
@@ -35,7 +36,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
   const assets = useAppStore((s) => s.assets);
   const generating = useAppStore((s) => s.generating);
-  const lastGenerated = useAppStore((s) => s.lastGenerated);
+  const { data: lastGenerated } = useLastGeneratedQuery();
 
   const {
     setSelectedLang,
@@ -399,7 +400,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
       {lastGenerated && (
         <button
           type="button"
-          onClick={viewLastGenerated}
+          onClick={() => viewLastGenerated(lastGenerated)}
           className={`${btnH} px-3 rounded text-sm bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center gap-1.5 transition-colors`}
           title="View Last Results"
         >

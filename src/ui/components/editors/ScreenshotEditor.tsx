@@ -32,22 +32,6 @@ import { SortableLayerCard } from "./SortableLayerCard.tsx";
 import { AddLayerMenu } from "./AddLayerMenu.tsx";
 import { LayerDetail } from "./LayerDetail.tsx";
 
-// ── Stable ID helper ────────────────────────────────────────────────
-
-/**
- * Ensure every layer has an `id`. Layers loaded from older configs
- * may be missing one — assign on-the-fly so dnd-kit can track them.
- */
-function ensureLayerIds(layers: Layer[]): Layer[] {
-  let changed = false;
-  const result = layers.map((l) => {
-    if (l.id) return l;
-    changed = true;
-    return { ...l, id: generateLayerId() };
-  });
-  return changed ? result : layers;
-}
-
 // ── Main editor ─────────────────────────────────────────────────────
 
 interface ScreenshotEditorProps {
@@ -63,7 +47,8 @@ export function ScreenshotEditor({
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
-  const layers = ensureLayerIds(screenshot.layers);
+  // Every layer has an id: the server assigns missing ones on load (#65)
+  const layers = screenshot.layers;
   const itemIds = layers.map((l) => l.id);
 
   const activeIndex = activeLayerId

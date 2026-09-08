@@ -22,9 +22,9 @@ export function useSwitchProject() {
       return { projectId, data };
     },
     onSuccess: ({ projectId, data }) => {
+      useAppStore.getState().hydrate({ projectId, config: data.config });
+      // Selection is scoped to a project; start the new one on its first language
       useAppStore.setState({
-        currentProject: projectId,
-        config: data.config,
         selectedLang: data.config.languages?.[0]?.language || "en",
         selectedScreenshotId: null,
       });

@@ -6,7 +6,7 @@ export const createGenerationSlice: StateCreator<
   [],
   [],
   GenerationSlice
-> = (set, get) => ({
+> = (set) => ({
   generating: false,
   generateProgress: {
     current: 0,
@@ -17,24 +17,19 @@ export const createGenerationSlice: StateCreator<
     error: null,
   },
   showGenerateModal: false,
-  lastGenerated: null,
 
   closeGenerateModal: () => set({ showGenerateModal: false }),
 
-  viewLastGenerated: () => {
-    const { lastGenerated } = get();
-    if (lastGenerated) {
-      set({
-        generateProgress: {
-          current: lastGenerated.results.length,
-          total: lastGenerated.results.length,
-          item: "",
-          results: lastGenerated.results,
-          outputDir: lastGenerated.outputDir,
-          error: null,
-        },
-        showGenerateModal: true,
-      });
-    }
-  },
+  viewLastGenerated: ({ results, outputDir }) =>
+    set({
+      generateProgress: {
+        current: results.length,
+        total: results.length,
+        item: "",
+        results,
+        outputDir,
+        error: null,
+      },
+      showGenerateModal: true,
+    }),
 });

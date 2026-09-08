@@ -33,7 +33,6 @@ import {
   useAssetsQuery,
   useConfigAutoSave,
   useGenerateAll,
-  useLastGeneratedQuery,
 } from "@hooks";
 
 export function App() {
@@ -43,8 +42,6 @@ export function App() {
   useAppHotkeys();
 
   const { mutate: generate, cancel: cancelGenerate } = useGenerateAll();
-
-  useLastGeneratedQuery();
 
   const theme = useAppStore((s) => s.config.theme);
   const app = useAppStore((s) => s.config.app);

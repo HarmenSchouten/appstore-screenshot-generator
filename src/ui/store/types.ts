@@ -3,7 +3,7 @@ import type {
   Config,
   DevicePresetId,
   GenerateProgress,
-  GenerateResult,
+  LastGenerated,
   ProjectInfo,
   Screenshot,
 } from "@ui/types.ts";
@@ -13,8 +13,14 @@ import type {
 export interface ConfigSlice {
   config: Config;
   _configDirty: boolean;
-  /** Hydrate config from server — does NOT trigger auto-save. */
-  setConfig: (config: Config) => void;
+  /**
+   * Load a project from the server — on init and on project switch. Marks
+   * the config clean, so the auto-saver does not write back what was just
+   * read. Local edits go through `updateConfig`.
+   */
+  hydrate: (
+    data: { projectId: string; config: Config; projects?: ProjectInfo[] },
+  ) => void;
   /** Apply a local edit — triggers auto-save via the subscriber. */
   updateConfig: (config: Config) => void;
 }
@@ -62,9 +68,9 @@ export interface GenerationSlice {
   generating: boolean;
   generateProgress: GenerateProgress;
   showGenerateModal: boolean;
-  lastGenerated: { results: GenerateResult[]; outputDir: string } | null;
   closeGenerateModal: () => void;
-  viewLastGenerated: () => void;
+  /** Reopen the results modal on a previous run (from the manifest query). */
+  viewLastGenerated: (last: LastGenerated) => void;
 }
 
 export interface UISlice {
