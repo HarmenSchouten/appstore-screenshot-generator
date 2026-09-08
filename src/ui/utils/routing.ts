@@ -77,13 +77,16 @@ export function useStoreRouteSync() {
       state.setSelectedPlatform(params.platform as "android" | "ios");
     }
 
-    // Screenshot (regular or feature-graphic — both use their id)
+    // Screenshot (regular or feature-graphic — both use their id).
+    // Re-read: `state` is the snapshot from before the setters above ran,
+    // and setSelectedLang/Platform clear the selection.
+    const currentSelectionId = useAppStore.getState().selectedScreenshotId;
     if (params.screenshotId) {
-      if (state.selectedScreenshotId !== params.screenshotId) {
+      if (currentSelectionId !== params.screenshotId) {
         isRouteChange.current = true;
         state.setSelectedScreenshotId(params.screenshotId);
       }
-    } else if (state.selectedScreenshotId !== null) {
+    } else if (currentSelectionId !== null) {
       isRouteChange.current = true;
       state.setSelectedScreenshotId(null);
     }

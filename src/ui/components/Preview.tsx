@@ -5,7 +5,7 @@
  * Uses the same isomorphic components as HTML export for WYSIWYG consistency.
  */
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   TransformComponent,
   TransformWrapper,
@@ -65,7 +65,7 @@ interface PreviewProps {
   dimensions: { width: number; height: number };
 }
 
-export function Preview(
+function PreviewInner(
   { screenshot, theme, app, platform, defaultDevicePresetId, dimensions }:
     PreviewProps,
 ) {
@@ -77,11 +77,13 @@ export function Preview(
     "width 120ms cubic-bezier(0.2, 0, 0, 1), height 120ms cubic-bezier(0.2, 0, 0, 1)";
 
   // Tiny settle effect when switching between screenshot and feature graphic.
+  // Keyed on the id, not the object: every edit produces a new screenshot,
+  // so `[screenshot]` flashed the canvas on each slider tick (#64).
   useLayoutEffect(() => {
     setContentOpacity(0.96);
     const timeout = setTimeout(() => setContentOpacity(1), 16);
     return () => clearTimeout(timeout);
-  }, [screenshot]);
+  }, [screenshot.id]);
 
   // Track container size for scale calculation.
   useLayoutEffect(() => {
@@ -205,3 +207,9 @@ export function Preview(
     </div>
   );
 }
+
+/**
+ * Memoised on its props; App passes stable `theme`, `app` and `dimensions`
+ * references, so only a real screenshot change re-renders the canvas.
+ */
+export const Preview = memo(PreviewInner);
