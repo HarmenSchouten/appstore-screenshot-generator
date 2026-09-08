@@ -1,39 +1,30 @@
 /**
  * useInitData
  *
- * Fetches initial application data (config, projects, palettes, etc.)
- * via React Query and hydrates the Zustand store on success.
- * Replaces the imperative fetch("/api/init") in main.tsx.
+ * Fetches initial application data (config, projects, current project)
+ * via React Query and hydrates the Zustand store.
  *
- * Hydration happens synchronously during render (via ref guard) to
- * avoid a flash of empty state that useEffect would cause.
+ * Hydration happens inside the query function, before the query resolves:
+ * the first render that sees `data` already sees a filled store, so there
+ * is no empty-state frame — and nothing writes to the store during render,
+ * which the previous ref-guarded version did (#65).
  */
 
-import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchInit } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { queryKeys } from "@ui/utils/query.ts";
-import type { AppData } from "@ui/types.ts";
 
 export function useInitData() {
-  const hydratedRef = useRef<AppData | null>(null);
-
-  const query = useQuery({
+  return useQuery({
     queryKey: queryKeys.init,
-    queryFn: fetchInit,
+    queryFn: async () => {
+      const data = await fetchInit();
+      useAppStore.getState().hydrate(data);
+      return data;
+    },
+    // Loaded once; after that the store is the source of truth and a
+    // refetch would clobber unsaved edits
     staleTime: Infinity,
   });
-
-  // Hydrate synchronously during render to prevent a frame with empty store
-  if (query.data && hydratedRef.current !== query.data) {
-    hydratedRef.current = query.data;
-    useAppStore.setState({
-      config: query.data.config,
-      projects: query.data.projects,
-      currentProject: query.data.projectId,
-    });
-  }
-
-  return query;
 }

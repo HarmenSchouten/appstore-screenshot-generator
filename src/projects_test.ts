@@ -3,16 +3,18 @@ import {
   assertEquals,
   assertFalse,
   assertRejects,
+  assertStrictEquals,
   assertThrows,
 } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import type { LanguageConfig } from "@app-types";
+import type { LanguageConfig, Layer } from "@app-types";
 import { DEFAULT_DIMENSIONS } from "@lib";
 import {
   createProject,
   deleteProject,
   getDefaultConfig,
+  getProjectConfigPath,
   getProjectDir,
   listProjects,
   loadProject,
@@ -209,4 +211,70 @@ Deno.test("normalizeProjectConfig: fills a missing platform with an empty defaul
     normalized.languages[0].platforms.ios,
     config.languages[0].platforms.ios,
   );
+});
+
+Deno.test("normalizeProjectConfig: assigns ids to layers that have none, leaves the rest alone", () => {
+  const config = getDefaultConfig();
+  const android = config.languages[0].platforms.android;
+  android.screenshots = [
+    {
+      id: "with-ids",
+      name: "Has ids",
+      role: "screenshot",
+      layers: [{ id: "bg", type: "background", opacity: 1 }],
+    },
+    {
+      id: "legacy",
+      name: "Pre-id config",
+      role: "screenshot",
+      // Written before layers carried ids
+      layers: [
+        { type: "background", opacity: 1 },
+        { type: "background", opacity: 0.5 },
+      ] as Layer[],
+    },
+  ];
+
+  const normalized = normalizeProjectConfig(config);
+  const [withIds, legacy] = normalized.languages[0].platforms.android
+    .screenshots;
+
+  // Untouched screenshot keeps its identity — nothing was rebuilt for it
+  assertStrictEquals(withIds, android.screenshots[0]);
+  assertEquals(legacy.layers.map((l) => typeof l.id), ["string", "string"]);
+  assert(legacy.layers[0].id !== legacy.layers[1].id);
+  // Everything but the id is as it was
+  assertEquals(legacy.layers[1].opacity, 0.5);
+});
+
+Deno.test("loadProject: persists minted layer ids so they survive the next load", async () => {
+  await withTempProjectsDir(async () => {
+    const { id } = await createProject("Legacy");
+    const legacy = await loadProject(id);
+    legacy.languages[0].platforms.android.screenshots = [{
+      id: "s1",
+      name: "Legacy",
+      role: "screenshot",
+      layers: [{ type: "background", opacity: 1 }] as Layer[],
+    }];
+    const path = getProjectConfigPath(id);
+    await Deno.writeTextFile(path, JSON.stringify(legacy));
+
+    const first = await loadProject(id);
+    const minted = first.languages[0].platforms.android.screenshots[0]
+      .layers[0].id;
+    assert(minted, "id assigned on load");
+
+    // On disk now, and stable across loads rather than re-rolled each time
+    const onDisk = JSON.parse(await Deno.readTextFile(path));
+    assertEquals(
+      onDisk.languages[0].platforms.android.screenshots[0].layers[0].id,
+      minted,
+    );
+    const second = await loadProject(id);
+    assertEquals(
+      second.languages[0].platforms.android.screenshots[0].layers[0].id,
+      minted,
+    );
+  });
 });

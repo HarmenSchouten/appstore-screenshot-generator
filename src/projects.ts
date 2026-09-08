@@ -162,11 +162,35 @@ export function normalizeProjectConfig(config: ProjectConfig): ProjectConfig {
     languages: (config.languages ?? []).map((lang) => ({
       ...lang,
       platforms: {
-        android: lang.platforms?.android ?? createPlatformConfig("android"),
-        ios: lang.platforms?.ios ?? createPlatformConfig("ios"),
+        android: withLayerIds(
+          lang.platforms?.android ?? createPlatformConfig("android"),
+        ),
+        ios: withLayerIds(lang.platforms?.ios ?? createPlatformConfig("ios")),
       },
     })),
   };
+}
+
+/**
+ * Layer ids key the editor's list and its selection, so they have to be
+ * stable. Configs written before layers had ids carry none; minting them in
+ * the UI on every render made keys and the active layer drift (#65). They
+ * are assigned once here and persisted by `loadProject`.
+ */
+function withLayerIds(platform: PlatformConfig): PlatformConfig {
+  let changed = false;
+  const screenshots = platform.screenshots.map((screenshot) => {
+    const layers = screenshot.layers ?? [];
+    if (layers.every((layer) => layer.id)) return screenshot;
+    changed = true;
+    return {
+      ...screenshot,
+      layers: layers.map((layer) =>
+        layer.id ? layer : { ...layer, id: crypto.randomUUID() }
+      ),
+    };
+  });
+  return changed ? { ...platform, screenshots } : platform;
 }
 
 /**
@@ -259,18 +283,30 @@ export async function createProject(name: string): Promise<ProjectInfo> {
  * Load project configuration. Unknown ids are a 404 — there is deliberately
  * no default-config fallback, which used to materialise phantom projects on
  * the next save.
+ *
+ * A file that normalisation changes — missing layer ids, a missing platform
+ * — is written back once, so the ids minted for it survive the next load
+ * instead of being re-rolled every time. Project metadata is not touched:
+ * a migration is not a user edit.
  */
 export async function loadProject(projectId: string): Promise<ProjectConfig> {
+  const path = getProjectConfigPath(projectId);
   let content: string;
   try {
-    content = await Deno.readTextFile(getProjectConfigPath(projectId));
+    content = await Deno.readTextFile(path);
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
       throw new NotFoundError(`Project "${projectId}" not found`);
     }
     throw error;
   }
-  return normalizeProjectConfig(JSON.parse(content));
+  const parsed = JSON.parse(content);
+  const config = normalizeProjectConfig(parsed);
+  // Compare structure, not text: a formatting difference is not a migration
+  if (JSON.stringify(config) !== JSON.stringify(parsed)) {
+    await Deno.writeTextFile(path, JSON.stringify(config, null, 2));
+  }
+  return config;
 }
 
 /**

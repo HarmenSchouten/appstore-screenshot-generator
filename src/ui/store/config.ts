@@ -11,6 +11,13 @@ export const createConfigSlice: StateCreator<
   config: {} as Config,
   _configDirty: false,
 
-  setConfig: (config) => set({ config, _configDirty: false }),
+  hydrate: ({ projectId, config, projects }) =>
+    set((s) => ({
+      config,
+      currentProject: projectId,
+      projects: projects ?? s.projects,
+      _configDirty: false,
+    })),
+
   updateConfig: (config) => set({ config, _configDirty: true }),
 });

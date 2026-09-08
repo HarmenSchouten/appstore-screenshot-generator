@@ -29,6 +29,14 @@ export interface AppData {
 }
 
 /**
+ * A previous run's results, from GET /api/generate/generated
+ */
+export interface LastGenerated {
+  results: import("@app-types").GenerationResult[];
+  outputDir: string;
+}
+
+/**
  * Asset lists from server
  */
 export interface Assets {
