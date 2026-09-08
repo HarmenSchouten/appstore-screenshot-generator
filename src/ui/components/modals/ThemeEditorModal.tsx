@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { ColorInput } from "@ui/components/inputs/ColorInput.tsx";
 import type { Config } from "@ui/types.ts";
+import { useAppStore } from "@ui/store/index.ts";
 import {
   applyPaletteToGradient,
   DEFAULT_PALETTES,
@@ -14,14 +15,15 @@ import {
 } from "@lib";
 
 interface ThemeEditorModalProps {
-  config: Config;
   onClose: () => void;
   onSave: (newConfig: Config) => void;
 }
 
-export function ThemeEditorModal(
-  { config, onClose, onSave }: ThemeEditorModalProps,
-) {
+export function ThemeEditorModal({ onClose, onSave }: ThemeEditorModalProps) {
+  // Read here rather than take a prop: this modal only mounts while it is
+  // open, so App no longer has to subscribe to the whole config for it (#64).
+  const config = useAppStore((s) => s.config);
+
   const defaultPalette = {
     primary: "#a855f7",
     secondary: "#6366f1",

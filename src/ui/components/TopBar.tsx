@@ -7,7 +7,8 @@
  * All interactive elements use h-8 (32px) for consistent vertical rhythm.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "@ui/store/index.ts";
 import { getFlagForCode, LanguagePicker } from "./LanguagePicker.tsx";
 import {
@@ -22,8 +23,12 @@ interface TopBarProps {
   onGenerate: () => void;
 }
 
-export function TopBar({ onGenerate }: TopBarProps) {
-  const config = useAppStore((s) => s.config);
+function TopBarInner({ onGenerate }: TopBarProps) {
+  // Language codes, shallow-compared. Selecting the whole config here made
+  // the bar re-render on every layer edit (#64).
+  const languages = useAppStore(
+    useShallow((s) => s.config.languages?.map((l) => l.language) ?? []),
+  );
   const projects = useAppStore((s) => s.projects);
   const currentProject = useAppStore((s) => s.currentProject);
   const selectedLang = useAppStore((s) => s.selectedLang);
@@ -57,7 +62,6 @@ export function TopBar({ onGenerate }: TopBarProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const currentProjectInfo = projects.find((p) => p.id === currentProject);
-  const languages = config.languages || [];
   const assetCount = assets.images.length;
 
   // Close dropdown on outside click
@@ -191,8 +195,8 @@ export function TopBar({ onGenerate }: TopBarProps) {
       {/* Language tabs */}
       <div className="flex gap-1 overflow-x-auto">
         {languages.map((lang) => (
-          <div key={lang.language} className="shrink-0 group/lang">
-            {confirmDeleteLang === lang.language
+          <div key={lang} className="shrink-0 group/lang">
+            {confirmDeleteLang === lang
               ? (
                 <div
                   className={`${btnH} flex items-center gap-1 px-2.5 rounded bg-red-900/40 border border-red-700/50`}
@@ -201,7 +205,7 @@ export function TopBar({ onGenerate }: TopBarProps) {
                   <button
                     type="button"
                     onClick={() => {
-                      deleteLanguage.mutate(lang.language);
+                      deleteLanguage.mutate(lang);
                       setConfirmDeleteLang(null);
                     }}
                     className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-600 hover:bg-red-500 text-white transition-colors"
@@ -220,30 +224,30 @@ export function TopBar({ onGenerate }: TopBarProps) {
               : (
                 <button
                   type="button"
-                  onClick={() => setSelectedLang(lang.language)}
+                  onClick={() => setSelectedLang(lang)}
                   className={`${btnH} flex items-center gap-1.5 px-2.5 rounded text-xs uppercase font-medium transition-colors ${
-                    selectedLang === lang.language
+                    selectedLang === lang
                       ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
                       : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300"
                   }`}
                 >
                   <span className="text-sm leading-none">
-                    {getFlagForCode(lang.language)}
+                    {getFlagForCode(lang)}
                   </span>
-                  {lang.language}
+                  {lang}
                   {languages.length > 1 && (
                     <span
                       role="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setConfirmDeleteLang(lang.language);
+                        setConfirmDeleteLang(lang);
                       }}
                       className={`ml-1 rounded px-1 transition-colors hover:bg-red-600 hover:text-white ${
-                        selectedLang === lang.language
+                        selectedLang === lang
                           ? "text-indigo-300"
                           : "text-zinc-600"
                       }`}
-                      title={`Remove ${lang.language}`}
+                      title={`Remove ${lang}`}
                     >
                       <i className="fa-solid fa-xmark text-[10px]" />
                     </span>
@@ -264,14 +268,13 @@ export function TopBar({ onGenerate }: TopBarProps) {
 
       {langPickerOpen && (
         <LanguagePicker
-          existingLanguages={languages.map((l) => l.language)}
+          existingLanguages={languages}
           currentLanguage={selectedLang}
           onAdd={(code, copyFrom) => {
             addLanguage.mutate({ language: code, copyFrom });
             setLangPickerOpen(false);
           }}
-          onClose={() =>
-            setLangPickerOpen(false)}
+          onClose={() => setLangPickerOpen(false)}
         />
       )}
 
@@ -432,3 +435,9 @@ export function TopBar({ onGenerate }: TopBarProps) {
     </header>
   );
 }
+
+/**
+ * Memoised so an edit in the canvas cannot re-render the whole bar; its
+ * only prop, `onGenerate`, is a stable react-query `mutate`.
+ */
+export const TopBar = memo(TopBarInner);

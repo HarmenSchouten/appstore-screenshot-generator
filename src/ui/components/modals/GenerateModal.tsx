@@ -50,6 +50,12 @@ export function GenerateModal(
   );
   const errorCount = failed.length;
 
+  // One cache-buster per result set, not per render: `Date.now()` inline in
+  // the src made every thumbnail re-download whenever the modal re-rendered
+  // — collapsing a language, toggling grid/list (#64). A new run brings a
+  // new `results` array, which is exactly when the files may have changed.
+  const cacheBuster = useMemo(() => Date.now(), [results]);
+
   const openFolder = useOpenOutputFolder();
   const [collapsedLangs, setCollapsedLangs] = useState<Set<string>>(new Set());
   const [showPreviews, setShowPreviews] = useState(true);
@@ -117,7 +123,7 @@ export function GenerateModal(
                 <div className="mb-2">
                   <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden">
                     <img
-                      src={`/output/${data.feature.relativePath}?t=${Date.now()}`}
+                      src={`/output/${data.feature.relativePath}?t=${cacheBuster}`}
                       className="w-full object-contain bg-zinc-800"
                       style={{ aspectRatio: aspect(FEATURE_GRAPHIC_SIZE) }}
                       loading="lazy"
@@ -140,7 +146,7 @@ export function GenerateModal(
                       className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden"
                     >
                       <img
-                        src={`/output/${r.relativePath}?t=${Date.now()}`}
+                        src={`/output/${r.relativePath}?t=${cacheBuster}`}
                         className="w-full object-contain bg-zinc-800"
                         style={{
                           aspectRatio: aspect(DEFAULT_DIMENSIONS[platform]),
