@@ -188,3 +188,9 @@ export function applyPaletteToGradient(
     .replace(/\{secondary\}/g, palette.secondary)
     .replace(/\{accent\}/g, palette.accent);
 }
+
+// ============================================================
+// Gradients
+// ============================================================
+
+export * from "./gradient.ts";

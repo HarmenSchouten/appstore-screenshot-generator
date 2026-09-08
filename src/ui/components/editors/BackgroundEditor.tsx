@@ -26,8 +26,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { BackgroundLayerProps } from "@app-types";
-import type { GradientType } from "@renderer/layers/BackgroundLayer.tsx";
-import { buildGradientCSS } from "@renderer/layers/BackgroundLayer.tsx";
+import {
+  buildGradientCSS,
+  DEFAULT_GRADIENT_DIRECTION,
+  type GradientType,
+  parseGradientCSS,
+} from "@lib";
 import { useAppStore } from "@ui/store/index.ts";
 import {
   ColorInput,
@@ -38,47 +42,6 @@ import {
 interface BackgroundEditorProps {
   layer: BackgroundLayerProps;
   onUpdate: (updates: Partial<BackgroundLayerProps>) => void;
-}
-
-/** Try to decompose a CSS background string into visual control values. */
-function parseGradientCSS(
-  css: string,
-): { gradientType: GradientType; colors: string[]; direction: number } | null {
-  const trimmed = css.trim();
-  if (!trimmed) return null;
-
-  // linear-gradient(<deg>deg, <color>, ...)
-  const linearRe = /^linear-gradient\(\s*(\d+(?:\.\d+)?)deg\s*,\s*(.+)\)$/i;
-  const linearMatch = trimmed.match(linearRe);
-  if (linearMatch) {
-    const direction = Math.round(Number(linearMatch[1])) % 360;
-    const colors = linearMatch[2].split(",").map((c) => c.trim()).filter(
-      Boolean,
-    );
-    if (colors.length >= 1) {
-      return { gradientType: "linear", colors, direction };
-    }
-  }
-
-  // radial-gradient(circle, <color>, ...)
-  const radialRe = /^radial-gradient\(\s*circle\s*,\s*(.+)\)$/i;
-  const radialMatch = trimmed.match(radialRe);
-  if (radialMatch) {
-    const colors = radialMatch[1].split(",").map((c) => c.trim()).filter(
-      Boolean,
-    );
-    if (colors.length >= 1) {
-      return { gradientType: "radial", colors, direction: 180 };
-    }
-  }
-
-  // Bare color value (hex, rgb, hsl, named)
-  const colorRe = /^(#[\da-f]{3,8}|rgba?\(.+\)|hsla?\(.+\)|[a-z]+)$/i;
-  if (colorRe.test(trimmed)) {
-    return { gradientType: "solid", colors: [trimmed], direction: 180 };
-  }
-
-  return null;
 }
 
 const GRADIENT_TYPES: { value: GradientType; label: string; icon: string }[] = [
@@ -182,8 +145,8 @@ const DIRECTION_PRESETS = [
   },
 ];
 
+/** Only used when the theme has no background to start from. */
 const DEFAULT_COLORS = ["#8b5cf6", "#3b82f6"];
-const DEFAULT_DIRECTION = 180;
 
 export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   const themeBackground = useAppStore((s) => s.config.theme?.background);
@@ -198,7 +161,7 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   // ── Resolve display values ────────────────────────────────
   const gradientType: GradientType = layer.gradientType ?? "linear";
   const colors: string[] = layer.colors ?? DEFAULT_COLORS;
-  const direction: number = layer.direction ?? DEFAULT_DIRECTION;
+  const direction: number = layer.direction ?? DEFAULT_GRADIENT_DIRECTION;
   const isCustomized = layer.colors !== undefined ||
     layer.gradient !== undefined;
 
@@ -232,12 +195,13 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   );
   const isFocused = useRef(false);
 
-  // Keep the draft in sync when visual controls change (but not while editing)
+  // Keep the draft in sync with whatever drives the output — the visual
+  // controls, or a raw override set from outside the field (seeded from the
+  // theme, or a different layer selected) — but never while the user types.
   useEffect(() => {
-    if (!isFocused.current && !isCSSDriven) {
-      setCssDraft(cssFromVisual);
-    }
-  }, [cssFromVisual, isCSSDriven]);
+    if (isFocused.current) return;
+    setCssDraft(isCSSDriven ? layer.gradient ?? "" : cssFromVisual);
+  }, [cssFromVisual, isCSSDriven, layer.gradient]);
 
   // ── Live preview CSS ──────────────────────────────────────
   const previewCSS = useMemo(() => {
@@ -282,16 +246,31 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   }, [cssDraft, cssFromVisual, onUpdate]);
 
   // ── Visual mode handlers ──────────────────────────────────
-  // The theme only stores a CSS gradient string, so customizing starts from
-  // fixed defaults rather than the theme's stops (see #65).
+  // Start from what the layer shows right now, i.e. the theme gradient:
+  // decomposed into stops when the visual controls can express it, kept as
+  // raw CSS when they cannot (positional stops, radial shapes, layered
+  // backgrounds) so customizing never silently changes the rendering (#65).
+  const themeCSS = themeBackground?.gradient?.trim() ?? "";
   const startCustomizing = useCallback(() => {
-    onUpdate({
-      gradient: undefined,
-      gradientType: "linear",
-      colors: [...DEFAULT_COLORS],
-      direction: DEFAULT_DIRECTION,
-    });
-  }, [onUpdate]);
+    const parsed = parseGradientCSS(themeCSS);
+    if (parsed) {
+      onUpdate({ gradient: undefined, ...parsed });
+    } else if (themeCSS) {
+      onUpdate({
+        gradient: themeCSS,
+        gradientType: undefined,
+        colors: undefined,
+        direction: undefined,
+      });
+    } else {
+      onUpdate({
+        gradient: undefined,
+        gradientType: "linear",
+        colors: [...DEFAULT_COLORS],
+        direction: DEFAULT_GRADIENT_DIRECTION,
+      });
+    }
+  }, [onUpdate, themeCSS]);
 
   const setType = useCallback(
     (t: GradientType) =>
