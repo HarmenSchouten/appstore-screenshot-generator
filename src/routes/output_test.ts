@@ -2,6 +2,7 @@ import { assertEquals, assertNotEquals } from "@std/assert";
 import { ensureDir } from "@std/fs";
 import { join } from "@std/path";
 import { createOutputRoutes } from "./output.ts";
+import { createServerContext } from "./context.ts";
 import { createProject, getProjectOutputDir } from "@/projects.ts";
 import { makeRouteApp, withTempProjectsDir } from "@/test-helpers.ts";
 
@@ -16,7 +17,7 @@ async function makeTestApp() {
     PNG_HEADER,
   );
   const app = makeRouteApp();
-  app.route("/output", createOutputRoutes(() => id));
+  app.route("/output", createOutputRoutes(createServerContext(id)));
   return { app, projectDir: join(outputDir, "..") };
 }
 

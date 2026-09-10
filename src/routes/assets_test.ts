@@ -2,6 +2,7 @@ import { assert, assertEquals, assertFalse } from "@std/assert";
 import { ensureDir, exists } from "@std/fs";
 import { join } from "@std/path";
 import { createAssetMiddleware, createAssetRoutes } from "./assets.ts";
+import { createServerContext } from "./context.ts";
 import { createProject, getProjectAssetsDir } from "@/projects.ts";
 import {
   jsonRequest,
@@ -15,9 +16,10 @@ const PNG_HEADER = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
 async function makeTestApp() {
   const { id } = await createProject("Assets Test");
   const assetsDir = getProjectAssetsDir(id);
+  const ctx = createServerContext(id);
   const app = makeRouteApp();
-  app.use("/assets/*", createAssetMiddleware(() => id));
-  app.route("/api/assets", createAssetRoutes(() => id));
+  app.use("/assets/*", createAssetMiddleware(ctx));
+  app.route("/api/assets", createAssetRoutes(ctx));
   return { app, assetsDir, projectDir: join(assetsDir, "..") };
 }
 

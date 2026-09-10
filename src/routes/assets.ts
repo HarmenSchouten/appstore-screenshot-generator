@@ -6,7 +6,8 @@
  * directory via `resolveInside`.
  */
 
-import { Hono, type MiddlewareHandler } from "hono";
+import { Hono } from "hono";
+import { createMiddleware } from "hono/factory";
 import { dirname, extname, join, relative } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { getProjectAssetsDir } from "@/projects.ts";
@@ -17,6 +18,7 @@ import {
   UnsupportedMediaTypeError,
   ValidationError,
 } from "@/errors.ts";
+import type { ServerContext } from "./context.ts";
 import {
   fileResponse,
   readJsonBody,
@@ -54,16 +56,11 @@ function toAssetPath(assetsDir: string, filePath: string): string {
   return `assets/${relative(assetsDir, filePath).replaceAll("\\", "/")}`;
 }
 
-export function createAssetRoutes(
-  getCurrentProjectId: () => string,
-) {
+export function createAssetRoutes(ctx: ServerContext) {
   const routes = new Hono();
 
-  /**
-   * List assets in project
-   */
   routes.get("/", async (c) => {
-    const assetsDir = getProjectAssetsDir(getCurrentProjectId());
+    const assetsDir = getProjectAssetsDir(ctx.getCurrentProjectId());
     const images: string[] = [];
 
     async function scanDir(dir: string, prefix = "") {
@@ -87,9 +84,6 @@ export function createAssetRoutes(
     return c.json({ images });
   });
 
-  /**
-   * Upload asset
-   */
   routes.post("/upload", async (c) => {
     const type = c.req.header("content-type") ?? "";
     if (!/^multipart\/form-data\b/i.test(type.trim())) {
@@ -109,7 +103,7 @@ export function createAssetRoutes(
     }
 
     const targetDir = join(
-      getProjectAssetsDir(getCurrentProjectId()),
+      getProjectAssetsDir(ctx.getCurrentProjectId()),
       UPLOAD_CATEGORY,
     );
     const filePath = resolveFileIn(targetDir, file.name, "File name");
@@ -119,15 +113,12 @@ export function createAssetRoutes(
     return c.json({ path: `assets/${UPLOAD_CATEGORY}/${file.name}` });
   });
 
-  /**
-   * Rename asset
-   */
   routes.patch("/rename", async (c) => {
     const body = requireObject(await readJsonBody(c));
     const oldPath = requireString(body, "oldPath");
     const newName = requireString(body, "newName");
 
-    const assetsDir = getProjectAssetsDir(getCurrentProjectId());
+    const assetsDir = getProjectAssetsDir(ctx.getCurrentProjectId());
     const oldFilePath = resolveAssetPath(assetsDir, oldPath);
     // Keep the directory, change the name; carry the extension over when the
     // new name has none
@@ -160,16 +151,13 @@ export function createAssetRoutes(
     return c.json({ success: true, newPath });
   });
 
-  /**
-   * Delete asset
-   */
   routes.delete("/", async (c) => {
     const assetPath = requireString(
       requireObject(await readJsonBody(c)),
       "path",
     );
     const filePath = resolveAssetPath(
-      getProjectAssetsDir(getCurrentProjectId()),
+      getProjectAssetsDir(ctx.getCurrentProjectId()),
       assetPath,
     );
 
@@ -190,16 +178,14 @@ export function createAssetRoutes(
 /**
  * Static asset serving for the current project. Mounted on `/assets/*`.
  */
-export function createAssetMiddleware(
-  getCurrentProjectId: () => string,
-): MiddlewareHandler {
-  return (c) => {
+export function createAssetMiddleware(ctx: ServerContext) {
+  return createMiddleware((c) => {
     const requestPath = c.req.path.replace(/^\/assets\//, "");
     const filePath = resolveInside(
-      getProjectAssetsDir(getCurrentProjectId()),
+      getProjectAssetsDir(ctx.getCurrentProjectId()),
       requestPath,
     );
     if (!filePath) throw new ValidationError("Invalid asset path");
     return fileResponse(filePath);
-  };
+  });
 }

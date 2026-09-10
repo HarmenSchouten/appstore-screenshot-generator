@@ -8,13 +8,14 @@
 
 import { Hono } from "hono";
 import { ensureDir } from "@std/fs";
-import type { GenerationEvent, ProjectConfig } from "@app-types";
+import type { GenerationEvent } from "@app-types";
 import { getProjectAssetsDir, getProjectOutputDir } from "@/projects.ts";
 import {
   generateAll,
   type HtmlToPngConverter,
   readManifest,
 } from "@/generation.ts";
+import type { ServerContext } from "./context.ts";
 
 const SSE_HEADERS = {
   "Content-Type": "text/event-stream",
@@ -23,8 +24,7 @@ const SSE_HEADERS = {
 };
 
 export function createGenerateRoutes(
-  getCurrentProjectId: () => string,
-  getConfig: () => Promise<ProjectConfig>,
+  ctx: ServerContext,
   convert: HtmlToPngConverter,
 ) {
   const routes = new Hono();
@@ -34,8 +34,8 @@ export function createGenerateRoutes(
    * tab) aborts the run after the screenshot in flight.
    */
   routes.post("/stream", async () => {
-    const config = await getConfig();
-    const projectId = getCurrentProjectId();
+    const config = await ctx.getConfig();
+    const projectId = ctx.getCurrentProjectId();
     const outputDir = getProjectOutputDir(projectId);
     const assetsDir = getProjectAssetsDir(projectId);
     const abort = new AbortController();
@@ -75,13 +75,10 @@ export function createGenerateRoutes(
     return new Response(stream, { headers: SSE_HEADERS });
   });
 
-  /**
-   * Open folder in system file explorer
-   */
   routes.post("/open-folder", async (c) => {
     // The server knows the output dir. Taking a path from the client would
     // let any web page launch the file manager on an arbitrary location.
-    const folderPath = getProjectOutputDir(getCurrentProjectId());
+    const folderPath = getProjectOutputDir(ctx.getCurrentProjectId());
     await ensureDir(folderPath);
 
     // Windows: explorer, macOS: open, Linux: xdg-open
@@ -99,7 +96,7 @@ export function createGenerateRoutes(
    * The last run's results, from the manifest the pipeline wrote
    */
   routes.get("/generated", async (c) => {
-    const outputDir = getProjectOutputDir(getCurrentProjectId());
+    const outputDir = getProjectOutputDir(ctx.getCurrentProjectId());
     const manifest = await readManifest(outputDir);
     return c.json({ results: manifest?.results ?? [], outputDir });
   });

@@ -51,20 +51,12 @@ export default defineConfig({
 
   server: {
     port: 5173,
-    // Proxy API requests to Deno server during development
-    proxy: {
-      "/api": {
-        target: "http://localhost:3000",
+    // The API server reads the same PORT (see server.ts)
+    proxy: Object.fromEntries(
+      ["/api", "/assets", "/output"].map((path) => [path, {
+        target: `http://localhost:${Deno.env.get("PORT") || 3000}`,
         changeOrigin: true,
-      },
-      "/assets": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-      },
-      "/output": {
-        target: "http://localhost:3000",
-        changeOrigin: true,
-      },
-    },
+      }]),
+    ),
   },
 });

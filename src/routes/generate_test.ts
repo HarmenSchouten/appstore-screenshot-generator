@@ -3,6 +3,7 @@ import { exists } from "@std/fs";
 import { join } from "@std/path";
 import type { GenerationEvent, GenerationResult } from "@app-types";
 import { createGenerateRoutes } from "./generate.ts";
+import { createServerContext } from "./context.ts";
 import { type HtmlToPngConverter, MANIFEST_FILE } from "@/generation.ts";
 import {
   createProject,
@@ -29,7 +30,7 @@ async function makeTestApp(convert: HtmlToPngConverter) {
   const app = makeRouteApp();
   app.route(
     "/api/generate",
-    createGenerateRoutes(() => id, () => loadProject(id), convert),
+    createGenerateRoutes(createServerContext(id), convert),
   );
   return { app, outputDir: getProjectOutputDir(id) };
 }
