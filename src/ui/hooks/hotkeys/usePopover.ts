@@ -22,5 +22,11 @@ export function usePopover(open: boolean, onClose: () => void) {
     return popoverClosed;
   }, [open]);
 
-  useHotkey("Escape", onClose, { enabled: open, preventDefault: false });
+  // Stacks next to the global Escape chain on the same target; the manager
+  // warns on every duplicate registration unless told the overlap is intended
+  useHotkey("Escape", onClose, {
+    enabled: open,
+    preventDefault: false,
+    conflictBehavior: "allow",
+  });
 }

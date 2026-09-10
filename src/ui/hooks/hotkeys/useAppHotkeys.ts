@@ -196,5 +196,10 @@ export function useAppHotkeys() {
     } else if (state.selectedScreenshotId) {
       state.setSelectedScreenshotId(null);
     }
-  }, { preventDefault: false });
+  }, {
+    preventDefault: false,
+    // Open popovers register their own Escape on the same target (see
+    // usePopover) and mount before this one; the overlap is intended
+    conflictBehavior: "allow",
+  });
 }
