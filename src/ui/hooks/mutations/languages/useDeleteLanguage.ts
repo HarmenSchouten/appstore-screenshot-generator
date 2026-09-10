@@ -7,10 +7,15 @@
 import { useMutation } from "@tanstack/react-query";
 import { deleteLanguage } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
+import { flushPersist } from "@ui/utils/config-persistence.ts";
 
 export function useDeleteLanguage() {
   return useMutation({
-    mutationFn: (language: string) => deleteLanguage(language),
+    mutationFn: async (language: string) => {
+      // Server-side edit: land pending local edits first (see useAddLanguage)
+      await flushPersist();
+      return deleteLanguage(language);
+    },
     onSuccess: (_data, language) => {
       useAppStore.setState((s) => {
         const newConfig = { ...s.config };

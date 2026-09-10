@@ -5,6 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { usePopover } from "@hooks";
 
 interface ColorInputProps {
   value: string;
@@ -80,6 +81,8 @@ export function ColorInput({
   const [hexInput, setHexInput] = useState(value || "#ffffff");
   const containerRef = useRef<HTMLDivElement>(null);
 
+  usePopover(isOpen, () => setIsOpen(false));
+
   // Update hexInput when value changes externally
   useEffect(() => {
     setHexInput(value || "#ffffff");
@@ -152,6 +155,7 @@ export function ColorInput({
               {COMMON_COLORS.map((color) => (
                 <button
                   type="button"
+                  key={color}
                   onClick={() => selectColor(color)}
                   className={`w-6 h-6 rounded border transition-colors ${
                     color === value

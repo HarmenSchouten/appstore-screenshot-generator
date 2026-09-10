@@ -69,6 +69,7 @@ export function LayerCard({
       {/* Drag handle */}
       {sortableProps && (
         <button
+          type="button"
           {...sortableProps.attributes}
           {...(sortableProps.listeners ?? {})}
           onClick={(e) => e.stopPropagation()}

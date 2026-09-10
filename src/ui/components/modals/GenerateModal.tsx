@@ -124,6 +124,7 @@ export function GenerateModal(
                   <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden">
                     <img
                       src={`/output/${data.feature.relativePath}?t=${cacheBuster}`}
+                      alt={data.feature.screenshotName || "Feature Graphic"}
                       className="w-full object-contain bg-zinc-800"
                       style={{ aspectRatio: aspect(FEATURE_GRAPHIC_SIZE) }}
                       loading="lazy"
@@ -147,6 +148,7 @@ export function GenerateModal(
                     >
                       <img
                         src={`/output/${r.relativePath}?t=${cacheBuster}`}
+                        alt={r.screenshotName || r.relativePath}
                         className="w-full object-contain bg-zinc-800"
                         style={{
                           aspectRatio: aspect(DEFAULT_DIMENSIONS[platform]),

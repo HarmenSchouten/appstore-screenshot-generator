@@ -11,6 +11,7 @@ export const createUISlice: StateCreator<
   themeEditorOpen: false,
   mediaManagerOpen: false,
   shortcutCheatSheetOpen: false,
+  openPopovers: 0,
   openProjectModal: () => set({ projectModalOpen: true }),
   closeProjectModal: () => set({ projectModalOpen: false }),
   openThemeEditor: () => set({ themeEditorOpen: true }),
@@ -19,4 +20,7 @@ export const createUISlice: StateCreator<
   closeMediaManager: () => set({ mediaManagerOpen: false }),
   openShortcutCheatSheet: () => set({ shortcutCheatSheetOpen: true }),
   closeShortcutCheatSheet: () => set({ shortcutCheatSheetOpen: false }),
+  popoverOpened: () => set((s) => ({ openPopovers: s.openPopovers + 1 })),
+  popoverClosed: () =>
+    set((s) => ({ openPopovers: Math.max(0, s.openPopovers - 1) })),
 });

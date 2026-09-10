@@ -55,6 +55,7 @@ export function SidebarItemCard({
       {/* Drag handle */}
       {sortableProps && (
         <button
+          type="button"
           {...sortableProps.attributes}
           {...(sortableProps.listeners ?? {})}
           onClick={(e) => e.stopPropagation()}

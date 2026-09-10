@@ -4,7 +4,7 @@
  * Modal for managing image assets.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Assets } from "@ui/types.ts";
 import { useDeleteAsset, useRenameAsset, useUploadAsset } from "@hooks";
 import { useAppStore } from "@ui/store/index.ts";
@@ -19,7 +19,18 @@ export function MediaManagerModal(
 ) {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  // Inline two-step delete instead of the native confirm(), which blocks
+  // the tab and cannot be styled or reached by the app's own Escape handling
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!confirmingDelete) return;
+    const timer = setTimeout(() => setConfirmingDelete(null), 2500);
+    return () => clearTimeout(timer);
+  }, [confirmingDelete]);
 
   const uploadAsset = useUploadAsset();
   const renameAsset = useRenameAsset();
@@ -60,8 +71,7 @@ export function MediaManagerModal(
   };
 
   const handleDelete = (path: string) => {
-    if (!confirm("Delete this file? This cannot be undone.")) return;
-
+    setConfirmingDelete(null);
     deleteAsset.mutate(path, {
       onSuccess: () => {
         useAppStore.getState().addToast({
@@ -138,27 +148,60 @@ export function MediaManagerModal(
                       <div className="aspect-square bg-zinc-700 relative">
                         <img
                           src={"/assets/" + path.replace("assets/", "")}
+                          alt={filename}
                           className="w-full h-full object-contain"
                           loading="lazy"
                         />
                         {/* Overlay actions */}
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => startEditing(path)}
-                            className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
-                            title="Rename"
-                          >
-                            <i className="fa-solid fa-pen" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(path)}
-                            className="p-2 bg-red-900/80 hover:bg-red-800 rounded"
-                            title="Delete"
-                          >
-                            <i className="fa-solid fa-trash" />
-                          </button>
+                        <div
+                          className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 ${
+                            confirmingDelete === path
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100"
+                          }`}
+                        >
+                          {confirmingDelete === path
+                            ? (
+                              <>
+                                <span className="text-xs text-red-300">
+                                  Delete?
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(path)}
+                                  className="px-2 py-1 text-xs font-medium rounded bg-red-600 hover:bg-red-500 text-white"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmingDelete(null)}
+                                  className="px-2 py-1 text-xs font-medium rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
+                                >
+                                  No
+                                </button>
+                              </>
+                            )
+                            : (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => startEditing(path)}
+                                  className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
+                                  title="Rename"
+                                >
+                                  <i className="fa-solid fa-pen" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setConfirmingDelete(path)}
+                                  className="p-2 bg-red-900/80 hover:bg-red-800 rounded"
+                                  title="Delete"
+                                >
+                                  <i className="fa-solid fa-trash" />
+                                </button>
+                              </>
+                            )}
                         </div>
                       </div>
 

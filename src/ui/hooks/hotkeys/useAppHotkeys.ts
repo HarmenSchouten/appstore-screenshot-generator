@@ -23,12 +23,14 @@ export function useAppHotkeys() {
   const shortcutCheatSheetOpen = useAppStore(
     (s) => s.shortcutCheatSheetOpen,
   );
+  const popoverOpen = useAppStore((s) => s.openPopovers > 0);
 
   const noModalOpen = !projectModalOpen &&
     !themeEditorOpen &&
     !mediaManagerOpen &&
     !showGenerateModal &&
-    !shortcutCheatSheetOpen;
+    !shortcutCheatSheetOpen &&
+    !popoverOpen;
 
   const generateAll = useGenerateAll();
   const openOutputFolder = useOpenOutputFolder();
@@ -178,6 +180,9 @@ export function useAppHotkeys() {
   useHotkey("Escape", () => {
     if (isInputFocused()) return;
     const state = useAppStore.getState();
+    // An open popover owns Escape (see usePopover); closing it must not
+    // also drop the selection behind it
+    if (state.openPopovers > 0) return;
     if (state.shortcutCheatSheetOpen) {
       state.closeShortcutCheatSheet();
     } else if (state.showGenerateModal) {
@@ -191,5 +196,10 @@ export function useAppHotkeys() {
     } else if (state.selectedScreenshotId) {
       state.setSelectedScreenshotId(null);
     }
-  }, { preventDefault: false });
+  }, {
+    preventDefault: false,
+    // Open popovers register their own Escape on the same target (see
+    // usePopover) and mount before this one; the overlap is intended
+    conflictBehavior: "allow",
+  });
 }

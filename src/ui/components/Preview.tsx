@@ -35,7 +35,8 @@ function ZoomHotkeys() {
     !s.themeEditorOpen &&
     !s.mediaManagerOpen &&
     !s.showGenerateModal &&
-    !s.shortcutCheatSheetOpen
+    !s.shortcutCheatSheetOpen &&
+    s.openPopovers === 0
   );
 
   useHotkey("=", () => {

@@ -25,9 +25,11 @@ export function Slider({
   unit = "",
   showValue = true,
 }: SliderProps) {
-  const displayValue = typeof value === "number"
-    ? Number.isInteger(value) ? value : value.toFixed(step < 1 ? 2 : 0)
-    : value;
+  // As many decimals as the step has, and no trailing zeros: a 0.01 step at
+  // 0.5 reads "0.5", not "0.50", and a whole-number step never shows ".00".
+  // `toFixed` also absorbs float noise from the range input.
+  const decimals = (String(step).split(".")[1] ?? "").length;
+  const displayValue = Number(value.toFixed(decimals));
 
   return (
     <div>

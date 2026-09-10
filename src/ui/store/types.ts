@@ -86,6 +86,14 @@ export interface UISlice {
   closeMediaManager: () => void;
   openShortcutCheatSheet: () => void;
   closeShortcutCheatSheet: () => void;
+  /**
+   * Transient popovers (pickers, dropdowns, menus) currently open. While
+   * above zero the global hotkeys stand down and Escape belongs to the
+   * popover — see `usePopover`.
+   */
+  openPopovers: number;
+  popoverOpened: () => void;
+  popoverClosed: () => void;
 }
 
 export interface ToastItem {
