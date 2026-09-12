@@ -59,15 +59,15 @@ function SidebarInner() {
     s.getDefaultDevicePreset()
   );
 
-  const {
-    setSelectedScreenshotId,
-    addScreenshot,
-    addFeatureGraphic,
-    removeScreenshot,
-    removeFeatureGraphic,
-    reorderScreenshots,
-    updateDefaultDevicePreset,
-  } = useAppStore.getState();
+  const setSelectedScreenshotId = useAppStore((s) => s.setSelectedScreenshotId);
+  const addScreenshot = useAppStore((s) => s.addScreenshot);
+  const addFeatureGraphic = useAppStore((s) => s.addFeatureGraphic);
+  const removeScreenshot = useAppStore((s) => s.removeScreenshot);
+  const removeFeatureGraphic = useAppStore((s) => s.removeFeatureGraphic);
+  const reorderScreenshots = useAppStore((s) => s.reorderScreenshots);
+  const updateDefaultDevicePreset = useAppStore((s) =>
+    s.updateDefaultDevicePreset
+  );
 
   const platformPresets = getDevicePresetsForPlatform(selectedPlatform);
 

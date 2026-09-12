@@ -25,29 +25,28 @@ import {
   selectScreenshots,
   useAppStore,
 } from "@ui/store/index.ts";
-import { useStoreRouteSync } from "@ui/utils/routing.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import type { Screenshot } from "@ui/types.ts";
 import {
   useAppHotkeys,
-  useAssetsQuery,
   useConfigAutoSave,
   useGenerateAll,
+  useStoreRouteSync,
 } from "@hooks";
 
 export function App() {
   useStoreRouteSync();
   useConfigAutoSave();
-  useAssetsQuery();
-  useAppHotkeys();
 
+  // The one instance: its abort controller is what Cancel in the modal
+  // aborts, so every way of starting a run has to go through this `mutate`.
   const { mutate: generate, cancel: cancelGenerate } = useGenerateAll();
+  useAppHotkeys({ onGenerate: generate });
 
   const theme = useAppStore((s) => s.config.theme);
   const app = useAppStore((s) => s.config.app);
   const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const assets = useAppStore((s) => s.assets);
   const currentProject = useAppStore((s) => s.currentProject);
   const screenshots = useAppStore(selectScreenshots);
   const dimensions = useAppStore(selectDimensions);
@@ -59,25 +58,10 @@ export function App() {
   );
 
   const projects = useAppStore((s) => s.projects);
-  const projectModalOpen = useAppStore((s) => s.projectModalOpen);
-  const themeEditorOpen = useAppStore((s) => s.themeEditorOpen);
-  const mediaManagerOpen = useAppStore((s) => s.mediaManagerOpen);
   const generating = useAppStore((s) => s.generating);
   const generateProgress = useAppStore((s) => s.generateProgress);
-  const showGenerateModal = useAppStore((s) => s.showGenerateModal);
-  const shortcutCheatSheetOpen = useAppStore(
-    (s) => s.shortcutCheatSheetOpen,
-  );
-
-  const {
-    updateConfig,
-    setSelectedScreenshotId,
-    updateScreenshot,
-    closeGenerateModal,
-    closeThemeEditor,
-    closeMediaManager,
-    closeShortcutCheatSheet,
-  } = useAppStore.getState();
+  const activeModal = useAppStore((s) => s.activeModal);
+  const closeModal = useAppStore((s) => s.closeModal);
 
   const selectedScreenshot = selectedScreenshotId
     ? screenshots.find((s) => s.id === selectedScreenshotId)
@@ -89,16 +73,17 @@ export function App() {
   // lang/platform switches clear it in the store, not here.
   useEffect(() => {
     if (selectedScreenshotId && !selectedScreenshot) {
-      setSelectedScreenshotId(null);
+      useAppStore.getState().setSelectedScreenshotId(null);
     }
   }, [selectedScreenshotId, selectedScreenshot]);
 
   const handleScreenshotUpdate = useCallback(
     (updates: Partial<Screenshot>) => {
-      const id = useAppStore.getState().selectedScreenshotId;
+      const { selectedScreenshotId: id, updateScreenshot } = useAppStore
+        .getState();
       if (id) updateScreenshot(id, updates);
     },
-    [updateScreenshot],
+    [],
   );
 
   return (
@@ -135,41 +120,36 @@ export function App() {
         )}
       </div>
 
-      {projectModalOpen && (
+      {activeModal === "projects" && (
         <ProjectModal
           projects={projects}
           currentProject={currentProject}
         />
       )}
 
-      {showGenerateModal && (
+      {activeModal === "generate" && (
         <GenerateModal
           progress={generateProgress}
           generating={generating}
-          onClose={closeGenerateModal}
+          onClose={closeModal}
           onCancel={cancelGenerate}
         />
       )}
 
-      {themeEditorOpen && (
+      {activeModal === "theme" && (
         <ThemeEditorModal
-          onClose={closeThemeEditor}
+          onClose={closeModal}
           onSave={(newConfig) => {
-            updateConfig(newConfig);
-            closeThemeEditor();
+            useAppStore.getState().updateConfig(newConfig);
+            closeModal();
           }}
         />
       )}
 
-      {mediaManagerOpen && (
-        <MediaManagerModal
-          assets={assets}
-          onClose={closeMediaManager}
-        />
-      )}
+      {activeModal === "media" && <MediaManagerModal onClose={closeModal} />}
 
-      {shortcutCheatSheetOpen && (
-        <ShortcutCheatSheetModal onClose={closeShortcutCheatSheet} />
+      {activeModal === "shortcuts" && (
+        <ShortcutCheatSheetModal onClose={closeModal} />
       )}
 
       <ToastContainer />

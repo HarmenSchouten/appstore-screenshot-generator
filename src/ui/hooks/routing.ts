@@ -1,13 +1,11 @@
 /**
- * URL Routing Utilities
- *
- * Two-way sync between React Router params and Zustand store.
+ * URL routing — two-way sync between React Router params and the store.
  */
 
 import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppStore } from "@ui/store/index.ts";
-import { useSwitchProject } from "@hooks";
+import { useSwitchProject } from "./projects.ts";
 
 /**
  * Build a URL path from store state segments.

@@ -28,7 +28,8 @@ import {
 import type { Screenshot } from "@ui/types.ts";
 import type { Layer } from "@app-types";
 import { usePopover } from "@hooks";
-import { createDefaultLayer, generateLayerId } from "./layer-meta.ts";
+import { createDefaultLayer } from "./layer-meta.ts";
+import { generateLayerId } from "@lib";
 import { SortableLayerCard } from "./SortableLayerCard.tsx";
 import { AddLayerMenu } from "./AddLayerMenu.tsx";
 import { LayerDetail } from "./LayerDetail.tsx";

@@ -1,7 +1,17 @@
-import { useCallback, useRef } from "react";
+/**
+ * Keyboard shortcuts — the global editor hotkeys and the popover contract
+ * they stand down for. The user-facing list lives in
+ * `shortcut-definitions.ts`; keep the two in step.
+ */
+
+import { useCallback, useEffect, useRef } from "react";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
-import { useGenerateAll, useOpenOutputFolder } from "@hooks";
+import {
+  selectNoModalOpen,
+  selectScreenshots,
+  useAppStore,
+} from "@ui/store/index.ts";
+import { useOpenOutputFolder } from "./generation.ts";
 
 const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 const CONFIRM_WINDOW_MS = 1500;
@@ -11,28 +21,14 @@ function isInputFocused() {
   return tag ? INPUT_TAGS.has(tag) : false;
 }
 
-export function useAppHotkeys() {
-  const generating = useAppStore((s) => s.generating);
-  const projectModalOpen = useAppStore((s) => s.projectModalOpen);
-  const themeEditorOpen = useAppStore((s) => s.themeEditorOpen);
-  const mediaManagerOpen = useAppStore((s) => s.mediaManagerOpen);
-  const showGenerateModal = useAppStore((s) => s.showGenerateModal);
+interface AppHotkeyHandlers {
+  /** Start an export run — App's single `useGenerateAll` instance. */
+  onGenerate: () => void;
+}
+
+export function useAppHotkeys({ onGenerate }: AppHotkeyHandlers) {
   const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
-  const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-
-  const shortcutCheatSheetOpen = useAppStore(
-    (s) => s.shortcutCheatSheetOpen,
-  );
-  const popoverOpen = useAppStore((s) => s.openPopovers > 0);
-
-  const noModalOpen = !projectModalOpen &&
-    !themeEditorOpen &&
-    !mediaManagerOpen &&
-    !showGenerateModal &&
-    !shortcutCheatSheetOpen &&
-    !popoverOpen;
-
-  const generateAll = useGenerateAll();
+  const noModalOpen = useAppStore(selectNoModalOpen);
   const openOutputFolder = useOpenOutputFolder();
 
   // ── Tier 1 — EmptyState shortcuts ──────────────────────────────────
@@ -42,20 +38,21 @@ export function useAppHotkeys() {
   }, { enabled: noModalOpen });
 
   useHotkey("Mod+Shift+G", () => {
-    if (!generating) generateAll.mutate();
+    if (!useAppStore.getState().generating) onGenerate();
   }, { enabled: noModalOpen });
 
   useHotkey("Mod+Shift+E", () => {
-    useAppStore.getState().openThemeEditor();
+    useAppStore.getState().openModal("theme");
   }, { enabled: noModalOpen });
 
   useHotkey("Mod+Shift+M", () => {
-    useAppStore.getState().openMediaManager();
+    useAppStore.getState().openModal("media");
   }, { enabled: noModalOpen });
 
   useHotkey("Mod+Shift+F", () => {
-    useAppStore.getState().setSelectedPlatform(
-      selectedPlatform === "android" ? "ios" : "android",
+    const state = useAppStore.getState();
+    state.setSelectedPlatform(
+      state.selectedPlatform === "android" ? "ios" : "android",
     );
   }, { enabled: noModalOpen });
 
@@ -84,7 +81,7 @@ export function useAppHotkeys() {
   // ── Tier 2 — Power-user shortcuts ─────────────────────────────────
 
   useHotkey("Mod+Shift+P", () => {
-    useAppStore.getState().openProjectModal();
+    useAppStore.getState().openModal("projects");
   }, { enabled: noModalOpen });
 
   const deleteArmedAt = useRef(0);
@@ -172,10 +169,10 @@ export function useAppHotkeys() {
 
   useHotkey({ key: "/", shift: true }, () => {
     if (isInputFocused()) return;
-    useAppStore.getState().openShortcutCheatSheet();
+    useAppStore.getState().openModal("shortcuts");
   }, { enabled: noModalOpen });
 
-  // ── Escape — priority chain ───────────────────────────────────────
+  // ── Escape — close what is open, else deselect ────────────────────
 
   useHotkey("Escape", () => {
     if (isInputFocused()) return;
@@ -183,16 +180,8 @@ export function useAppHotkeys() {
     // An open popover owns Escape (see usePopover); closing it must not
     // also drop the selection behind it
     if (state.openPopovers > 0) return;
-    if (state.shortcutCheatSheetOpen) {
-      state.closeShortcutCheatSheet();
-    } else if (state.showGenerateModal) {
-      state.closeGenerateModal();
-    } else if (state.themeEditorOpen) {
-      state.closeThemeEditor();
-    } else if (state.mediaManagerOpen) {
-      state.closeMediaManager();
-    } else if (state.projectModalOpen) {
-      state.closeProjectModal();
+    if (state.activeModal) {
+      state.closeModal();
     } else if (state.selectedScreenshotId) {
       state.setSelectedScreenshotId(null);
     }
@@ -200,6 +189,32 @@ export function useAppHotkeys() {
     preventDefault: false,
     // Open popovers register their own Escape on the same target (see
     // usePopover) and mount before this one; the overlap is intended
+    conflictBehavior: "allow",
+  });
+}
+
+/**
+ * Registers a transient popover — picker, dropdown, menu — with the store
+ * while it is open, so the global hotkeys treat it like a modal: Escape
+ * closes the popover instead of deselecting the screenshot behind it, and
+ * the editor shortcuts stay off until it is gone (#65).
+ *
+ * Modals proper are `activeModal` in the store; this is for the small
+ * things that are component-local state.
+ */
+export function usePopover(open: boolean, onClose: () => void) {
+  useEffect(() => {
+    if (!open) return;
+    const { popoverOpened, popoverClosed } = useAppStore.getState();
+    popoverOpened();
+    return popoverClosed;
+  }, [open]);
+
+  // Stacks next to the global Escape chain on the same target; the manager
+  // warns on every duplicate registration unless told the overlap is intended
+  useHotkey("Escape", onClose, {
+    enabled: open,
+    preventDefault: false,
     conflictBehavior: "allow",
   });
 }

@@ -7,6 +7,7 @@ import type { PhoneFrameLayerProps } from "@app-types";
 import { getAllDevicePresets, getDevicePreset } from "@device-presets";
 import type { DevicePresetId } from "@app-types";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
+import { useAssets } from "@hooks";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 
@@ -18,7 +19,7 @@ interface PhoneFrameEditorProps {
 export function PhoneFrameEditor(
   { layer, onUpdate }: PhoneFrameEditorProps,
 ) {
-  const assets = useAppStore((s) => s.assets);
+  const assets = useAssets();
 
   // The preset an inheriting layer resolves to — feature graphics always
   // render in the Android export pass, so they inherit the Android default.
