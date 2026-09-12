@@ -194,3 +194,18 @@ export function applyPaletteToGradient(
 // ============================================================
 
 export * from "./gradient.ts";
+
+// ============================================================
+// Ids
+// ============================================================
+
+let nextLayerId = 1;
+
+/**
+ * Id for a new layer. `crypto.randomUUID` exists only in secure contexts
+ * (https or localhost); a counter keeps the editor usable over plain http
+ * on a LAN address, where ids only need to be unique within the session.
+ */
+export function generateLayerId(): string {
+  return globalThis.crypto.randomUUID?.() ?? `layer-${nextLayerId++}`;
+}

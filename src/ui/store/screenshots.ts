@@ -1,8 +1,8 @@
 import type { StateCreator } from "zustand";
-import type { AppState, ScreenshotSlice } from "./types.ts";
+import type { AppState } from "./types.ts";
 import type { Config, Screenshot } from "@ui/types.ts";
 import type { Platform } from "@app-types";
-import { generateLayerId } from "@ui/components/editors/layer-meta.ts";
+import { generateLayerId } from "@lib";
 
 /**
  * Rebuild `config` with a new screenshots array for one language/platform,
@@ -56,11 +56,21 @@ function newScreenshot(
   };
 }
 
-export const createScreenshotSlice: StateCreator<
+export type ScreenshotActions = Pick<
+  AppState,
+  | "addScreenshot"
+  | "addFeatureGraphic"
+  | "removeScreenshot"
+  | "updateScreenshot"
+  | "reorderScreenshots"
+  | "removeFeatureGraphic"
+>;
+
+export const createScreenshotActions: StateCreator<
   AppState,
   [],
   [],
-  ScreenshotSlice
+  ScreenshotActions
 > = (_set, get) => ({
   addScreenshot: () => {
     const { config, selectedLang, selectedPlatform } = get();

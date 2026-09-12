@@ -120,7 +120,7 @@ export const EmptyState = ({
           </div>
           <button
             type="button"
-            onClick={() => useAppStore.getState().openShortcutCheatSheet()}
+            onClick={() => useAppStore.getState().openModal("shortcuts")}
             className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
           >
             Show all shortcuts

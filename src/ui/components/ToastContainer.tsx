@@ -1,5 +1,4 @@
-import { useAppStore } from "@ui/store/index.ts";
-import type { ToastItem } from "@ui/store/types.ts";
+import { type ToastItem, useAppStore } from "@ui/store/index.ts";
 
 const ICON: Record<ToastItem["type"], string> = {
   error: "fa-solid fa-circle-exclamation text-red-400",

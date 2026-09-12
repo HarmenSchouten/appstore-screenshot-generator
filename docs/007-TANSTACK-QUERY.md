@@ -92,20 +92,19 @@ config document and all client state.
 
 ### What stays in Zustand
 
-Zustand retains 8 slices. The slice count is not a problem — most slices are
-thin (a few fields and synchronous setters). The split keeps related state and
-convenience methods co-located.
+Zustand is one store, one `AppState` interface (`store/types.ts`), implemented
+in `store/index.ts` with the screenshot actions in `store/screenshots.ts`
+(#68). Grouped by concern:
 
-| Slice | Contents |
+| Group | Contents |
 |-------|----------|
-| `ConfigSlice` | `config`, `_configDirty`, `setConfig()`, `updateConfig()` |
-| `ProjectSlice` | `projects`, `currentProject`, `initialProjectId` |
-| `SelectionSlice` | `selectedLang`, `selectedPlatform`, `selectedItem` |
-| `AssetsSlice` | `assets`, `setAssets()` |
-| `ScreenshotSlice` | `addScreenshot()`, `updateScreenshot()`, `removeScreenshot()`, etc. |
-| `DevicePresetSlice` | `getDefaultDevicePreset()`, `updateDefaultDevicePreset()` |
-| `GenerationSlice` | `generating`, `generateProgress`, `showGenerateModal`, `lastGenerated` |
-| `UISlice` | Modal open/close flags |
+| Project & config | `config`, `_configDirty`, `projects`, `currentProject`, `hydrate()`, `updateConfig()` |
+| Selection | `selectedLang`, `selectedPlatform`, `selectedScreenshotId` + setters |
+| Screenshots | `addScreenshot()`, `updateScreenshot()`, `removeScreenshot()`, etc. |
+| Device presets | `getDefaultDevicePreset()`, `updateDefaultDevicePreset()` |
+| Generation | `generating`, `generateProgress`, `viewLastGenerated()` |
+| Modals & popovers | `activeModal: ModalId | null`, `openModal()`, `closeModal()`, `openPopovers` |
+| Toasts | `toasts`, `addToast()`, `removeToast()` |
 
 **Why config stays in Zustand:** Config is a local-first editable document.
 Screenshot and device-preset slices need synchronous `get().config` access to
@@ -121,8 +120,8 @@ All server-fetched data flows through React Query, then hydrates the store:
 | Data | Query key | Hook | Hydration target |
 |------|-----------|------|-----------------|
 | Init payload | `['init']` | `useInitData` | `config`, `projects`, `currentProject`, `initialProjectId` |
-| Asset list | `['assets']` | `useAssetsQuery` | `AssetsSlice.assets` |
-| Generated results | `['generation', 'last']` | `useLastGeneratedQuery` | `GenerationSlice.lastGenerated` |
+| Asset list | `['assets']` | `useAssets` | none — read from the cache |
+| Generated results | `['generation', 'last']` | `useLastGeneratedQuery` | none — read from the cache |
 
 All mutations use `useMutation`:
 
@@ -136,47 +135,20 @@ All mutations use `useMutation`:
 
 ### Hook structure
 
-One hook per file, categorized by domain:
+One file per domain, one barrel. Components import from `@hooks`; hooks
+import each other by relative path so the barrel never becomes a cycle (#68):
 
 ```
 src/ui/hooks/
-  index.ts                # Barrel export
-  queries/
-    index.ts
-    init/
-      useInitData.ts
-      index.ts
-    assets/
-      useAssetsQuery.ts
-      index.ts
-    generation/
-      useLastGeneratedQuery.ts
-      index.ts
-  mutations/
-    index.ts
-    config/
-      useConfigAutoSave.ts
-      index.ts
-    assets/
-      useUploadAsset.ts
-      useRenameAsset.ts
-      useDeleteAsset.ts
-      index.ts
-    projects/
-      useCreateProject.ts
-      useDeleteProject.ts
-      useRenameProject.ts
-      useSwitchProject.ts
-      index.ts
-    language/
-      useAddLanguage.ts
-      useDeleteLanguage.ts
-      useCopyPlatform.ts
-      index.ts
-    generation/
-      useGenerateAll.ts
-      useOpenOutputFolder.ts
-      index.ts
+  index.ts                  # Barrel export
+  assets.ts                 # useAssets, useUploadAsset, useRenameAsset, useDeleteAsset
+  config.ts                 # useInitData, useConfigAutoSave, useCopyPlatformConfig
+  generation.ts             # useGenerateAll, useOpenOutputFolder, useLastGeneratedQuery
+  hotkeys.ts                # useAppHotkeys, usePopover
+  languages.ts              # useAddLanguage, useDeleteLanguage
+  projects.ts               # useSwitchProject, useCreateProject, useDeleteProject, …
+  routing.ts                # useStoreRouteSync
+  shortcut-definitions.ts   # APP_SHORTCUTS (the cheat-sheet data)
 ```
 
 The existing `src/ui/utils/api.ts` stays as-is. Its pure fetch functions become
@@ -186,17 +158,20 @@ the `queryFn` and `mutationFn` callables passed to React Query hooks.
 
 Config is the most frequently edited server resource. The flow:
 
-1. Component calls `useAppStore.getState().updateConfig(newConfig)` (or uses a
-   `ScreenshotSlice` / `DevicePresetSlice` convenience method that calls
-   `updateConfig` internally)
+1. Component calls `useAppStore.getState().updateConfig(newConfig)` (or a
+   store action such as `updateScreenshot` that calls `updateConfig`
+   internally)
 2. `updateConfig` sets `config` and `_configDirty = true` in Zustand
-3. `useConfigAutoSave` subscribes to the store; when `config` changes and
-   `_configDirty` is true, it debounces 50ms then calls `useMutation`
-4. The mutation sends `PUT /api/config`
+3. `useConfigAutoSave` (App) starts the store subscription in
+   `utils/config-persistence.ts`; when `config` changes and `_configDirty` is
+   true, the module's auto-saver debounces 50ms and saves
+4. The save sends `PUT /api/config`
 5. On success, `_configDirty` is cleared
 
-A `flushPersist()` bridge (`utils/config-persistence.ts`) allows non-React code
-(project switch, generation) to force an immediate save before proceeding.
+The auto-saver is module state, not hook state, so mutations that edit the
+config server-side (project switch, add/delete language, copy platform,
+generation) import `flushPersist()` from the same module and land pending
+edits before proceeding — no registration bridge (#68).
 
 ### Screenshot and device-preset mutations
 
@@ -264,7 +239,7 @@ a debounced mutation for persistence. Rejected because:
 ### Positive
 
 - **Automatic cache invalidation and deduplication.** Mutations declare which
-  query keys to invalidate. Multiple components using `useAssetsQuery()` share
+  query keys to invalidate. Multiple components using `useAssets()` share
   a single network request.
 
 - **Built-in loading and error states.** Every query returns `isPending`,

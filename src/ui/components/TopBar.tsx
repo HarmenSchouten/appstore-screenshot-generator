@@ -13,6 +13,7 @@ import { useAppStore } from "@ui/store/index.ts";
 import { getFlagForCode, LanguagePicker } from "./LanguagePicker.tsx";
 import {
   useAddLanguage,
+  useAssets,
   useCopyPlatformConfig,
   useCreateProject,
   useDeleteLanguage,
@@ -35,18 +36,14 @@ function TopBarInner({ onGenerate }: TopBarProps) {
   const currentProject = useAppStore((s) => s.currentProject);
   const selectedLang = useAppStore((s) => s.selectedLang);
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const assets = useAppStore((s) => s.assets);
+  const assets = useAssets();
   const generating = useAppStore((s) => s.generating);
   const { data: lastGenerated } = useLastGeneratedQuery();
 
-  const {
-    setSelectedLang,
-    setSelectedPlatform,
-    openProjectModal,
-    openThemeEditor,
-    openMediaManager,
-    viewLastGenerated,
-  } = useAppStore.getState();
+  const setSelectedLang = useAppStore((s) => s.setSelectedLang);
+  const setSelectedPlatform = useAppStore((s) => s.setSelectedPlatform);
+  const openModal = useAppStore((s) => s.openModal);
+  const viewLastGenerated = useAppStore((s) => s.viewLastGenerated);
 
   const switchProject = useSwitchProject();
   const createProject = useCreateProject();
@@ -183,7 +180,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
               type="button"
               onClick={() => {
                 setProjectDropdownOpen(false);
-                openProjectModal();
+                openModal("projects");
               }}
               className="w-full px-3 py-2 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 flex items-center gap-2 transition-colors"
             >
@@ -380,7 +377,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
       {/* Action buttons */}
       <button
         type="button"
-        onClick={openThemeEditor}
+        onClick={() => openModal("theme")}
         className={`${btnH} w-8 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-400 hover:text-purple-400 transition-colors`}
         title="Theme & Colors"
       >
@@ -389,7 +386,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
 
       <button
         type="button"
-        onClick={openMediaManager}
+        onClick={() => openModal("media")}
         className={`${btnH} px-2.5 rounded text-sm hover:bg-zinc-800 text-zinc-400 hover:text-indigo-400 flex items-center gap-1.5 transition-colors`}
         title="Media Library"
       >
@@ -399,7 +396,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
 
       <button
         type="button"
-        onClick={() => useAppStore.getState().openShortcutCheatSheet()}
+        onClick={() => openModal("shortcuts")}
         className={`${btnH} w-8 flex items-center justify-center rounded hover:bg-zinc-800 text-zinc-600 hover:text-zinc-400 transition-colors`}
         title="Keyboard Shortcuts (?)"
       >

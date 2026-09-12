@@ -4,7 +4,7 @@
 
 import { useCallback } from "react";
 import type { ImageLayerProps } from "@app-types";
-import { useAppStore } from "@ui/store/index.ts";
+import { useAssets } from "@hooks";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 
@@ -14,7 +14,7 @@ interface ImageEditorProps {
 }
 
 export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
-  const assets = useAppStore((s) => s.assets);
+  const assets = useAssets();
 
   const set = useCallback(
     <K extends keyof ImageLayerProps>(

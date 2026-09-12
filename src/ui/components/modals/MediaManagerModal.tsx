@@ -5,17 +5,20 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import type { Assets } from "@ui/types.ts";
-import { useDeleteAsset, useRenameAsset, useUploadAsset } from "@hooks";
+import {
+  useAssets,
+  useDeleteAsset,
+  useRenameAsset,
+  useUploadAsset,
+} from "@hooks";
 import { useAppStore } from "@ui/store/index.ts";
 
 interface MediaManagerModalProps {
-  assets: Assets;
   onClose: () => void;
 }
 
 export function MediaManagerModal(
-  { assets, onClose }: MediaManagerModalProps,
+  { onClose }: MediaManagerModalProps,
 ) {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
@@ -37,7 +40,7 @@ export function MediaManagerModal(
   const deleteAsset = useDeleteAsset();
 
   const uploading = uploadAsset.isPending;
-  const currentAssets = assets.images || [];
+  const currentAssets = useAssets().images;
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

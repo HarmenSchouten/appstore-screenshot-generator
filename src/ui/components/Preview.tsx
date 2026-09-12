@@ -12,7 +12,7 @@ import {
   useControls,
 } from "react-zoom-pan-pinch";
 import { useHotkey } from "@tanstack/react-hotkeys";
-import { useAppStore } from "@ui/store/index.ts";
+import { selectNoModalOpen, useAppStore } from "@ui/store/index.ts";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import { ZoomControls } from "./ZoomControls.tsx";
@@ -30,14 +30,7 @@ const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 function ZoomHotkeys() {
   const { zoomIn, zoomOut, resetTransform } = useControls();
 
-  const noModalOpen = useAppStore((s) =>
-    !s.projectModalOpen &&
-    !s.themeEditorOpen &&
-    !s.mediaManagerOpen &&
-    !s.showGenerateModal &&
-    !s.shortcutCheatSheetOpen &&
-    s.openPopovers === 0
-  );
+  const noModalOpen = useAppStore(selectNoModalOpen);
 
   useHotkey("=", () => {
     if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;

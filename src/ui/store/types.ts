@@ -1,5 +1,5 @@
+import type { Platform } from "@app-types";
 import type {
-  Assets,
   Config,
   DevicePresetId,
   GenerateProgress,
@@ -8,11 +8,32 @@ import type {
   Screenshot,
 } from "@ui/types.ts";
 
-// ── Slice interfaces ────────────────────────────────────────────────
+/** The modals App renders; at most one is open at a time. */
+export type ModalId = "projects" | "generate" | "theme" | "media" | "shortcuts";
 
-export interface ConfigSlice {
+export interface ToastItem {
+  id: string;
+  type: "error" | "success" | "info";
+  message: string;
+  duration?: number;
+}
+
+/**
+ * The whole client-side state, one interface. Grouped by concern rather than
+ * split into slice files — ~15 fields do not need nine modules (#68).
+ *
+ * Two idioms for reaching it, and only two: `useAppStore(selector)` for
+ * anything a render depends on (state and actions alike — actions are stable
+ * references, so selecting one never re-renders), and `useAppStore.getState()`
+ * inside handlers, effects and mutation callbacks.
+ */
+export interface AppState {
+  // ── Project & config ─────────────────────────────────────────────
   config: Config;
+  /** A local edit not yet on the server; the auto-saver only writes dirty. */
   _configDirty: boolean;
+  projects: ProjectInfo[];
+  currentProject: string;
   /**
    * Load a project from the server — on init and on project switch. Marks
    * the config clean, so the auto-saver does not write back what was just
@@ -23,69 +44,41 @@ export interface ConfigSlice {
   ) => void;
   /** Apply a local edit — triggers auto-save via the subscriber. */
   updateConfig: (config: Config) => void;
-}
 
-export interface ProjectSlice {
-  projects: ProjectInfo[];
-  currentProject: string;
-}
-
-export interface SelectionSlice {
+  // ── Selection ────────────────────────────────────────────────────
   selectedLang: string;
-  selectedPlatform: "android" | "ios";
+  selectedPlatform: Platform;
   /** Id of the selected screenshot or feature graphic; null = nothing selected */
   selectedScreenshotId: string | null;
   setSelectedLang: (lang: string) => void;
-  setSelectedPlatform: (platform: "android" | "ios") => void;
+  setSelectedPlatform: (platform: Platform) => void;
   setSelectedScreenshotId: (id: string | null) => void;
-}
 
-export interface AssetsSlice {
-  assets: Assets;
-  setAssets: (assets: Assets) => void;
-}
-
-export interface ScreenshotSlice {
+  // ── Screenshots (implemented in screenshots.ts) ──────────────────
   addScreenshot: () => void;
   addFeatureGraphic: () => void;
   removeScreenshot: (id: string) => void;
   updateScreenshot: (id: string, updates: Partial<Screenshot>) => void;
   reorderScreenshots: (orderedIds: string[]) => void;
   removeFeatureGraphic: () => void;
-}
 
-export interface DevicePresetSlice {
-  getDefaultDevicePreset: (
-    platform?: "android" | "ios",
-  ) => DevicePresetId;
+  // ── Device presets ───────────────────────────────────────────────
+  getDefaultDevicePreset: (platform?: Platform) => DevicePresetId;
   updateDefaultDevicePreset: (
-    platform: "android" | "ios",
+    platform: Platform,
     presetId: DevicePresetId,
   ) => void;
-}
 
-export interface GenerationSlice {
+  // ── Generation ───────────────────────────────────────────────────
   generating: boolean;
   generateProgress: GenerateProgress;
-  showGenerateModal: boolean;
-  closeGenerateModal: () => void;
   /** Reopen the results modal on a previous run (from the manifest query). */
   viewLastGenerated: (last: LastGenerated) => void;
-}
 
-export interface UISlice {
-  projectModalOpen: boolean;
-  themeEditorOpen: boolean;
-  mediaManagerOpen: boolean;
-  shortcutCheatSheetOpen: boolean;
-  openProjectModal: () => void;
-  closeProjectModal: () => void;
-  openThemeEditor: () => void;
-  closeThemeEditor: () => void;
-  openMediaManager: () => void;
-  closeMediaManager: () => void;
-  openShortcutCheatSheet: () => void;
-  closeShortcutCheatSheet: () => void;
+  // ── Modals & popovers ────────────────────────────────────────────
+  activeModal: ModalId | null;
+  openModal: (id: ModalId) => void;
+  closeModal: () => void;
   /**
    * Transient popovers (pickers, dropdowns, menus) currently open. While
    * above zero the global hotkeys stand down and Escape belongs to the
@@ -94,30 +87,9 @@ export interface UISlice {
   openPopovers: number;
   popoverOpened: () => void;
   popoverClosed: () => void;
-}
 
-export interface ToastItem {
-  id: string;
-  type: "error" | "success" | "info";
-  message: string;
-  duration?: number;
-}
-
-export interface ToastSlice {
+  // ── Toasts ───────────────────────────────────────────────────────
   toasts: ToastItem[];
   addToast: (toast: Omit<ToastItem, "id">) => void;
   removeToast: (id: string) => void;
 }
-
-// ── Combined store type ─────────────────────────────────────────────
-
-export type AppState =
-  & ConfigSlice
-  & ProjectSlice
-  & SelectionSlice
-  & AssetsSlice
-  & ScreenshotSlice
-  & DevicePresetSlice
-  & GenerationSlice
-  & UISlice
-  & ToastSlice;

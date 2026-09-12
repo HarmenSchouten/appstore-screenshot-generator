@@ -4,6 +4,7 @@
 
 import type { Layer } from "@app-types";
 import { DEVICE_PRESETS } from "@device-presets";
+import { generateLayerId } from "@lib";
 
 // ── Layer metadata ──────────────────────────────────────────────────
 
@@ -92,12 +93,6 @@ export const ADDABLE_LAYERS: {
   { type: "shape", icon: "fa-solid fa-shapes", label: "Shape" },
   { type: "text", icon: "fa-solid fa-font", label: "Text" },
 ];
-
-let _nextLayerId = 1;
-
-export function generateLayerId(): string {
-  return globalThis.crypto.randomUUID?.() ?? `layer-${_nextLayerId++}`;
-}
 
 export function createDefaultLayer(type: Layer["type"]): Layer {
   const base = {

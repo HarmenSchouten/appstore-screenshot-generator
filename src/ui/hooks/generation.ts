@@ -1,19 +1,28 @@
 /**
- * useGenerateAll Mutation
- *
- * Kicks off screenshot generation via the SSE stream, feeds progress events
- * into the store, and exposes `cancel()`: aborting the fetch closes the
- * stream, which the server turns into cancellation after the screenshot in
- * flight.
+ * Generation — the export run and its results.
  */
 
 import { useCallback, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { generateStream } from "@ui/utils/api.ts";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  fetchGenerated,
+  generateStream,
+  openOutputFolder,
+} from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { queryKeys } from "@ui/utils/query.ts";
 import { flushPersist } from "@ui/utils/config-persistence.ts";
 
+/**
+ * Kicks off screenshot generation via the SSE stream, feeds progress events
+ * into the store, and exposes `cancel()`: aborting the fetch closes the
+ * stream, which the server turns into cancellation after the screenshot in
+ * flight.
+ *
+ * One instance per app: the abort controller lives in this hook, so a run
+ * started through another instance's `mutate` cannot be cancelled by this
+ * one. App owns it and hands `mutate` to the top bar and the hotkeys (#68).
+ */
 export function useGenerateAll() {
   const queryClient = useQueryClient();
   const abortRef = useRef<AbortController | null>(null);
@@ -57,7 +66,7 @@ export function useGenerateAll() {
     },
     onMutate: () => {
       useAppStore.setState({
-        showGenerateModal: true,
+        activeModal: "generate",
         generating: true,
         generateProgress: {
           current: 0,
@@ -84,7 +93,7 @@ export function useGenerateAll() {
     onError: (error) => {
       if (error.name === "AbortError") {
         // The user cancelled; nothing to report beyond closing the modal
-        useAppStore.setState({ showGenerateModal: false });
+        useAppStore.getState().closeModal();
         useAppStore.getState().addToast({
           type: "info",
           message: "Generation cancelled",
@@ -110,4 +119,24 @@ export function useGenerateAll() {
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 
   return { ...mutation, cancel };
+}
+
+/** Opens the output folder in the system file explorer. */
+export function useOpenOutputFolder() {
+  return useMutation({
+    mutationFn: openOutputFolder,
+  });
+}
+
+/**
+ * The previous run's results, from the output manifest. React Query is the
+ * source of truth here — consumers read `data` directly rather than having
+ * it mirrored into the store during render (#65). `useGenerateAll`
+ * invalidates the key when a run settles.
+ */
+export function useLastGeneratedQuery() {
+  return useQuery({
+    queryKey: queryKeys.generation.last,
+    queryFn: fetchGenerated,
+  });
 }

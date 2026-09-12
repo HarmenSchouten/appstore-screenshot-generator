@@ -40,7 +40,7 @@ export function ProjectModal({
   const [editingProject, setEditingProject] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
 
-  const { closeProjectModal } = useAppStore.getState();
+  const closeModal = useAppStore((s) => s.closeModal);
 
   const renameProject = useRenameProject();
   const switchProject = useSwitchProject();
@@ -60,7 +60,7 @@ export function ProjectModal({
 
   const handleSwitch = (projectId: string) => {
     switchProject.mutate(projectId, {
-      onSuccess: () => closeProjectModal(),
+      onSuccess: () => closeModal(),
     });
   };
 
@@ -73,7 +73,7 @@ export function ProjectModal({
   const handleDuplicate = (project: ProjectInfo) => {
     duplicateProject.mutate(
       { projectId: project.id, name: `${project.name} (copy)` },
-      { onSuccess: () => closeProjectModal() },
+      { onSuccess: () => closeModal() },
     );
   };
 
@@ -86,7 +86,7 @@ export function ProjectModal({
   return (
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={closeProjectModal}
+      onClick={closeModal}
     >
       <div
         className="bg-zinc-900 rounded-lg w-[480px] max-h-[80vh] flex flex-col overflow-hidden"
@@ -102,7 +102,7 @@ export function ProjectModal({
           </div>
           <button
             type="button"
-            onClick={closeProjectModal}
+            onClick={closeModal}
             className="text-zinc-500 hover:text-white text-xl p-1"
           >
             <i className="fa-solid fa-xmark" />
