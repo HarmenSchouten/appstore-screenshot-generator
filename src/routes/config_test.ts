@@ -1,8 +1,8 @@
 import { assert, assertEquals, assertNotEquals } from "@std/assert";
 import { join } from "@std/path";
-import type { ProjectConfig } from "@app-types";
 import { createConfigRoutes } from "./config.ts";
-import { createProject, loadProject } from "@/projects.ts";
+import { createServerContext } from "./context.ts";
+import { createProject } from "@/projects.ts";
 import {
   jsonRequest,
   makeDefaultScreenshot,
@@ -16,19 +16,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 /** Config routes over a real on-disk project — saveProject requires one. */
 async function makeTestApp() {
   const { id } = await createProject("Config Routes Test");
-  const state: { config: ProjectConfig } = { config: await loadProject(id) };
+  const ctx = createServerContext(id);
   const app = makeRouteApp();
-  app.route(
-    "/api/config",
-    createConfigRoutes(
-      () => id,
-      () => Promise.resolve(state.config),
-      (config) => {
-        state.config = config;
-      },
-    ),
-  );
-  return { app, state, id };
+  app.route("/api/config", createConfigRoutes(ctx));
+  return { app, ctx, id };
 }
 
 Deno.test("GET /api/config returns the current config", async () => {
@@ -44,9 +35,9 @@ Deno.test("GET /api/config returns the current config", async () => {
 
 Deno.test("PUT /api/config replaces the config, normalized on disk and in memory", async () => {
   await withTempProjectsDir(async (dir) => {
-    const { app, state, id } = await makeTestApp();
+    const { app, ctx, id } = await makeTestApp();
     const next = {
-      ...state.config,
+      ...(await ctx.getConfig()),
       app: { name: "Replaced" },
       // No platforms at all — normalization must fill both
       languages: [{ language: "de" }],
@@ -55,8 +46,11 @@ Deno.test("PUT /api/config replaces the config, normalized on disk and in memory
     const res = await jsonRequest(app, "PUT", "/api/config", next);
 
     assertEquals(res.status, 200);
-    assertEquals(state.config.app.name, "Replaced");
-    assertEquals(state.config.languages[0].platforms.ios.screenshots, []);
+    assertEquals((await ctx.getConfig()).app.name, "Replaced");
+    assertEquals(
+      (await ctx.getConfig()).languages[0].platforms.ios.screenshots,
+      [],
+    );
     const onDisk = JSON.parse(
       await Deno.readTextFile(join(dir, id, "config.json")),
     );
@@ -66,8 +60,8 @@ Deno.test("PUT /api/config replaces the config, normalized on disk and in memory
 
 Deno.test("PUT /api/config rejects a body without the top-level sections", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
-    const before = state.config;
+    const { app, ctx } = await makeTestApp();
+    const before = await ctx.getConfig();
 
     const res = await jsonRequest(app, "PUT", "/api/config", {
       app: {},
@@ -76,13 +70,13 @@ Deno.test("PUT /api/config rejects a body without the top-level sections", async
 
     assertEquals(res.status, 400);
     assert((await res.json()).error.includes('"languages" array'));
-    assertEquals(state.config, before);
+    assertEquals(await ctx.getConfig(), before);
   });
 });
 
 Deno.test("POST /screenshot adds a screenshot with a server-generated id and persists it", async () => {
   await withTempProjectsDir(async (dir) => {
-    const { app, state, id } = await makeTestApp();
+    const { app, ctx, id } = await makeTestApp();
     const screenshot = makeDefaultScreenshot();
 
     const res = await jsonRequest(
@@ -99,7 +93,9 @@ Deno.test("POST /screenshot adds a screenshot with a server-generated id and per
     assertEquals(returned.name, screenshot.name);
     assertEquals(returned.layers.length, screenshot.layers.length);
     assertEquals(
-      state.config.languages[0].platforms.android.screenshots.map((s) => s.id),
+      (await ctx.getConfig()).languages[0].platforms.android.screenshots.map((
+        s,
+      ) => s.id),
       [returned.id],
     );
     const onDisk = JSON.parse(
@@ -129,7 +125,7 @@ Deno.test("POST /screenshot with unknown language returns 404 JSON", async () =>
 
 Deno.test("POST /screenshot with an invalid platform is a 400 and persists nothing", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     const res = await jsonRequest(
       app,
       "POST",
@@ -139,7 +135,7 @@ Deno.test("POST /screenshot with an invalid platform is a 400 and persists nothi
 
     assertEquals(res.status, 400);
     assert((await res.json()).error.includes('Unknown platform "banana"'));
-    const platforms = state.config.languages[0]
+    const platforms = (await ctx.getConfig()).languages[0]
       .platforms as unknown as Record<string, unknown>;
     assertEquals("banana" in platforms, false);
   });
@@ -186,7 +182,7 @@ Deno.test("POST /screenshot without a JSON Content-Type is a 415", async () => {
 
 Deno.test("PUT /screenshot merges updates but never id or role", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     const created = await (await jsonRequest(
       app,
       "POST",
@@ -202,7 +198,8 @@ Deno.test("PUT /screenshot merges updates but never id or role", async () => {
     );
 
     assertEquals(res.status, 200);
-    const updated = state.config.languages[0].platforms.ios.screenshots[0];
+    const updated =
+      (await ctx.getConfig()).languages[0].platforms.ios.screenshots[0];
     assertEquals(updated.id, created.id);
     assertEquals(updated.role, "screenshot");
     assertEquals(updated.name, "Updated name");
@@ -242,7 +239,7 @@ Deno.test("PUT /screenshot with a malformed body is a 400", async () => {
 
 Deno.test("DELETE /screenshot removes it; an unknown id is a 404", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     const created = await (await jsonRequest(
       app,
       "POST",
@@ -255,7 +252,10 @@ Deno.test("DELETE /screenshot removes it; an unknown id is a 404", async () => {
       { method: "DELETE" },
     );
     assertEquals(res.status, 200);
-    assertEquals(state.config.languages[0].platforms.ios.screenshots, []);
+    assertEquals(
+      (await ctx.getConfig()).languages[0].platforms.ios.screenshots,
+      [],
+    );
 
     const again = await app.request(
       `/api/config/screenshot/en/ios/${created.id}`,
@@ -267,13 +267,13 @@ Deno.test("DELETE /screenshot removes it; an unknown id is a 404", async () => {
 
 Deno.test("POST /language adds a language; a duplicate is a 409", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
 
     const res = await jsonRequest(app, "POST", "/api/config/language", {
       language: "fr",
     });
     assertEquals(res.status, 200);
-    assertEquals(state.config.languages.length, 2);
+    assertEquals((await ctx.getConfig()).languages.length, 2);
 
     const dupe = await jsonRequest(app, "POST", "/api/config/language", {
       language: "fr",
@@ -285,7 +285,7 @@ Deno.test("POST /language adds a language; a duplicate is a 409", async () => {
 
 Deno.test("POST /language copies from a source language, 404 when it does not exist", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     await jsonRequest(
       app,
       "POST",
@@ -298,8 +298,11 @@ Deno.test("POST /language copies from a source language, 404 when it does not ex
       copyFrom: "en",
     });
     assertEquals(copied.status, 200);
-    assertEquals(state.config.languages[1].language, "nl");
-    assertEquals(state.config.languages[1].platforms.ios.screenshots.length, 1);
+    assertEquals((await ctx.getConfig()).languages[1].language, "nl");
+    assertEquals(
+      (await ctx.getConfig()).languages[1].platforms.ios.screenshots.length,
+      1,
+    );
 
     const missing = await jsonRequest(app, "POST", "/api/config/language", {
       language: "it",
@@ -348,7 +351,7 @@ Deno.test("DELETE /language refuses the only language and 404s an unknown one", 
 
 Deno.test("POST /copy-platform copies screenshots with fresh ids, skipping feature graphics", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     const shot = await (await jsonRequest(
       app,
       "POST",
@@ -369,7 +372,8 @@ Deno.test("POST /copy-platform copies screenshots with fresh ids, skipping featu
     });
 
     assertEquals(res.status, 200);
-    const copied = state.config.languages[0].platforms.ios.screenshots;
+    const copied =
+      (await ctx.getConfig()).languages[0].platforms.ios.screenshots;
     assertEquals(copied.length, 1);
     assertEquals(copied[0].role, "screenshot");
     assertNotEquals(copied[0].id, shot.id);

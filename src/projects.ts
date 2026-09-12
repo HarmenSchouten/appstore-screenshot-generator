@@ -336,9 +336,6 @@ export async function saveProject(
   return normalizedConfig;
 }
 
-/**
- * Delete a project
- */
 export async function deleteProject(projectId: string): Promise<void> {
   try {
     await Deno.remove(getProjectDir(projectId), { recursive: true });
@@ -364,9 +361,6 @@ export async function renameProject(
   return readProjectInfo(projectId);
 }
 
-/**
- * Duplicate a project
- */
 export async function duplicateProject(
   sourceId: string,
   newName: string,
@@ -374,11 +368,9 @@ export async function duplicateProject(
   const sourceConfig = await loadProject(sourceId);
   const newProject = await createProject(newName);
 
-  // Copy config with new name
   sourceConfig.app.name = newName;
   await saveProject(newProject.id, sourceConfig);
 
-  // Copy assets
   const sourceAssets = getProjectAssetsDir(sourceId);
   const destAssets = getProjectAssetsDir(newProject.id);
 

@@ -1,10 +1,11 @@
 /**
  * Routes Module Index
  *
- * Exports all route factories for composing the server.
+ * Everything `server.ts` needs to compose the app.
  */
 
-export { createProjectRoutes, type ProjectState } from "./projects.ts";
+export { createServerContext, type ServerContext } from "./context.ts";
+export { createProjectRoutes } from "./projects.ts";
 export { createConfigRoutes } from "./config.ts";
 export { createAssetMiddleware, createAssetRoutes } from "./assets.ts";
 export { createGenerateRoutes } from "./generate.ts";

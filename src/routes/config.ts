@@ -1,7 +1,7 @@
 /**
  * Config Routes
  *
- * Handles configuration management: screenshots, feature graphics, languages.
+ * Screenshots, feature graphics and languages of the active project.
  */
 
 import { Hono } from "hono";
@@ -14,6 +14,7 @@ import type {
 import { createLanguageConfig, saveProject } from "@/projects.ts";
 import { isScreenshotRole, SCREENSHOT_ROLES } from "@lib";
 import { ConflictError, NotFoundError, ValidationError } from "@/errors.ts";
+import type { ServerContext } from "./context.ts";
 import {
   isRecord,
   optionalString,
@@ -94,41 +95,28 @@ function requireNewScreenshot(body: unknown): Screenshot {
   };
 }
 
-export function createConfigRoutes(
-  getCurrentProjectId: () => string,
-  getConfig: () => Promise<ProjectConfig>,
-  setConfig: (config: ProjectConfig) => void,
-) {
+export function createConfigRoutes(ctx: ServerContext) {
   const routes = new Hono();
 
   /** Persist a mutated config; memory and disk both get the normalized copy. */
   async function persist(config: ProjectConfig): Promise<void> {
-    setConfig(await saveProject(getCurrentProjectId(), config));
+    ctx.setConfig(await saveProject(ctx.getCurrentProjectId(), config));
   }
 
-  /**
-   * Get config
-   */
-  routes.get("/", async (c) => c.json(await getConfig()));
+  routes.get("/", async (c) => c.json(await ctx.getConfig()));
 
-  /**
-   * Update full config
-   */
   routes.put("/", async (c) => {
     await persist(requireConfig(await readJsonBody(c)));
     return c.json({ success: true });
   });
 
-  /**
-   * Update screenshot
-   */
   routes.put("/screenshot/:lang/:platform/:id", async (c) => {
     const { lang, platform, id } = c.req.param();
     const updates = requireObject(await readJsonBody(c), "Screenshot updates");
     // The id is the address and the role drives canvas size; neither is patchable
     const { id: _id, role: _role, ...patch } = updates;
 
-    const config = await getConfig();
+    const config = await ctx.getConfig();
     const platformConfig = findPlatform(config, lang, platform);
     const index = findScreenshotIndex(platformConfig, id);
     platformConfig.screenshots[index] = {
@@ -140,27 +128,21 @@ export function createConfigRoutes(
     return c.json(platformConfig.screenshots[index]);
   });
 
-  /**
-   * Add new screenshot
-   */
   routes.post("/screenshot/:lang/:platform", async (c) => {
     const { lang, platform } = c.req.param();
     const screenshot = requireNewScreenshot(await readJsonBody(c));
 
-    const config = await getConfig();
+    const config = await ctx.getConfig();
     findPlatform(config, lang, platform).screenshots.push(screenshot);
 
     await persist(config);
     return c.json(screenshot);
   });
 
-  /**
-   * Delete screenshot
-   */
   routes.delete("/screenshot/:lang/:platform/:id", async (c) => {
     const { lang, platform, id } = c.req.param();
 
-    const config = await getConfig();
+    const config = await ctx.getConfig();
     const platformConfig = findPlatform(config, lang, platform);
     platformConfig.screenshots.splice(
       findScreenshotIndex(platformConfig, id),
@@ -171,15 +153,12 @@ export function createConfigRoutes(
     return c.json({ success: true });
   });
 
-  /**
-   * Add new language
-   */
   routes.post("/language", async (c) => {
     const body = requireObject(await readJsonBody(c));
     const language = requireString(body, "language");
     const copyFrom = optionalString(body, "copyFrom");
 
-    const config = await getConfig();
+    const config = await ctx.getConfig();
     if (config.languages.some((l) => l.language === language)) {
       throw new ConflictError("Language already exists");
     }
@@ -200,13 +179,10 @@ export function createConfigRoutes(
     return c.json(newLangConfig);
   });
 
-  /**
-   * Delete language
-   */
   routes.delete("/language/:lang", async (c) => {
     const { lang } = c.req.param();
 
-    const config = await getConfig();
+    const config = await ctx.getConfig();
     findLanguage(config, lang);
     if (config.languages.length <= 1) {
       throw new ValidationError("Cannot delete the only language");
@@ -217,9 +193,6 @@ export function createConfigRoutes(
     return c.json({ success: true });
   });
 
-  /**
-   * Copy platform screenshots
-   */
   routes.post("/copy-platform", async (c) => {
     const body = requireObject(await readJsonBody(c));
     const language = requireString(body, "language");
@@ -237,7 +210,7 @@ export function createConfigRoutes(
       );
     }
 
-    const config = await getConfig();
+    const config = await ctx.getConfig();
     const langConfig = findLanguage(config, language);
 
     // Deep clone source screenshots with new ids, excluding feature graphics

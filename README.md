@@ -44,7 +44,7 @@ Open http://localhost:5173
 # Development: API on :3000 + Vite UI with HMR on :5173
 deno task dev
 
-# Single process: build the UI once, then serve it and the API on :3000
+# Single process: build the UI once, then serve it and the API on :3000 (set PORT to change it)
 deno task start
 
 # Verify before a PR (fmt, lint, type-check, UI build)

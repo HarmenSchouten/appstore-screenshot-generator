@@ -1,8 +1,8 @@
 import { assert, assertEquals, assertFalse } from "@std/assert";
 import { exists } from "@std/fs";
 import { join } from "@std/path";
-import type { ProjectConfig } from "@app-types";
-import { createProjectRoutes, type ProjectState } from "./projects.ts";
+import { createProjectRoutes } from "./projects.ts";
+import { createServerContext } from "./context.ts";
 import { createProject, initializeProjects, loadProject } from "@/projects.ts";
 import {
   jsonRequest,
@@ -10,24 +10,12 @@ import {
   withTempProjectsDir,
 } from "@/test-helpers.ts";
 
-/** Project routes with the same state wiring as server.ts. */
+/** Project routes over the same context wiring as server.ts. */
 async function makeTestApp() {
-  const state: ProjectState = {
-    currentProjectId: await initializeProjects(),
-    currentConfig: null,
-  };
-  const getConfig = async (): Promise<ProjectConfig> =>
-    state.currentConfig ??= await loadProject(state.currentProjectId);
+  const ctx = createServerContext(await initializeProjects());
   const app = makeRouteApp();
-  app.route(
-    "/api/projects",
-    createProjectRoutes(
-      () => state,
-      (updates) => Object.assign(state, updates),
-      getConfig,
-    ),
-  );
-  return { app, state };
+  app.route("/api/projects", createProjectRoutes(ctx));
+  return { app, ctx };
 }
 
 Deno.test("POST /api/projects creates a project", async () => {
@@ -87,7 +75,7 @@ Deno.test("POST /api/projects with an existing id is a 409", async () => {
 
 Deno.test("PUT /:id/activate switches the current project", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     await createProject("Other");
 
     const res = await app.request("/api/projects/other/activate", {
@@ -98,14 +86,14 @@ Deno.test("PUT /:id/activate switches the current project", async () => {
     const body = await res.json();
     assertEquals(body.projectId, "other");
     assertEquals(body.config.app.name, "Other");
-    assertEquals(state.currentProjectId, "other");
-    assertEquals(state.currentConfig?.app.name, "Other");
+    assertEquals(ctx.getCurrentProjectId(), "other");
+    assertEquals((await ctx.getConfig()).app.name, "Other");
   });
 });
 
 Deno.test("PUT /:id/activate with an unknown id is a 404 and leaves state alone", async () => {
   await withTempProjectsDir(async (dir) => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
 
     const res = await app.request("/api/projects/does-not-exist/activate", {
       method: "PUT",
@@ -115,7 +103,7 @@ Deno.test("PUT /:id/activate with an unknown id is a 404 and leaves state alone"
     assertEquals(await res.json(), {
       error: 'Project "does-not-exist" not found',
     });
-    assertEquals(state.currentProjectId, "default");
+    assertEquals(ctx.getCurrentProjectId(), "default");
     // No phantom project appeared on disk
     assertFalse(await exists(join(dir, "does-not-exist")));
   });
@@ -143,7 +131,7 @@ Deno.test("project ids that are not slugs are a 400 on every route", async () =>
 
 Deno.test("DELETE /:id removes a project; unknown id is a 404", async () => {
   await withTempProjectsDir(async (dir) => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     await createProject("Doomed");
 
     const res = await app.request("/api/projects/doomed", {
@@ -151,7 +139,7 @@ Deno.test("DELETE /:id removes a project; unknown id is a 404", async () => {
     });
     assertEquals(res.status, 200);
     assertFalse(await exists(join(dir, "doomed")));
-    assertEquals(state.currentProjectId, "default");
+    assertEquals(ctx.getCurrentProjectId(), "default");
 
     const again = await app.request("/api/projects/doomed", {
       method: "DELETE",
@@ -162,7 +150,7 @@ Deno.test("DELETE /:id removes a project; unknown id is a 404", async () => {
 
 Deno.test("DELETE of the current project lands on another existing project", async () => {
   await withTempProjectsDir(async () => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
     await createProject("Other");
     await app.request("/api/projects/other/activate", { method: "PUT" });
 
@@ -171,21 +159,21 @@ Deno.test("DELETE of the current project lands on another existing project", asy
     });
 
     assertEquals(res.status, 200);
-    assertEquals(state.currentProjectId, "default");
-    assertEquals(state.currentConfig, null);
+    assertEquals(ctx.getCurrentProjectId(), "default");
+    assertEquals(await ctx.getConfig(), await loadProject("default"));
   });
 });
 
 Deno.test("DELETE of the only project recreates the default", async () => {
   await withTempProjectsDir(async (dir) => {
-    const { app, state } = await makeTestApp();
+    const { app, ctx } = await makeTestApp();
 
     const res = await app.request("/api/projects/default", {
       method: "DELETE",
     });
 
     assertEquals(res.status, 200);
-    assertEquals(state.currentProjectId, "default");
+    assertEquals(ctx.getCurrentProjectId(), "default");
     assert(await exists(join(dir, "default", "config.json")));
   });
 });
