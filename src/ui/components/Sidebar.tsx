@@ -8,33 +8,16 @@
 
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { arrayMove } from "@dnd-kit/sortable";
 import {
   getDevicePresetsForPlatform,
   getDevicePresetSummary,
 } from "@device-presets";
 import type { DevicePresetId } from "@ui/types.ts";
-import { SortableScreenshotCard } from "./SortableScreenshotCard.tsx";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  restrictToParentElement,
-  restrictToVerticalAxis,
-} from "@dnd-kit/modifiers";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { SortableList, SortableRow } from "@ui/components/primitives/index.ts";
+import { Select } from "@ui/components/inputs/index.ts";
 
 function SidebarInner() {
   const selectedPlatform = useAppStore((s) => s.selectedPlatform);
@@ -71,25 +54,6 @@ function SidebarInner() {
 
   const platformPresets = getDevicePresetsForPlatform(selectedPlatform);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = screenshotIds.indexOf(active.id as string);
-    const newIndex = screenshotIds.indexOf(over.id as string);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const reordered = arrayMove(screenshotIds, oldIndex, newIndex);
-    reorderScreenshots(reordered);
-  };
-
   return (
     <aside className="w-[268px] bg-zinc-900 border-r border-zinc-800 flex flex-col">
       {/* Header */}
@@ -107,28 +71,25 @@ function SidebarInner() {
 
       {/* Scrollable screenshot list */}
       <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-          onDragEnd={handleDragEnd}
+        <SortableList
+          ids={screenshotIds}
+          onMove={(from, to) =>
+            reorderScreenshots(arrayMove(screenshotIds, from, to))}
         >
-          <SortableContext
-            items={screenshotIds}
-            strategy={verticalListSortingStrategy}
-          >
-            {screenshotIds.map((id, index) => (
-              <SortableScreenshotCard
-                key={id}
-                id={id}
-                title={`Screenshot ${index + 1}`}
-                isSelected={selectedScreenshotId === id}
-                onSelect={() => setSelectedScreenshotId(id)}
-                onDelete={() => removeScreenshot(id)}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
+          {screenshotIds.map((id, index) => (
+            <SortableRow key={id} id={id}>
+              {(sortable) => (
+                <SidebarItemCard
+                  title={`Screenshot ${index + 1}`}
+                  isSelected={selectedScreenshotId === id}
+                  onSelect={() => setSelectedScreenshotId(id)}
+                  onDelete={() => removeScreenshot(id)}
+                  sortable={sortable}
+                />
+              )}
+            </SortableRow>
+          ))}
+        </SortableList>
 
         <button
           type="button"
@@ -171,21 +132,15 @@ function SidebarInner() {
         <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1.5 font-medium">
           Default device
         </div>
-        <select
+        <Select<DevicePresetId>
           value={platformDefaultDevicePresetId}
-          onChange={(e) =>
-            updateDefaultDevicePreset(
-              selectedPlatform,
-              (e.target as HTMLSelectElement).value as DevicePresetId,
-            )}
-          className="w-full px-2.5 py-1.5 rounded text-xs bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
-        >
-          {platformPresets.map((preset) => (
-            <option key={preset.id} value={preset.id}>
-              {preset.label}
-            </option>
-          ))}
-        </select>
+          onChange={(id) => updateDefaultDevicePreset(selectedPlatform, id)}
+          options={platformPresets.map((p) => ({
+            value: p.id,
+            label: p.label,
+          }))}
+          className="px-2.5 py-1.5 text-xs rounded"
+        />
         <div className="mt-1.5 text-[10px] text-zinc-600">
           {getDevicePresetSummary(platformDefaultDevicePresetId)}
         </div>

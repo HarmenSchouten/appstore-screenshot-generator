@@ -1,15 +1,18 @@
 /**
  * LayerCard — display component for a single layer row.
  *
- * When `sortableProps` are provided (from SortableLayerCard), the card
- * renders a drag handle and applies drag transforms. Without them it
- * renders as a static card.
+ * With `sortable` (from `useSortableRow`) the card renders a drag handle and
+ * applies drag transforms; without it, a static card.
  */
 
-import { useEffect, useState } from "react";
 import type { Layer } from "@app-types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
-import type { SortableProps } from "@ui/components/sortable-types.ts";
+import {
+  ConfirmBar,
+  type SortableProps,
+  useConfirm,
+} from "@ui/components/primitives/index.ts";
+import { cn } from "@ui/utils/cn.ts";
 
 /** True when a layer expects an image but none has been picked yet. */
 function isMissingImage(layer: Layer): boolean {
@@ -24,54 +27,48 @@ export function LayerCard({
   onClick,
   onDuplicate,
   onDelete,
-  sortableProps,
+  sortable,
 }: {
   layer: Layer;
   allLayers: Layer[];
   onClick: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
-  sortableProps?: SortableProps;
+  sortable?: SortableProps;
 }) {
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  // Auto-dismiss after 2.5 s of inaction
-  useEffect(() => {
-    if (!confirmingDelete) return;
-    const timer = setTimeout(() => setConfirmingDelete(false), 2500);
-    return () => clearTimeout(timer);
-  }, [confirmingDelete]);
+  const confirmDelete = useConfirm();
 
   const meta = LAYER_META[layer.type];
   const missingImage = isMissingImage(layer);
 
   const handleClick = () => {
-    setConfirmingDelete(false);
+    confirmDelete.disarm();
     onClick();
   };
 
   return (
     <div
-      ref={sortableProps?.setNodeRef}
-      style={sortableProps?.style}
+      ref={sortable?.setNodeRef}
+      style={sortable?.style}
       role="button"
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") handleClick();
       }}
-      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors cursor-pointer ${
-        sortableProps?.isDragging
+      className={cn(
+        "group relative flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors cursor-pointer",
+        sortable?.isDragging
           ? "bg-zinc-700/80 border-indigo-500/50 shadow-lg shadow-black/30"
-          : "bg-zinc-800/60 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600"
-      }`}
+          : "bg-zinc-800/60 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600",
+      )}
     >
       {/* Drag handle */}
-      {sortableProps && (
+      {sortable && (
         <button
           type="button"
-          {...sortableProps.attributes}
-          {...(sortableProps.listeners ?? {})}
+          {...sortable.attributes}
+          {...(sortable.listeners ?? {})}
           onClick={(e) => e.stopPropagation()}
           className="text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing touch-none"
           aria-label="Drag to reorder"
@@ -102,9 +99,10 @@ export function LayerCard({
       {/* Opacity indicator (only when not full) */}
       {(layer.opacity ?? 1) < 1 && (
         <span
-          className={`text-[10px] text-zinc-500 tabular-nums ${
-            confirmingDelete ? "invisible" : ""
-          }`}
+          className={cn(
+            "text-[10px] text-zinc-500 tabular-nums",
+            confirmDelete.armed && "invisible",
+          )}
         >
           {Math.round((layer.opacity ?? 1) * 100)}%
         </span>
@@ -112,53 +110,39 @@ export function LayerCard({
 
       {/* Actions */}
       <div
-        className={`flex gap-0.5 transition-opacity ${
-          confirmingDelete ? "invisible" : "opacity-0 group-hover:opacity-100"
-        }`}
+        className={cn(
+          "flex gap-0.5 transition-opacity",
+          confirmDelete.armed
+            ? "invisible"
+            : "opacity-0 group-hover:opacity-100",
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onDuplicate}
-          className="p-1 text-zinc-500 hover:text-zinc-300 rounded"
+          className="btn-icon"
           title="Duplicate layer"
         >
           <i className="fa-solid fa-clone text-xs" />
         </button>
         <button
           type="button"
-          onClick={() => setConfirmingDelete(true)}
-          className="p-1 text-zinc-500 hover:text-red-400 rounded"
+          onClick={() => confirmDelete.arm()}
+          className="btn-icon hover:text-red-400"
           title="Delete layer"
         >
           <i className="fa-solid fa-trash-can text-xs" />
         </button>
       </div>
 
-      {/* Confirm delete — full-width overlay */}
-      {confirmingDelete && (
-        <div
-          className="absolute inset-0 flex items-center justify-between rounded-lg bg-zinc-900/95 border border-red-500/30 px-3 animate-fadeIn"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <span className="text-xs text-zinc-400">Delete this layer?</span>
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => setConfirmingDelete(false)}
-              className="px-2.5 py-1 text-xs text-zinc-300 hover:text-white bg-zinc-700 hover:bg-zinc-600 rounded transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              className="px-2.5 py-1 text-xs text-white bg-red-600 hover:bg-red-500 rounded font-medium transition-colors"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+      {confirmDelete.armed && (
+        <ConfirmBar
+          className="absolute inset-0"
+          message="Delete this layer?"
+          onConfirm={onDelete}
+          onCancel={confirmDelete.disarm}
+        />
       )}
     </div>
   );

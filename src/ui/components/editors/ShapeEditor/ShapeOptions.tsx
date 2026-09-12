@@ -6,17 +6,13 @@
  */
 
 import type { ShapeLayerProps, ShapeType } from "@app-types";
+import type { LayerSetter } from "@hooks";
 import { Slider } from "@ui/components/inputs/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
 
-type Set = <K extends keyof ShapeLayerProps>(
-  key: K,
-  value: ShapeLayerProps[K],
-) => void;
-
 interface OptionsProps {
   layer: ShapeLayerProps;
-  set: Set;
+  set: LayerSetter<ShapeLayerProps>;
 }
 
 // ── Helpers ─────────────────────────────────────────────────

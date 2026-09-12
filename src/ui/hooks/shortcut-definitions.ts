@@ -1,157 +1,171 @@
+/**
+ * The one shortcut table (#69): `useShortcut` binds an entry's `keys`, the
+ * cheat sheet and the empty-state panel display the same string. A binding
+ * that is not in here does not exist.
+ */
+
 export interface ShortcutDefinition {
-  id: string;
+  /**
+   * Binding and display string, one and the same. Written as the character
+   * the user sees: `"Shift+?"` matches the `?` key on any layout.
+   */
   keys: string;
+  /** Extra bindings for the same action, kept out of the cheat sheet. */
+  altKeys?: string[];
   label: string;
   description: string;
   icon: string;
-  showOnEmptyState: boolean;
+  /** Listed on the empty-state welcome panel. */
+  showOnEmptyState?: boolean;
+  /** Leave the browser's default for the key in place. */
+  preventDefault?: boolean;
+  /** Stay quiet while a text field has focus. */
+  ignoreInputs?: boolean;
 }
 
-export const APP_SHORTCUTS: ShortcutDefinition[] = [
+export const SHORTCUTS = {
   // Tier 1 - shown on EmptyState
-  {
-    id: "add-screenshot",
+  addScreenshot: {
     keys: "Mod+Shift+A",
     label: "New Screenshot",
     description: "Add a new screenshot to the current language/platform",
     icon: "fa-solid fa-plus",
     showOnEmptyState: true,
   },
-  {
-    id: "generate-all",
+  generateAll: {
     keys: "Mod+Shift+G",
     label: "Generate All",
     description: "Generate all screenshots for every language and platform",
     icon: "fa-solid fa-bolt",
     showOnEmptyState: true,
   },
-  {
-    id: "open-theme-editor",
+  openThemeEditor: {
     keys: "Mod+Shift+E",
     label: "Theme Editor",
     description: "Open the theme editor to customize colors and typography",
     icon: "fa-solid fa-palette",
     showOnEmptyState: true,
   },
-  {
-    id: "open-media-manager",
+  openMediaManager: {
     keys: "Mod+Shift+M",
     label: "Media Manager",
     description: "Open the media manager to upload and manage assets",
     icon: "fa-solid fa-images",
     showOnEmptyState: true,
   },
-  {
-    id: "toggle-platform",
+  togglePlatform: {
     keys: "Mod+Shift+F",
     label: "Toggle Platform",
     description: "Switch between Android and iOS",
     icon: "fa-solid fa-mobile-screen-button",
     showOnEmptyState: true,
   },
-  {
-    id: "cycle-language-next",
+  nextLanguage: {
     keys: "Mod+Shift+K",
     label: "Next Language",
     description: "Cycle to the next language in the project",
     icon: "fa-solid fa-globe",
     showOnEmptyState: true,
   },
-  {
-    id: "cycle-language-prev",
+  prevLanguage: {
     keys: "Mod+Shift+J",
     label: "Previous Language",
     description: "Cycle to the previous language in the project",
     icon: "fa-solid fa-globe",
-    showOnEmptyState: false,
   },
   // Tier 2 - power-user shortcuts
-  {
-    id: "open-project-modal",
+  openProjects: {
     keys: "Mod+Shift+P",
     label: "Manage Projects",
     description: "Open the project management modal",
     icon: "fa-solid fa-folder-open",
-    showOnEmptyState: false,
   },
-  {
-    id: "delete-screenshot",
+  deleteScreenshot: {
     keys: "Delete",
+    altKeys: ["Backspace"],
     label: "Delete Screenshot",
     description: "Delete the currently selected screenshot",
     icon: "fa-solid fa-trash",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "open-output-folder",
+  openOutputFolder: {
     keys: "Mod+Shift+D",
     label: "Open Output",
     description: "Open the output folder in the file explorer",
     icon: "fa-solid fa-folder",
-    showOnEmptyState: false,
   },
-  {
-    id: "zoom-in",
+  zoomIn: {
     keys: "=",
     label: "Zoom In",
     description: "Zoom into the preview",
     icon: "fa-solid fa-magnifying-glass-plus",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "zoom-out",
+  zoomOut: {
     keys: "-",
     label: "Zoom Out",
     description: "Zoom out of the preview",
     icon: "fa-solid fa-magnifying-glass-minus",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "zoom-reset",
+  zoomReset: {
     keys: "0",
     label: "Reset View",
     description: "Reset the preview zoom to default",
     icon: "fa-solid fa-expand",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "previous-screenshot",
+  prevScreenshot: {
     keys: "[",
     label: "Previous Screenshot",
     description: "Select the previous screenshot in the list",
     icon: "fa-solid fa-arrow-left",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "next-screenshot",
+  nextScreenshot: {
     keys: "]",
     label: "Next Screenshot",
     description: "Select the next screenshot in the list",
     icon: "fa-solid fa-arrow-right",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "select-feature-graphic",
+  selectFeatureGraphic: {
     keys: "G",
     label: "Feature Graphic",
     description: "Select the feature graphic (Android only)",
     icon: "fa-solid fa-image",
-    showOnEmptyState: false,
+    preventDefault: false,
+    ignoreInputs: true,
   },
-  {
-    id: "close-or-deselect",
+  closeOrDeselect: {
     keys: "Escape",
     label: "Close / Deselect",
     description: "Close the active modal or deselect the current screenshot",
     icon: "fa-solid fa-xmark",
-    showOnEmptyState: false,
+    // Fires inside text fields too: a picker with an autofocused search
+    // box still has to close
+    preventDefault: false,
   },
-  {
-    id: "show-shortcuts",
+  showShortcuts: {
     keys: "Shift+?",
     label: "Show Shortcuts",
     description: "Open the keyboard shortcuts cheat sheet",
     icon: "fa-solid fa-keyboard",
-    showOnEmptyState: false,
+    ignoreInputs: true,
   },
-];
+} satisfies Record<string, ShortcutDefinition>;
+
+export type ShortcutId = keyof typeof SHORTCUTS;
+
+/** The table as a list, in cheat-sheet order. */
+export const SHORTCUT_LIST: (ShortcutDefinition & { id: ShortcutId })[] =
+  (Object.keys(SHORTCUTS) as ShortcutId[]).map((id) => ({
+    id,
+    ...SHORTCUTS[id],
+  }));

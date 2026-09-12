@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { usePopover } from "@hooks";
+import { useOverlay } from "@hooks";
 
 interface ColorInputProps {
   value: string;
@@ -81,7 +81,7 @@ export function ColorInput({
   const [hexInput, setHexInput] = useState(value || "#ffffff");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  usePopover(isOpen, () => setIsOpen(false));
+  useOverlay(isOpen, () => setIsOpen(false));
 
   // Update hexInput when value changes externally
   useEffect(() => {

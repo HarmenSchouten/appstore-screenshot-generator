@@ -6,31 +6,15 @@
  */
 
 import { useCallback, useState } from "react";
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  restrictToParentElement,
-  restrictToVerticalAxis,
-} from "@dnd-kit/modifiers";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 import type { Screenshot } from "@ui/types.ts";
 import type { Layer } from "@app-types";
-import { usePopover } from "@hooks";
-import { createDefaultLayer } from "./layer-meta.ts";
+import { useOverlay } from "@hooks";
 import { generateLayerId } from "@lib";
-import { SortableLayerCard } from "./SortableLayerCard.tsx";
+import { SortableList, SortableRow } from "@ui/components/primitives/index.ts";
+import { cn } from "@ui/utils/cn.ts";
+import { createDefaultLayer } from "./layer-meta.ts";
+import { LayerCard } from "./LayerCard.tsx";
 import { AddLayerMenu } from "./AddLayerMenu.tsx";
 import { LayerDetail } from "./LayerDetail.tsx";
 
@@ -49,7 +33,7 @@ export function ScreenshotEditor({
   const [activeLayerId, setActiveLayerId] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
-  usePopover(showInfo, () => setShowInfo(false));
+  useOverlay(showInfo, () => setShowInfo(false));
 
   // Every layer has an id: the server assigns missing ones on load (#65)
   const layers = screenshot.layers;
@@ -72,25 +56,6 @@ export function ScreenshotEditor({
     },
     [activeIndex, layers, onUpdate],
   );
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = itemIds.indexOf(active.id as string);
-    const newIndex = itemIds.indexOf(over.id as string);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const reordered = arrayMove([...layers], oldIndex, newIndex);
-    onUpdate({ layers: reordered });
-  };
 
   const handleAdd = (type: Layer["type"]) => {
     const newLayer = createDefaultLayer(type);
@@ -115,9 +80,10 @@ export function ScreenshotEditor({
       <div className="relative flex-1 flex min-h-0">
         {/* Layer list panel */}
         <div
-          className={`absolute inset-0 flex flex-col transition-transform ease-out ${
-            isDetail ? "-translate-x-full" : "translate-x-0"
-          }`}
+          className={cn(
+            "absolute inset-0 flex flex-col transition-transform ease-out",
+            isDetail ? "-translate-x-full" : "translate-x-0",
+          )}
         >
           {/* Header */}
           <div className="px-4 pt-4 pb-3 border-b border-zinc-800/60">
@@ -179,31 +145,30 @@ export function ScreenshotEditor({
                 </div>
               )
               : (
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-                  onDragEnd={handleDragEnd}
+                <SortableList
+                  ids={itemIds}
+                  onMove={(from, to) =>
+                    onUpdate({ layers: arrayMove(layers, from, to) })}
                 >
-                  <SortableContext
-                    items={itemIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-1.5">
-                      {layers.map((layer, index) => (
-                        <SortableLayerCard
-                          key={layer.id}
-                          id={layer.id}
-                          layer={layer}
-                          allLayers={layers}
-                          onClick={() => setActiveLayerId(layer.id)}
-                          onDuplicate={() => handleDuplicate(index)}
-                          onDelete={() => handleDelete(index)}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+                  <div className="space-y-1.5">
+                    {layers.map((layer, index) => (
+                      <SortableRow key={layer.id} id={layer.id}>
+                        {(sortable) => (
+                          <LayerCard
+                            layer={layer}
+                            allLayers={layers}
+                            onClick={() => setActiveLayerId(layer.id)}
+                            onDuplicate={() =>
+                              handleDuplicate(index)}
+                            onDelete={() =>
+                              handleDelete(index)}
+                            sortable={sortable}
+                          />
+                        )}
+                      </SortableRow>
+                    ))}
+                  </div>
+                </SortableList>
               )}
           </div>
 
@@ -228,9 +193,10 @@ export function ScreenshotEditor({
 
         {/* Layer detail panel */}
         <div
-          className={`absolute inset-0 flex flex-col transition-transform ease-out ${
-            isDetail ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={cn(
+            "absolute inset-0 flex flex-col transition-transform ease-out",
+            isDetail ? "translate-x-0" : "translate-x-full",
+          )}
         >
           {activeLayer && (
             <LayerDetail

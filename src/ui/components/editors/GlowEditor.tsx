@@ -2,10 +2,11 @@
  * GlowEditor — edit glow color, size, blur, position, and opacity.
  */
 
-import { useCallback } from "react";
 import type { GlowLayerProps } from "@app-types";
+import { useLayerSetter } from "@hooks";
 import { ColorInput, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
+import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
 
 interface GlowEditorProps {
   layer: GlowLayerProps;
@@ -13,13 +14,7 @@ interface GlowEditorProps {
 }
 
 export function GlowEditor({ layer, onUpdate }: GlowEditorProps) {
-  const set = useCallback(
-    <K extends keyof GlowLayerProps>(
-      key: K,
-      value: GlowLayerProps[K],
-    ) => onUpdate({ [key]: value }),
-    [onUpdate],
-  );
+  const set = useLayerSetter(onUpdate);
 
   return (
     <div className="space-y-6">
@@ -57,34 +52,12 @@ export function GlowEditor({ layer, onUpdate }: GlowEditorProps) {
       <section className="space-y-3">
         <SectionHeading>Position &amp; Appearance</SectionHeading>
 
-        <Slider
-          label="Position X"
-          value={layer.posX}
-          onChange={(v: number) => set("posX", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
+        {/* A glow is radial: rotating it changes nothing */}
+        <PositionControls layer={layer} onChange={onUpdate} rotation={false} />
 
-        <Slider
-          label="Position Y"
-          value={layer.posY}
-          onChange={(v: number) => set("posY", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Opacity"
-          value={Math.round((layer.opacity ?? 1) * 100)}
-          onChange={(v: number) => set("opacity", v / 100)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
+        <OpacitySlider
+          value={layer.opacity}
+          onChange={(v) => set("opacity", v)}
         />
       </section>
     </div>

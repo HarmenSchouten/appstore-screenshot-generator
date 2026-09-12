@@ -6,6 +6,7 @@
 
 import { useRef } from "react";
 import { useUploadAsset } from "@hooks";
+import { Select } from "./Select.tsx";
 
 interface ImageSelectProps {
   value: string;
@@ -50,18 +51,16 @@ export function ImageSelect({
         <label className="text-xs text-zinc-500 block mb-1">{label}</label>
       )}
       <div className="flex gap-2">
-        <select
+        <Select
           value={value || ""}
-          onChange={(e) => onChange((e.target as HTMLSelectElement).value)}
-          className="flex-1 px-3 py-2 rounded text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500"
-        >
-          <option value="">{placeholder}</option>
-          {options.map((p) => (
-            <option key={p} value={p}>
-              {p.split("/").pop()}
-            </option>
-          ))}
-        </select>
+          onChange={onChange}
+          placeholder={placeholder}
+          options={options.map((p) => ({
+            value: p,
+            label: p.split("/").pop() ?? p,
+          }))}
+          className="flex-1 rounded"
+        />
         <input
           ref={fileInputRef}
           type="file"

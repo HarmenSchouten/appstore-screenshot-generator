@@ -2,11 +2,11 @@
  * ImageEditor — edit image source, size, position, border radius, and appearance.
  */
 
-import { useCallback } from "react";
 import type { ImageLayerProps } from "@app-types";
-import { useAssets } from "@hooks";
+import { useAssets, useLayerSetter } from "@hooks";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
+import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
 
 interface ImageEditorProps {
   layer: ImageLayerProps;
@@ -15,14 +15,7 @@ interface ImageEditorProps {
 
 export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
   const assets = useAssets();
-
-  const set = useCallback(
-    <K extends keyof ImageLayerProps>(
-      key: K,
-      value: ImageLayerProps[K],
-    ) => onUpdate({ [key]: value }),
-    [onUpdate],
-  );
+  const set = useLayerSetter(onUpdate);
 
   return (
     <div className="space-y-6">
@@ -53,35 +46,7 @@ export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
           unit="%"
         />
 
-        <Slider
-          label="Position X"
-          value={layer.posX}
-          onChange={(v: number) => set("posX", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Position Y"
-          value={layer.posY}
-          onChange={(v: number) => set("posY", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Rotation"
-          value={layer.rotation}
-          onChange={(v: number) => set("rotation", v)}
-          min={-180}
-          max={180}
-          step={1}
-          unit="°"
-        />
+        <PositionControls layer={layer} onChange={onUpdate} />
 
         <Slider
           label="Border Radius"
@@ -98,14 +63,9 @@ export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
       <section className="space-y-3">
         <SectionHeading>Appearance</SectionHeading>
 
-        <Slider
-          label="Opacity"
-          value={Math.round((layer.opacity ?? 1) * 100)}
-          onChange={(v: number) => set("opacity", v / 100)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
+        <OpacitySlider
+          value={layer.opacity}
+          onChange={(v) => set("opacity", v)}
         />
       </section>
     </div>

@@ -79,3 +79,34 @@ input[type="range"]:focus {
 input[type="range"]:focus::-webkit-slider-thumb {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
 }
+
+/* Grouped selects: the group heading small and upper-case, its options at
+   normal size. Inline styles cannot reach these consistently. */
+@layer base {
+  select optgroup {
+    font-style: normal;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+  }
+  select optgroup option {
+    text-transform: none;
+    letter-spacing: normal;
+    font-size: 14px;
+  }
+}
+
+@layer components {
+  /* The one text-field look for inputs, selects and textareas. Utilities
+     still win, so `input text-xs px-2 py-1` is the compact variant. */
+  .input {
+    @apply w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2
+      text-sm text-zinc-200 transition-colors placeholder:text-zinc-500
+      focus:border-indigo-500 focus:outline-none;
+  }
+  /* Neutral icon-only button; colour the hover per use (`hover:text-red-400`). */
+  .btn-icon {
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded
+      text-zinc-500 transition-colors hover:bg-zinc-700 hover:text-zinc-200;
+  }
+}

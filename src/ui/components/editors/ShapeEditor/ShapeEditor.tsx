@@ -8,11 +8,15 @@
  * 4. Size & Position — size, position, rotation, blur, opacity
  */
 
-import { useCallback } from "react";
 import type { ShapeLayerProps } from "@app-types";
+import { type LayerSetter, useLayerSetter } from "@hooks";
 import { ColorInput, Slider } from "@ui/components/inputs/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
 import { SectionHeading } from "@ui/components/editors/SectionHeading.tsx";
+import {
+  OpacitySlider,
+  PositionControls,
+} from "@ui/components/editors/PositionControls.tsx";
 import { ShapeTypeSelect } from "./ShapeTypeSelect.tsx";
 import {
   BlobOptions,
@@ -36,13 +40,7 @@ interface ShapeEditorProps {
 }
 
 export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
-  const set = useCallback(
-    <K extends keyof ShapeLayerProps>(
-      key: K,
-      value: ShapeLayerProps[K],
-    ) => onUpdate({ [key]: value }),
-    [onUpdate],
-  );
+  const set = useLayerSetter(onUpdate);
 
   const shapeOptions = renderShapeOptions(layer, set);
 
@@ -116,35 +114,7 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
           unit="px"
         />
 
-        <Slider
-          label="Position X"
-          value={layer.posX}
-          onChange={(v: number) => set("posX", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Position Y"
-          value={layer.posY}
-          onChange={(v: number) => set("posY", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Rotation"
-          value={layer.rotation}
-          onChange={(v: number) => set("rotation", v)}
-          min={-180}
-          max={180}
-          step={1}
-          unit="°"
-        />
+        <PositionControls layer={layer} onChange={onUpdate} />
 
         <Slider
           label="Blur"
@@ -156,14 +126,9 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
           unit="px"
         />
 
-        <Slider
-          label="Opacity"
-          value={Math.round((layer.opacity ?? 1) * 100)}
-          onChange={(v: number) => set("opacity", v / 100)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
+        <OpacitySlider
+          value={layer.opacity}
+          onChange={(v) => set("opacity", v)}
         />
       </section>
     </div>
@@ -172,14 +137,9 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
 
 // ── Conditional options dispatcher ──────────────────────────
 
-type Set = <K extends keyof ShapeLayerProps>(
-  key: K,
-  value: ShapeLayerProps[K],
-) => void;
-
 function renderShapeOptions(
   layer: ShapeLayerProps,
-  set: Set,
+  set: LayerSetter<ShapeLayerProps>,
 ): JSX.Element | null {
   switch (layer.shapeType) {
     case "rectangle":

@@ -8,6 +8,7 @@ export * from "./assets.ts";
 export * from "./config.ts";
 export * from "./generation.ts";
 export * from "./hotkeys.ts";
+export * from "./layers.ts";
 export * from "./languages.ts";
 export * from "./projects.ts";
 export * from "./routing.ts";

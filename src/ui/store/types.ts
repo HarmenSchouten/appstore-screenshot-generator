@@ -75,18 +75,19 @@ export interface AppState {
   /** Reopen the results modal on a previous run (from the manifest query). */
   viewLastGenerated: (last: LastGenerated) => void;
 
-  // ── Modals & popovers ────────────────────────────────────────────
+  // ── Modals & overlays ────────────────────────────────────────────
+  /** Which of App's modals is mounted; each registers itself as an overlay. */
   activeModal: ModalId | null;
   openModal: (id: ModalId) => void;
   closeModal: () => void;
   /**
-   * Transient popovers (pickers, dropdowns, menus) currently open. While
-   * above zero the global hotkeys stand down and Escape belongs to the
-   * popover — see `usePopover`.
+   * Overlays — modals, pickers, dropdowns, menus — currently open, counted
+   * by `useOverlay`. While above zero the editor shortcuts stand down and
+   * Escape belongs to the topmost overlay.
    */
-  openPopovers: number;
-  popoverOpened: () => void;
-  popoverClosed: () => void;
+  openOverlays: number;
+  overlayOpened: () => void;
+  overlayClosed: () => void;
 
   // ── Toasts ───────────────────────────────────────────────────────
   toasts: ToastItem[];
