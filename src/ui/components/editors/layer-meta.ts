@@ -76,23 +76,10 @@ export function layerDisplayName(layer: Layer, allLayers: Layer[]): string {
   return `${name} #${siblings.indexOf(layer) + 1}`;
 }
 
-/** Sorted alphabetically by label for the add-layer picker. */
-export const ADDABLE_LAYERS: {
-  type: Layer["type"];
-  icon: string;
-  label: string;
-}[] = [
-  { type: "background", icon: "fa-solid fa-fill-drip", label: "Background" },
-  { type: "glow", icon: "fa-solid fa-sun", label: "Glow" },
-  { type: "image", icon: "fa-solid fa-image", label: "Image" },
-  {
-    type: "phone-frame",
-    icon: "fa-solid fa-mobile-screen-button",
-    label: "Phone Frame",
-  },
-  { type: "shape", icon: "fa-solid fa-shapes", label: "Shape" },
-  { type: "text", icon: "fa-solid fa-font", label: "Text" },
-];
+/** Layer types in add-menu order (alphabetical by label); `LAYER_META` has the icon and label. */
+export const LAYER_TYPES: Layer["type"][] =
+  (Object.keys(LAYER_META) as Layer["type"][])
+    .sort((a, b) => LAYER_META[a].label.localeCompare(LAYER_META[b].label));
 
 export function createDefaultLayer(type: Layer["type"]): Layer {
   const base = {

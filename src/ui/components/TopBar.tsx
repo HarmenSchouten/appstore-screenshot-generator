@@ -18,9 +18,10 @@ import {
   useCreateProject,
   useDeleteLanguage,
   useLastGeneratedQuery,
-  usePopover,
+  useOverlay,
   useSwitchProject,
 } from "@hooks";
+import { ConfirmBar, useConfirm } from "@ui/components/primitives/index.ts";
 
 interface TopBarProps {
   onGenerate: () => void;
@@ -54,13 +55,11 @@ function TopBarInner({ onGenerate }: TopBarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
   const [quickCreateName, setQuickCreateName] = useState("");
   const [langPickerOpen, setLangPickerOpen] = useState(false);
-  const [confirmDeleteLang, setConfirmDeleteLang] = useState<string | null>(
-    null,
-  );
-  const [confirmCopyPlatform, setConfirmCopyPlatform] = useState(false);
+  const confirmDeleteLang = useConfirm<string>();
+  const confirmCopyPlatform = useConfirm();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  usePopover(projectDropdownOpen, () => setProjectDropdownOpen(false));
+  useOverlay(projectDropdownOpen, () => setProjectDropdownOpen(false));
 
   const currentProjectInfo = projects.find((p) => p.id === currentProject);
   const assetCount = assets.images.length;
@@ -154,7 +153,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
                     }
                   }}
                   placeholder="New project name..."
-                  className="flex-1 px-2.5 py-1.5 rounded text-xs bg-zinc-900 border border-zinc-600 text-white placeholder-zinc-500 min-w-0 focus:outline-none focus:border-indigo-500"
+                  className="input flex-1 min-w-0 rounded border-zinc-600 bg-zinc-900 px-2.5 py-1.5 text-xs"
                 />
                 <button
                   type="button"
@@ -197,30 +196,17 @@ function TopBarInner({ onGenerate }: TopBarProps) {
       <div className="flex gap-1 overflow-x-auto">
         {languages.map((lang) => (
           <div key={lang} className="shrink-0 group/lang">
-            {confirmDeleteLang === lang
+            {confirmDeleteLang.armed === lang
               ? (
-                <div
-                  className={`${btnH} flex items-center gap-1 px-2.5 rounded bg-red-900/40 border border-red-700/50`}
-                >
-                  <span className="text-xs text-red-300 mr-1">Delete?</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      deleteLanguage.mutate(lang);
-                      setConfirmDeleteLang(null);
-                    }}
-                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-red-600 hover:bg-red-500 text-white transition-colors"
-                  >
-                    Yes
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDeleteLang(null)}
-                    className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
-                  >
-                    No
-                  </button>
-                </div>
+                <ConfirmBar
+                  className={`${btnH} rounded`}
+                  message={`Delete ${lang}?`}
+                  onConfirm={() => {
+                    deleteLanguage.mutate(lang);
+                    confirmDeleteLang.disarm();
+                  }}
+                  onCancel={confirmDeleteLang.disarm}
+                />
               )
               : (
                 <div
@@ -250,7 +236,7 @@ function TopBarInner({ onGenerate }: TopBarProps) {
                   {languages.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => setConfirmDeleteLang(lang)}
+                      onClick={() => confirmDeleteLang.arm(lang)}
                       className={`mr-1.5 rounded px-1 transition-colors hover:bg-red-600 hover:text-white ${
                         selectedLang === lang
                           ? "text-indigo-300"
@@ -324,43 +310,31 @@ function TopBarInner({ onGenerate }: TopBarProps) {
             </button>
           ))}
         </div>
-        {confirmCopyPlatform
+        {confirmCopyPlatform.armed
           ? (
-            <div
-              className={`${btnH} flex items-center gap-1 px-2.5 rounded bg-amber-900/40 border border-amber-700/50`}
-            >
-              <span className="text-xs text-amber-300 mr-1">
-                Copy to {selectedPlatform === "android" ? "iOS" : "Android"}?
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  const target = selectedPlatform === "android"
+            <ConfirmBar
+              className={`${btnH} rounded`}
+              tone="warning"
+              message={`Copy to ${
+                selectedPlatform === "android" ? "iOS" : "Android"
+              }?`}
+              confirmLabel="Copy"
+              onConfirm={() => {
+                copyPlatform.mutate({
+                  sourcePlatform: selectedPlatform,
+                  targetPlatform: selectedPlatform === "android"
                     ? "ios"
-                    : "android";
-                  copyPlatform.mutate({
-                    sourcePlatform: selectedPlatform,
-                    targetPlatform: target,
-                  });
-                  setConfirmCopyPlatform(false);
-                }}
-                className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-600 hover:bg-amber-500 text-white transition-colors"
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmCopyPlatform(false)}
-                className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
-              >
-                No
-              </button>
-            </div>
+                    : "android",
+                });
+                confirmCopyPlatform.disarm();
+              }}
+              onCancel={confirmCopyPlatform.disarm}
+            />
           )
           : (
             <button
               type="button"
-              onClick={() => setConfirmCopyPlatform(true)}
+              onClick={() => confirmCopyPlatform.arm()}
               className={`${btnH} w-8 flex items-center justify-center text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors`}
               title={`Copy ${selectedPlatform} screenshots to ${
                 selectedPlatform === "android" ? "iOS" : "Android"

@@ -3,11 +3,9 @@
  */
 
 import type { ShapeType } from "@app-types";
+import { Select, type SelectGroup } from "@ui/components/inputs/index.ts";
 
-const SHAPE_GROUPS: {
-  label: string;
-  options: { value: ShapeType; label: string }[];
-}[] = [
+const SHAPE_GROUPS: SelectGroup<ShapeType>[] = [
   {
     label: "Basic",
     options: [
@@ -67,40 +65,11 @@ interface ShapeTypeSelectProps {
 
 export function ShapeTypeSelect({ value, onChange }: ShapeTypeSelectProps) {
   return (
-    <div>
-      <label className="text-xs text-zinc-500 block mb-1.5">Shape</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value as ShapeType)}
-        className="w-full px-3 py-2 rounded-lg text-sm bg-zinc-800 border border-zinc-700 text-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors"
-      >
-        {SHAPE_GROUPS.map((group) => (
-          <optgroup
-            key={group.label}
-            label={group.label}
-            style={{
-              fontStyle: "normal",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              fontSize: "11px",
-            }}
-          >
-            {group.options.map((opt) => (
-              <option
-                key={opt.value}
-                value={opt.value}
-                style={{
-                  textTransform: "none",
-                  letterSpacing: "normal",
-                  fontSize: "14px",
-                }}
-              >
-                {opt.label}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-    </div>
+    <Select
+      label="Shape"
+      value={value}
+      onChange={onChange}
+      groups={SHAPE_GROUPS}
+    />
   );
 }

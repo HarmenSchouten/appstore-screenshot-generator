@@ -4,7 +4,7 @@
  * Modal for managing image assets.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   useAssets,
   useDeleteAsset,
@@ -12,6 +12,14 @@ import {
   useUploadAsset,
 } from "@hooks";
 import { useAppStore } from "@ui/store/index.ts";
+import {
+  ConfirmBar,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  useConfirm,
+} from "@ui/components/primitives/index.ts";
+import { cn } from "@ui/utils/cn.ts";
 
 interface MediaManagerModalProps {
   onClose: () => void;
@@ -22,18 +30,8 @@ export function MediaManagerModal(
 ) {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
-  // Inline two-step delete instead of the native confirm(), which blocks
-  // the tab and cannot be styled or reached by the app's own Escape handling
-  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(
-    null,
-  );
+  const confirmDelete = useConfirm<string>();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (!confirmingDelete) return;
-    const timer = setTimeout(() => setConfirmingDelete(null), 2500);
-    return () => clearTimeout(timer);
-  }, [confirmingDelete]);
 
   const uploadAsset = useUploadAsset();
   const renameAsset = useRenameAsset();
@@ -74,7 +72,7 @@ export function MediaManagerModal(
   };
 
   const handleDelete = (path: string) => {
-    setConfirmingDelete(null);
+    confirmDelete.disarm();
     deleteAsset.mutate(path, {
       onSuccess: () => {
         useAppStore.getState().addToast({
@@ -96,210 +94,184 @@ export function MediaManagerModal(
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-      onClick={onClose}
+    <Modal
+      title={
+        <>
+          Media Manager
+          <span className="ml-2 text-sm font-normal text-zinc-500">
+            {currentAssets.length}{" "}
+            {currentAssets.length === 1 ? "image" : "images"}
+          </span>
+        </>
+      }
+      icon="fa-solid fa-images"
+      size="lg"
+      onClose={onClose}
     >
-      <div
-        className="bg-zinc-900 rounded-lg w-[600px] max-h-[80vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-4 border-b border-zinc-800">
-          <div className="flex justify-between items-center">
-            <h2 className="font-bold text-lg">
-              <i className="fa-solid fa-images mr-2" />
-              Media Manager
-              <span className="ml-2 text-sm font-normal text-zinc-500">
-                {currentAssets.length}{" "}
-                {currentAssets.length === 1 ? "image" : "images"}
-              </span>
-            </h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-zinc-500 hover:text-white text-xl"
-            >
-              <i className="fa-solid fa-xmark" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {currentAssets.length === 0
-            ? (
-              <div className="text-center py-12 text-zinc-500">
-                <i className="fa-solid fa-folder-open text-4xl mb-3" />
-                <div>No images yet</div>
-                <div className="text-sm mt-1">
-                  Upload some files to get started
-                </div>
+      <ModalBody className="pt-1">
+        {currentAssets.length === 0
+          ? (
+            <div className="text-center py-12 text-zinc-500">
+              <i className="fa-solid fa-folder-open text-4xl mb-3" />
+              <div>No images yet</div>
+              <div className="text-sm mt-1">
+                Upload some files to get started
               </div>
+            </div>
+          )
+          : (
+            <div className="grid grid-cols-3 gap-3">
+              {currentAssets.map((path) => {
+                const filename = path.split("/").pop() || "";
+                const isEditing = editingItem === path;
+                const isConfirming = confirmDelete.armed === path;
+
+                return (
+                  <div
+                    key={path}
+                    className="bg-zinc-800 rounded overflow-hidden group"
+                  >
+                    <div className="aspect-square bg-zinc-700 relative">
+                      <img
+                        src={"/assets/" + path.replace("assets/", "")}
+                        alt={filename}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                      />
+                      {/* Overlay actions */}
+                      <div
+                        className={cn(
+                          "absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2",
+                          isConfirming
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100",
+                        )}
+                      >
+                        {isConfirming
+                          ? (
+                            <ConfirmBar
+                              className="mx-2 py-1.5"
+                              message="Delete?"
+                              onConfirm={() => handleDelete(path)}
+                              onCancel={confirmDelete.disarm}
+                            />
+                          )
+                          : (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => startEditing(path)}
+                                className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
+                                title="Rename"
+                              >
+                                <i className="fa-solid fa-pen" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => confirmDelete.arm(path)}
+                                className="p-2 bg-red-900/80 hover:bg-red-800 rounded"
+                                title="Delete"
+                              >
+                                <i className="fa-solid fa-trash" />
+                              </button>
+                            </>
+                          )}
+                      </div>
+                    </div>
+
+                    {isEditing
+                      ? (
+                        <div className="p-2">
+                          <input
+                            type="text"
+                            value={newName}
+                            onInput={(e) =>
+                              setNewName(
+                                (e.target as HTMLInputElement).value,
+                              )}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleRename(path);
+                              if (e.key === "Escape") {
+                                // Cancels the edit only; the modal stays
+                                e.stopPropagation();
+                                setEditingItem(null);
+                                setNewName("");
+                              }
+                            }}
+                            className="input px-2 py-1 text-xs"
+                            autoFocus
+                          />
+                          <div className="flex gap-1 mt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleRename(path)}
+                              className="flex-1 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingItem(null);
+                                setNewName("");
+                              }}
+                              className="flex-1 px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 rounded"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )
+                      : (
+                        <div
+                          className="p-2 text-xs text-zinc-400 truncate"
+                          title={filename}
+                        >
+                          {filename}
+                        </div>
+                      )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+      </ModalBody>
+
+      <ModalFooter>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleUpload}
+          className="hidden"
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className={cn(
+            "w-full py-2 rounded text-sm flex items-center justify-center gap-2",
+            uploading
+              ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
+              : "bg-indigo-600 hover:bg-indigo-500",
+          )}
+        >
+          {uploading
+            ? (
+              <>
+                <i className="fa-solid fa-spinner fa-spin" />
+                Uploading...
+              </>
             )
             : (
-              <div className="grid grid-cols-3 gap-3">
-                {currentAssets.map((path) => {
-                  const filename = path.split("/").pop() || "";
-                  const isEditing = editingItem === path;
-
-                  return (
-                    <div
-                      key={path}
-                      className="bg-zinc-800 rounded overflow-hidden group"
-                    >
-                      <div className="aspect-square bg-zinc-700 relative">
-                        <img
-                          src={"/assets/" + path.replace("assets/", "")}
-                          alt={filename}
-                          className="w-full h-full object-contain"
-                          loading="lazy"
-                        />
-                        {/* Overlay actions */}
-                        <div
-                          className={`absolute inset-0 bg-black/60 transition-opacity flex items-center justify-center gap-2 ${
-                            confirmingDelete === path
-                              ? "opacity-100"
-                              : "opacity-0 group-hover:opacity-100"
-                          }`}
-                        >
-                          {confirmingDelete === path
-                            ? (
-                              <>
-                                <span className="text-xs text-red-300">
-                                  Delete?
-                                </span>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete(path)}
-                                  className="px-2 py-1 text-xs font-medium rounded bg-red-600 hover:bg-red-500 text-white"
-                                >
-                                  Yes
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setConfirmingDelete(null)}
-                                  className="px-2 py-1 text-xs font-medium rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300"
-                                >
-                                  No
-                                </button>
-                              </>
-                            )
-                            : (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => startEditing(path)}
-                                  className="p-2 bg-zinc-700 hover:bg-zinc-600 rounded"
-                                  title="Rename"
-                                >
-                                  <i className="fa-solid fa-pen" />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setConfirmingDelete(path)}
-                                  className="p-2 bg-red-900/80 hover:bg-red-800 rounded"
-                                  title="Delete"
-                                >
-                                  <i className="fa-solid fa-trash" />
-                                </button>
-                              </>
-                            )}
-                        </div>
-                      </div>
-
-                      {isEditing
-                        ? (
-                          <div className="p-2">
-                            <input
-                              type="text"
-                              value={newName}
-                              onInput={(e) =>
-                                setNewName(
-                                  (e.target as HTMLInputElement).value,
-                                )}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") handleRename(path);
-                                if (e.key === "Escape") {
-                                  setEditingItem(null);
-                                  setNewName("");
-                                }
-                              }}
-                              className="w-full px-2 py-1 text-xs rounded bg-zinc-700 border border-zinc-600 text-zinc-200 focus:outline-none focus:border-indigo-500"
-                              autoFocus
-                            />
-                            <div className="flex gap-1 mt-1">
-                              <button
-                                type="button"
-                                onClick={() => handleRename(path)}
-                                className="flex-1 px-2 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded"
-                              >
-                                Save
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setEditingItem(null);
-                                  setNewName("");
-                                }}
-                                className="flex-1 px-2 py-1 text-xs bg-zinc-700 hover:bg-zinc-600 rounded"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        )
-                        : (
-                          <div
-                            className="p-2 text-xs text-zinc-400 truncate"
-                            title={filename}
-                          >
-                            {filename}
-                          </div>
-                        )}
-                    </div>
-                  );
-                })}
-              </div>
+              <>
+                <i className="fa-solid fa-upload" />
+                Upload Files
+              </>
             )}
-        </div>
-
-        {/* Footer with upload */}
-        <div className="p-4 border-t border-zinc-800">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={handleUpload}
-            className="hidden"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className={`w-full py-2 rounded text-sm flex items-center justify-center gap-2 ${
-              uploading
-                ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-                : "bg-indigo-600 hover:bg-indigo-500"
-            }`}
-          >
-            {uploading
-              ? (
-                <>
-                  <i className="fa-solid fa-spinner fa-spin" />
-                  Uploading...
-                </>
-              )
-              : (
-                <>
-                  <i className="fa-solid fa-upload" />
-                  Upload Files
-                </>
-              )}
-          </button>
-        </div>
-      </div>
-    </div>
+        </button>
+      </ModalFooter>
+    </Modal>
   );
 }

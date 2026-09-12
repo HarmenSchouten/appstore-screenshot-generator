@@ -1,4 +1,4 @@
-import { APP_SHORTCUTS } from "@hooks";
+import { SHORTCUT_LIST } from "@hooks";
 import { formatForDisplay } from "@tanstack/react-hotkeys";
 import { useAppStore } from "@ui/store/index.ts";
 
@@ -8,7 +8,7 @@ interface EmptyStateProps {
   showShortcuts?: boolean;
 }
 
-const emptyStateShortcuts = APP_SHORTCUTS.filter((s) => s.showOnEmptyState);
+const emptyStateShortcuts = SHORTCUT_LIST.filter((s) => s.showOnEmptyState);
 
 export const EmptyState = ({
   title = "Select a screenshot or feature graphic to start editing",

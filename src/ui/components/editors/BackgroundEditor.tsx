@@ -9,22 +9,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 import type { BackgroundLayerProps } from "@app-types";
 import {
   buildGradientCSS,
@@ -38,6 +23,12 @@ import {
   SegmentedControl,
   Slider,
 } from "@ui/components/inputs/index.ts";
+import {
+  SortableList,
+  useSortableRow,
+} from "@ui/components/primitives/index.ts";
+import { cn } from "@ui/utils/cn.ts";
+import { OpacitySlider } from "./PositionControls.tsx";
 
 interface BackgroundEditorProps {
   layer: BackgroundLayerProps;
@@ -64,34 +55,14 @@ function SortableColorStop({
   onRemove: () => void;
   canRemove: boolean;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id,
-    transition: { duration: 200, easing: "cubic-bezier(0.25, 1, 0.5, 1)" },
-  });
-
-  const style = {
-    transform: transform
-      ? `translate3d(${Math.round(transform.x)}px, ${
-        Math.round(transform.y)
-      }px, 0)`
-      : undefined,
-    transition,
-    zIndex: isDragging ? 50 : undefined,
-    position: "relative" as const,
-  };
+  const { attributes, listeners, setNodeRef, style, isDragging } =
+    useSortableRow(id);
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 ${isDragging ? "opacity-80" : ""}`}
+      className={cn("flex items-center gap-2", isDragging && "opacity-80")}
     >
       <button
         type="button"
@@ -150,13 +121,6 @@ const DEFAULT_COLORS = ["#8b5cf6", "#3b82f6"];
 
 export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
   const themeBackground = useAppStore((s) => s.config.theme?.background);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
 
   // ── Resolve display values ────────────────────────────────
   const gradientType: GradientType = layer.gradientType ?? "linear";
@@ -320,18 +284,12 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
     [colors, direction, gradientType, onUpdate],
   );
 
-  const handleColorDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
-      const ids = colorStopIds.current;
-      const oldIndex = ids.indexOf(active.id as string);
-      const newIndex = ids.indexOf(over.id as string);
-      if (oldIndex === -1 || newIndex === -1) return;
+  const moveColor = useCallback(
+    (from: number, to: number) => {
       // Reorder both the stable IDs and the colors together
-      colorStopIds.current = arrayMove(ids, oldIndex, newIndex);
+      colorStopIds.current = arrayMove(colorStopIds.current, from, to);
       onUpdate({
-        colors: arrayMove([...colors], oldIndex, newIndex),
+        colors: arrayMove([...colors], from, to),
         direction,
         gradientType,
         gradient: undefined,
@@ -403,29 +361,20 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
                   Add
                 </button>
               </div>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleColorDragEnd}
-              >
-                <SortableContext
-                  items={colorStopIds.current}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-2">
-                    {colors.map((color, i) => (
-                      <SortableColorStop
-                        key={colorStopIds.current[i]}
-                        id={colorStopIds.current[i]}
-                        color={color}
-                        onChange={(c: string) => setColor(i, c)}
-                        onRemove={() => removeColor(i)}
-                        canRemove={colors.length > 1}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
+              <SortableList ids={colorStopIds.current} onMove={moveColor}>
+                <div className="space-y-2">
+                  {colors.map((color, i) => (
+                    <SortableColorStop
+                      key={colorStopIds.current[i]}
+                      id={colorStopIds.current[i]}
+                      color={color}
+                      onChange={(c: string) => setColor(i, c)}
+                      onRemove={() => removeColor(i)}
+                      canRemove={colors.length > 1}
+                    />
+                  ))}
+                </div>
+              </SortableList>
             </div>
 
             {/* Direction (linear only) */}
@@ -446,11 +395,12 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
                       type="button"
                       key={p.deg}
                       onClick={() => setDirection(p.deg)}
-                      className={`flex-1 py-1.5 rounded text-xs transition-colors flex items-center justify-center ${
+                      className={cn(
+                        "flex-1 py-1.5 rounded text-xs transition-colors flex items-center justify-center",
                         direction === p.deg
                           ? "bg-zinc-700 text-zinc-200"
-                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
-                      }`}
+                          : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800",
+                      )}
                     >
                       <i className={p.icon} style={p.style} />
                     </button>
@@ -483,11 +433,10 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
                 spellCheck={false}
                 rows={2}
                 placeholder="linear-gradient(135deg, #a855f7, #0a0a0a)"
-                className={`w-full bg-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-200 font-mono placeholder:text-zinc-600 focus:outline-none resize-y border ${
-                  isCSSDriven
-                    ? "border-amber-500/50 focus:border-amber-400"
-                    : "border-zinc-700/60 focus:border-zinc-500"
-                }`}
+                className={cn(
+                  "input font-mono text-xs resize-y",
+                  isCSSDriven && "border-amber-500/50 focus:border-amber-400",
+                )}
               />
               {isCSSDriven && (
                 <p className="text-[10px] text-amber-500/70 mt-1.5">
@@ -497,14 +446,9 @@ export function BackgroundEditor({ layer, onUpdate }: BackgroundEditorProps) {
               )}
             </div>
 
-            {/* Opacity */}
-            <Slider
-              label="Opacity"
+            <OpacitySlider
               value={layer.opacity}
-              onChange={(v: number) => onUpdate({ opacity: v })}
-              min={0}
-              max={1}
-              step={0.01}
+              onChange={(v) => onUpdate({ opacity: v })}
             />
 
             {/* Reset to theme */}

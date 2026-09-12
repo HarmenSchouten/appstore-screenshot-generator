@@ -11,8 +11,8 @@ import {
   TransformWrapper,
   useControls,
 } from "react-zoom-pan-pinch";
-import { useHotkey } from "@tanstack/react-hotkeys";
-import { selectNoModalOpen, useAppStore } from "@ui/store/index.ts";
+import { selectNoOverlayOpen, useAppStore } from "@ui/store/index.ts";
+import { useShortcut } from "@hooks";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
 import { ZoomControls } from "./ZoomControls.tsx";
@@ -25,27 +25,13 @@ import type {
   ThemeConfig,
 } from "@app-types";
 
-const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
-
 function ZoomHotkeys() {
   const { zoomIn, zoomOut, resetTransform } = useControls();
+  const enabled = useAppStore(selectNoOverlayOpen);
 
-  const noModalOpen = useAppStore(selectNoModalOpen);
-
-  useHotkey("=", () => {
-    if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;
-    zoomIn(0.5);
-  }, { enabled: noModalOpen, preventDefault: false });
-
-  useHotkey("-", () => {
-    if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;
-    zoomOut(0.5);
-  }, { enabled: noModalOpen, preventDefault: false });
-
-  useHotkey("0", () => {
-    if (INPUT_TAGS.has(document.activeElement?.tagName ?? "")) return;
-    resetTransform();
-  }, { enabled: noModalOpen, preventDefault: false });
+  useShortcut("zoomIn", () => zoomIn(0.5), enabled);
+  useShortcut("zoomOut", () => zoomOut(0.5), enabled);
+  useShortcut("zoomReset", () => resetTransform(), enabled);
 
   return null;
 }
@@ -64,7 +50,10 @@ function PreviewInner(
     PreviewProps,
 ) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [containerSize, setContainerSize] = useState({
+    width: 800,
+    height: 600,
+  });
   const [contentOpacity, setContentOpacity] = useState(1);
 
   const frameResizeTransition =

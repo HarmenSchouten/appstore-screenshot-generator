@@ -103,7 +103,7 @@ in `store/index.ts` with the screenshot actions in `store/screenshots.ts`
 | Screenshots | `addScreenshot()`, `updateScreenshot()`, `removeScreenshot()`, etc. |
 | Device presets | `getDefaultDevicePreset()`, `updateDefaultDevicePreset()` |
 | Generation | `generating`, `generateProgress`, `viewLastGenerated()` |
-| Modals & popovers | `activeModal: ModalId | null`, `openModal()`, `closeModal()`, `openPopovers` |
+| Modals & overlays | `activeModal: ModalId | null`, `openModal()`, `closeModal()`, `openOverlays` (counted by `useOverlay`) |
 | Toasts | `toasts`, `addToast()`, `removeToast()` |
 
 **Why config stays in Zustand:** Config is a local-first editable document.
@@ -144,11 +144,11 @@ src/ui/hooks/
   assets.ts                 # useAssets, useUploadAsset, useRenameAsset, useDeleteAsset
   config.ts                 # useInitData, useConfigAutoSave, useCopyPlatformConfig
   generation.ts             # useGenerateAll, useOpenOutputFolder, useLastGeneratedQuery
-  hotkeys.ts                # useAppHotkeys, usePopover
+  hotkeys.ts                # useAppHotkeys, useShortcut, useOverlay
   languages.ts              # useAddLanguage, useDeleteLanguage
   projects.ts               # useSwitchProject, useCreateProject, useDeleteProject, …
   routing.ts                # useStoreRouteSync
-  shortcut-definitions.ts   # APP_SHORTCUTS (the cheat-sheet data)
+  shortcut-definitions.ts   # SHORTCUTS — the one table: bindings and cheat sheet
 ```
 
 The existing `src/ui/utils/api.ts` stays as-is. Its pure fetch functions become

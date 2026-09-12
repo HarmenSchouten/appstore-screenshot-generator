@@ -3,8 +3,8 @@
  */
 
 import type { Layer } from "@app-types";
-import { usePopover } from "@hooks";
-import { ADDABLE_LAYERS, LAYER_META } from "./layer-meta.ts";
+import { useOverlay } from "@hooks";
+import { LAYER_META, LAYER_TYPES } from "./layer-meta.ts";
 
 export function AddLayerMenu({
   onAdd,
@@ -14,7 +14,7 @@ export function AddLayerMenu({
   onClose: () => void;
 }) {
   // Only mounted while open: Escape closes the menu, not the selection
-  usePopover(true, onClose);
+  useOverlay(true, onClose);
 
   return (
     <>
@@ -22,24 +22,23 @@ export function AddLayerMenu({
       <div className="absolute bottom-full left-1 right-1 z-20">
         <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl shadow-black/40 overflow-hidden">
           <div className="p-1.5 grid grid-cols-2 gap-1">
-            {ADDABLE_LAYERS.map(({ type, icon, label }) => (
-              <button
-                type="button"
-                key={type}
-                onClick={() => {
-                  onAdd(type);
-                  onClose();
-                }}
-                className="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors text-left"
-              >
-                <i
-                  className={`${icon} ${
-                    LAYER_META[type].color
-                  } text-xs w-4 text-center`}
-                />
-                {label}
-              </button>
-            ))}
+            {LAYER_TYPES.map((type) => {
+              const { icon, label, color } = LAYER_META[type];
+              return (
+                <button
+                  type="button"
+                  key={type}
+                  onClick={() => {
+                    onAdd(type);
+                    onClose();
+                  }}
+                  className="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors text-left"
+                >
+                  <i className={`${icon} ${color} text-xs w-4 text-center`} />
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
         {/* Chevron pointing down to the button */}

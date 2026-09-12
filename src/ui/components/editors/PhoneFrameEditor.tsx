@@ -2,19 +2,23 @@
  * PhoneFrameEditor — edit device model, screenshot image, scale, and position.
  */
 
-import { useCallback } from "react";
-import type { PhoneFrameLayerProps } from "@app-types";
+import type { DevicePresetId, PhoneFrameLayerProps } from "@app-types";
 import { getAllDevicePresets, getDevicePreset } from "@device-presets";
-import type { DevicePresetId } from "@app-types";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
-import { useAssets } from "@hooks";
-import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
+import { useAssets, useLayerSetter } from "@hooks";
+import { ImageSelect, Select, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
+import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
 
 interface PhoneFrameEditorProps {
   layer: PhoneFrameLayerProps;
   onUpdate: (updates: Partial<PhoneFrameLayerProps>) => void;
 }
+
+const toOption = (p: { id: DevicePresetId; label: string }) => ({
+  value: p.id,
+  label: p.label,
+});
 
 export function PhoneFrameEditor(
   { layer, onUpdate }: PhoneFrameEditorProps,
@@ -33,13 +37,7 @@ export function PhoneFrameEditor(
     return s.getDefaultDevicePreset(platform);
   });
 
-  const set = useCallback(
-    <K extends keyof PhoneFrameLayerProps>(
-      key: K,
-      value: PhoneFrameLayerProps[K],
-    ) => onUpdate({ [key]: value }),
-    [onUpdate],
-  );
+  const set = useLayerSetter(onUpdate);
 
   const presets = getAllDevicePresets();
   const iosPresets = presets.filter((p) => p.platform === "ios");
@@ -51,70 +49,18 @@ export function PhoneFrameEditor(
       <section className="space-y-3">
         <SectionHeading>Device</SectionHeading>
 
-        <div>
-          <label className="text-xs text-zinc-500 block mb-1.5">Model</label>
-          <select
-            value={layer.model ?? ""}
-            onChange={(e) => {
-              const value = (e.target as HTMLSelectElement).value;
-              set(
-                "model",
-                value === "" ? undefined : value as DevicePresetId,
-              );
-            }}
-            className="w-full px-3 py-2 rounded-lg text-sm bg-zinc-800 border border-zinc-700/60 text-zinc-200 focus:outline-none focus:border-zinc-500"
-          >
-            <option value="">
-              Platform default ({getDevicePreset(platformDefaultId).label})
-            </option>
-            <optgroup
-              label="iOS"
-              style={{
-                fontStyle: "normal",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontSize: "11px",
-              }}
-            >
-              {iosPresets.map((p) => (
-                <option
-                  key={p.id}
-                  value={p.id}
-                  style={{
-                    textTransform: "none",
-                    letterSpacing: "normal",
-                    fontSize: "14px",
-                  }}
-                >
-                  {p.label}
-                </option>
-              ))}
-            </optgroup>
-            <optgroup
-              label="Android"
-              style={{
-                fontStyle: "normal",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                fontSize: "11px",
-              }}
-            >
-              {androidPresets.map((p) => (
-                <option
-                  key={p.id}
-                  value={p.id}
-                  style={{
-                    textTransform: "none",
-                    letterSpacing: "normal",
-                    fontSize: "14px",
-                  }}
-                >
-                  {p.label}
-                </option>
-              ))}
-            </optgroup>
-          </select>
-        </div>
+        <Select<DevicePresetId | "">
+          label="Model"
+          value={layer.model ?? ""}
+          onChange={(v) => set("model", v === "" ? undefined : v)}
+          placeholder={`Platform default (${
+            getDevicePreset(platformDefaultId).label
+          })`}
+          groups={[
+            { label: "iOS", options: iosPresets.map(toOption) },
+            { label: "Android", options: androidPresets.map(toOption) },
+          ]}
+        />
       </section>
 
       {/* ── Screenshot ───────────────────────────────────── */}
@@ -144,48 +90,16 @@ export function PhoneFrameEditor(
           unit="%"
         />
 
-        <Slider
-          label="Position X"
-          value={layer.posX}
-          onChange={(v: number) => set("posX", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Position Y"
-          value={layer.posY}
-          onChange={(v: number) => set("posY", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Rotation"
-          value={layer.rotation}
-          onChange={(v: number) => set("rotation", v)}
-          min={-180}
-          max={180}
-          step={1}
-          unit="°"
-        />
+        <PositionControls layer={layer} onChange={onUpdate} />
       </section>
 
       {/* ── Appearance ───────────────────────────────────── */}
       <section className="space-y-3">
         <SectionHeading>Appearance</SectionHeading>
 
-        <Slider
-          label="Opacity"
+        <OpacitySlider
           value={layer.opacity}
-          onChange={(v: number) => set("opacity", v)}
-          min={0}
-          max={1}
-          step={0.01}
+          onChange={(v) => set("opacity", v)}
         />
       </section>
     </div>

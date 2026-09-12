@@ -1,24 +1,95 @@
 /**
- * Keyboard shortcuts — the global editor hotkeys and the popover contract
- * they stand down for. The user-facing list lives in
- * `shortcut-definitions.ts`; keep the two in step.
+ * Keyboard shortcuts and the overlays they defer to.
+ *
+ * Bindings come from `SHORTCUTS` — the table the cheat sheet displays —
+ * through `useShortcut`. Overlays (modals, pickers, menus) register with
+ * `useOverlay`; the one Escape binding closes the topmost of them, and the
+ * editor shortcuts stand down while any is open (#69).
  */
 
 import { useCallback, useEffect, useRef } from "react";
-import { useHotkey } from "@tanstack/react-hotkeys";
+import { type RegisterableHotkey, useHotkeys } from "@tanstack/react-hotkeys";
 import {
-  selectNoModalOpen,
+  selectNoOverlayOpen,
   selectScreenshots,
   useAppStore,
 } from "@ui/store/index.ts";
 import { useOpenOutputFolder } from "./generation.ts";
+import { type ShortcutId, SHORTCUTS } from "./shortcut-definitions.ts";
 
-const INPUT_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
 const CONFIRM_WINDOW_MS = 1500;
 
+// ── Overlays ────────────────────────────────────────────────────────
+
+/**
+ * Close callbacks of the open overlays, innermost last. Module state rather
+ * than store state: the store keeps the count for selectors, functions have
+ * no business in devtools.
+ */
+const overlayStack: Array<() => void> = [];
+
+function closeTopOverlay(): boolean {
+  const close = overlayStack[overlayStack.length - 1];
+  if (!close) return false;
+  close();
+  return true;
+}
+
+/**
+ * Register an open overlay — modal, picker, dropdown, menu — for as long as
+ * `open` is true. While any overlay is open the editor shortcuts are off
+ * (`selectNoOverlayOpen`) and Escape closes the most recently opened one, so
+ * a colour picker inside a modal closes before the modal does.
+ */
+export function useOverlay(open: boolean, onClose: () => void) {
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => onCloseRef.current();
+    overlayStack.push(close);
+    useAppStore.getState().overlayOpened();
+    return () => {
+      const index = overlayStack.lastIndexOf(close);
+      if (index !== -1) overlayStack.splice(index, 1);
+      useAppStore.getState().overlayClosed();
+    };
+  }, [open]);
+}
+
+// ── Bindings ────────────────────────────────────────────────────────
+
 function isInputFocused() {
-  const tag = document.activeElement?.tagName;
-  return tag ? INPUT_TAGS.has(tag) : false;
+  const el = document.activeElement;
+  return el instanceof HTMLInputElement ||
+    el instanceof HTMLTextAreaElement ||
+    el instanceof HTMLSelectElement;
+}
+
+/** Bind one entry of `SHORTCUTS` — its keys and alternates, its options. */
+export function useShortcut(
+  id: ShortcutId,
+  callback: () => void,
+  enabled = true,
+) {
+  const def: (typeof SHORTCUTS)[ShortcutId] = SHORTCUTS[id];
+  // The library types hotkey strings as a closed union that does not know
+  // shifted punctuation ("Shift+?"); its parser does, so the table keeps
+  // plain strings and they are asserted here
+  useHotkeys(
+    [def.keys, ...("altKeys" in def ? def.altKeys : [])].map((hotkey) => ({
+      hotkey: hotkey as RegisterableHotkey,
+      callback,
+    })),
+    {
+      enabled,
+      preventDefault: "preventDefault" in def ? def.preventDefault : true,
+      ignoreInputs: "ignoreInputs" in def ? def.ignoreInputs : false,
+    },
+  );
 }
 
 interface AppHotkeyHandlers {
@@ -28,66 +99,58 @@ interface AppHotkeyHandlers {
 
 export function useAppHotkeys({ onGenerate }: AppHotkeyHandlers) {
   const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
-  const noModalOpen = useAppStore(selectNoModalOpen);
+  const enabled = useAppStore(selectNoOverlayOpen);
   const openOutputFolder = useOpenOutputFolder();
 
   // ── Tier 1 — EmptyState shortcuts ──────────────────────────────────
 
-  useHotkey("Mod+Shift+A", () => {
+  useShortcut("addScreenshot", () => {
     useAppStore.getState().addScreenshot();
-  }, { enabled: noModalOpen });
+  }, enabled);
 
-  useHotkey("Mod+Shift+G", () => {
+  useShortcut("generateAll", () => {
     if (!useAppStore.getState().generating) onGenerate();
-  }, { enabled: noModalOpen });
+  }, enabled);
 
-  useHotkey("Mod+Shift+E", () => {
+  useShortcut("openThemeEditor", () => {
     useAppStore.getState().openModal("theme");
-  }, { enabled: noModalOpen });
+  }, enabled);
 
-  useHotkey("Mod+Shift+M", () => {
+  useShortcut("openMediaManager", () => {
     useAppStore.getState().openModal("media");
-  }, { enabled: noModalOpen });
+  }, enabled);
 
-  useHotkey("Mod+Shift+F", () => {
+  useShortcut("togglePlatform", () => {
     const state = useAppStore.getState();
     state.setSelectedPlatform(
       state.selectedPlatform === "android" ? "ios" : "android",
     );
-  }, { enabled: noModalOpen });
+  }, enabled);
 
-  useHotkey("Mod+Shift+K", () => {
+  const cycleLanguage = useCallback((direction: 1 | -1) => {
     const state = useAppStore.getState();
     const languages = state.config.languages ?? [];
     if (languages.length < 2) return;
     const currentIndex = languages.findIndex(
       (l) => l.language === state.selectedLang,
     );
-    const nextIndex = (currentIndex + 1) % languages.length;
+    const nextIndex = (currentIndex + direction + languages.length) %
+      languages.length;
     state.setSelectedLang(languages[nextIndex].language);
-  }, { enabled: noModalOpen });
+  }, []);
 
-  useHotkey("Mod+Shift+J", () => {
-    const state = useAppStore.getState();
-    const languages = state.config.languages ?? [];
-    if (languages.length < 2) return;
-    const currentIndex = languages.findIndex(
-      (l) => l.language === state.selectedLang,
-    );
-    const prevIndex = (currentIndex - 1 + languages.length) % languages.length;
-    state.setSelectedLang(languages[prevIndex].language);
-  }, { enabled: noModalOpen });
+  useShortcut("nextLanguage", () => cycleLanguage(1), enabled);
+  useShortcut("prevLanguage", () => cycleLanguage(-1), enabled);
 
   // ── Tier 2 — Power-user shortcuts ─────────────────────────────────
 
-  useHotkey("Mod+Shift+P", () => {
+  useShortcut("openProjects", () => {
     useAppStore.getState().openModal("projects");
-  }, { enabled: noModalOpen });
+  }, enabled);
 
   const deleteArmedAt = useRef(0);
 
-  const handleDeleteScreenshot = useCallback(() => {
-    if (isInputFocused()) return;
+  useShortcut("deleteScreenshot", () => {
     const now = Date.now();
     if (now - deleteArmedAt.current > CONFIRM_WINDOW_MS) {
       // First press — arm the shortcut
@@ -104,39 +167,29 @@ export function useAppHotkeys({ onGenerate }: AppHotkeyHandlers) {
     const state = useAppStore.getState();
     const id = state.selectedScreenshotId;
     if (!id) return;
-    const screenshots = selectScreenshots(state);
-    const screenshot = screenshots.find((s) => s.id === id);
+    const screenshot = selectScreenshots(state).find((s) => s.id === id);
     if (screenshot?.role === "feature-graphic") {
       state.removeFeatureGraphic();
     } else {
       state.removeScreenshot(id);
     }
-  }, []);
+  }, enabled && selectedScreenshotId !== null);
 
-  useHotkey("Delete", handleDeleteScreenshot, {
-    enabled: noModalOpen && selectedScreenshotId !== null,
-    preventDefault: false,
-  });
-
-  useHotkey("Backspace", handleDeleteScreenshot, {
-    enabled: noModalOpen && selectedScreenshotId !== null,
-    preventDefault: false,
-  });
-
-  useHotkey("Mod+Shift+D", () => {
+  useShortcut("openOutputFolder", () => {
     openOutputFolder.mutate();
-  }, { enabled: noModalOpen });
+  }, enabled);
 
   // ── Screenshot selection ───────────────────────────────────────────
 
   const stepScreenshot = useCallback((direction: 1 | -1) => {
-    if (isInputFocused()) return;
     const state = useAppStore.getState();
-    const screenshots = selectScreenshots(state);
-    const items = screenshots.filter((s) => s.role === "screenshot");
+    const items = selectScreenshots(state).filter(
+      (s) => s.role === "screenshot",
+    );
     if (items.length === 0) return;
-    const currentId = state.selectedScreenshotId;
-    const currentIndex = items.findIndex((s) => s.id === currentId);
+    const currentIndex = items.findIndex(
+      (s) => s.id === state.selectedScreenshotId,
+    );
     // If nothing (or the feature graphic) is selected, jump to first/last.
     const nextIndex = currentIndex === -1
       ? (direction === 1 ? 0 : items.length - 1)
@@ -144,77 +197,31 @@ export function useAppHotkeys({ onGenerate }: AppHotkeyHandlers) {
     state.setSelectedScreenshotId(items[nextIndex].id);
   }, []);
 
-  useHotkey("]", () => stepScreenshot(1), {
-    enabled: noModalOpen,
-    preventDefault: false,
-  });
+  useShortcut("nextScreenshot", () => stepScreenshot(1), enabled);
+  useShortcut("prevScreenshot", () => stepScreenshot(-1), enabled);
 
-  useHotkey("[", () => stepScreenshot(-1), {
-    enabled: noModalOpen,
-    preventDefault: false,
-  });
-
-  useHotkey("G", () => {
-    if (isInputFocused()) return;
+  useShortcut("selectFeatureGraphic", () => {
     const state = useAppStore.getState();
     if (state.selectedPlatform !== "android") return;
-    const screenshots = selectScreenshots(state);
-    const fg = screenshots.find((s) => s.role === "feature-graphic");
-    if (fg) {
-      state.setSelectedScreenshotId(fg.id);
-    }
-  }, { enabled: noModalOpen, preventDefault: false });
+    const fg = selectScreenshots(state).find(
+      (s) => s.role === "feature-graphic",
+    );
+    if (fg) state.setSelectedScreenshotId(fg.id);
+  }, enabled);
 
   // ── Cheat sheet ────────────────────────────────────────────────────
 
-  useHotkey({ key: "/", shift: true }, () => {
-    if (isInputFocused()) return;
+  useShortcut("showShortcuts", () => {
     useAppStore.getState().openModal("shortcuts");
-  }, { enabled: noModalOpen });
+  }, enabled);
 
-  // ── Escape — close what is open, else deselect ────────────────────
+  // ── Escape — close the topmost overlay, else deselect ─────────────
 
-  useHotkey("Escape", () => {
+  useShortcut("closeOrDeselect", () => {
+    if (closeTopOverlay()) return;
+    // Escape in the text layer's field must not unmount the editor under it
     if (isInputFocused()) return;
     const state = useAppStore.getState();
-    // An open popover owns Escape (see usePopover); closing it must not
-    // also drop the selection behind it
-    if (state.openPopovers > 0) return;
-    if (state.activeModal) {
-      state.closeModal();
-    } else if (state.selectedScreenshotId) {
-      state.setSelectedScreenshotId(null);
-    }
-  }, {
-    preventDefault: false,
-    // Open popovers register their own Escape on the same target (see
-    // usePopover) and mount before this one; the overlap is intended
-    conflictBehavior: "allow",
-  });
-}
-
-/**
- * Registers a transient popover — picker, dropdown, menu — with the store
- * while it is open, so the global hotkeys treat it like a modal: Escape
- * closes the popover instead of deselecting the screenshot behind it, and
- * the editor shortcuts stay off until it is gone (#65).
- *
- * Modals proper are `activeModal` in the store; this is for the small
- * things that are component-local state.
- */
-export function usePopover(open: boolean, onClose: () => void) {
-  useEffect(() => {
-    if (!open) return;
-    const { popoverOpened, popoverClosed } = useAppStore.getState();
-    popoverOpened();
-    return popoverClosed;
-  }, [open]);
-
-  // Stacks next to the global Escape chain on the same target; the manager
-  // warns on every duplicate registration unless told the overlap is intended
-  useHotkey("Escape", onClose, {
-    enabled: open,
-    preventDefault: false,
-    conflictBehavior: "allow",
+    if (state.selectedScreenshotId) state.setSelectedScreenshotId(null);
   });
 }

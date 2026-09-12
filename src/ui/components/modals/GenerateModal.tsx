@@ -2,6 +2,12 @@ import { useMemo, useState } from "react";
 import type { GenerateProgress, GenerateResult } from "@ui/types.ts";
 import { useOpenOutputFolder } from "@hooks";
 import { DEFAULT_DIMENSIONS, FEATURE_GRAPHIC_SIZE } from "@lib";
+import {
+  Modal,
+  ModalBody,
+  ModalFooter,
+} from "@ui/components/primitives/index.ts";
+import { cn } from "@ui/utils/cn.ts";
 
 interface GenerateModalProps {
   progress: GenerateProgress;
@@ -206,222 +212,204 @@ export function GenerateModal(
     ? "Generation Complete"
     : "Generating...";
 
-  return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div
-        className="bg-zinc-900 rounded-lg w-[700px] max-h-[85vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <div>
-            <h2 className="font-bold text-lg">
-              <i
-                className={`fa-solid fa-wand-magic-sparkles text-sm mr-2 ${
-                  error ? "text-red-400" : "text-indigo-400"
-                }`}
-              />
-              {title}
-            </h2>
-            {!isDone && (
-              <p className="text-xs text-zinc-500 mt-0.5 truncate max-w-[500px]">
-                {item}
-              </p>
-            )}
-            {isDone && !error && (
-              <p className="text-xs text-zinc-500 mt-0.5">
-                {successCount} {successCount === 1 ? "file" : "files"} generated
-                {errorCount > 0 && (
-                  <span className="text-red-400 ml-1.5">
-                    &middot; {errorCount} failed
-                  </span>
-                )}
-              </p>
-            )}
-          </div>
-          {isDone
-            ? (
-              <button
-                type="button"
-                onClick={onClose}
-                className="text-zinc-500 hover:text-white text-xl p-1"
-              >
-                <i className="fa-solid fa-xmark" />
-              </button>
-            )
-            : (
-              <button
-                type="button"
-                onClick={onCancel}
-                className="text-xs px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
-              >
-                Cancel
-              </button>
-            )}
-        </div>
-
-        {/* Progress bar — visible in both states */}
-        <div className="px-5 pb-4">
-          <div className="bg-zinc-800 rounded-full h-1 overflow-hidden">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                error
-                  ? "bg-red-500"
-                  : isDone && errorCount > 0
-                  ? "bg-amber-500"
-                  : "bg-indigo-500"
-              }`}
-              style={{ width: `${isDone && !error ? 100 : percent}%` }}
-            />
-          </div>
-          {!isDone && (
-            <div className="flex justify-end mt-1.5">
-              <span className="text-[11px] text-zinc-600 tabular-nums">
-                {current} / {total}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Run-level failure: the export could not run at all */}
-        {error && (
-          <>
-            <div className="mx-5 mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm">
-              <div className="font-medium text-red-300 mb-0.5">
-                The export could not run
-              </div>
-              <div className="text-xs text-red-300/80 break-words">{error}</div>
-            </div>
-            <div className="flex px-5 py-4 border-t border-zinc-800">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition-colors"
-              >
-                Close
-              </button>
-            </div>
-          </>
+  const subtitle = !isDone
+    ? <span className="block truncate max-w-[500px]">{item}</span>
+    : !error
+    ? (
+      <>
+        {successCount} {successCount === 1 ? "file" : "files"} generated
+        {errorCount > 0 && (
+          <span className="text-red-400 ml-1.5">
+            &middot; {errorCount} failed
+          </span>
         )}
+      </>
+    )
+    : undefined;
 
-        {isDone && !error && (
-          <>
-            {/* Toolbar */}
-            <div className="flex items-center justify-between px-5 pb-3">
-              <span className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">
-                Results
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowPreviews(!showPreviews)}
-                className="text-[11px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1.5 transition-colors"
-              >
-                <i
-                  className={`fa-solid ${
-                    showPreviews ? "fa-th-large" : "fa-list"
-                  } text-[10px]`}
-                />
-                {showPreviews ? "Grid" : "List"}
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto min-h-0 px-5 pb-2">
-              {/* Failures first, with the real reason */}
-              {failed.length > 0 && (
-                <div className="mb-3">
-                  <div className="text-[11px] uppercase tracking-wider text-red-400 mb-1.5 font-medium">
-                    Failed
-                  </div>
-                  <div className="space-y-1">
-                    {failed.map((r) => (
-                      <div
-                        key={r.relativePath}
-                        className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs"
-                      >
-                        <div className="flex items-center gap-2 text-zinc-300">
-                          <i className="fa-solid fa-triangle-exclamation text-[10px] text-red-400" />
-                          <span>
-                            {r.language}/{r.platform}: {r.screenshotName}
-                          </span>
-                        </div>
-                        <div className="mt-0.5 pl-[18px] text-red-300/80 break-words">
-                          {r.error}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Results by language → platform */}
-              {languages.map((lang) => {
-                const langData = groupedResults[lang];
-                const isCollapsed = collapsedLangs.has(lang);
-                const count = langItemCount(langData);
-
-                return (
-                  <div
-                    key={lang}
-                    className="mb-2 last:mb-0"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggleLang(lang)}
-                      className="flex items-center gap-2 w-full text-left text-sm text-zinc-300 hover:text-white py-1.5 group"
-                    >
-                      <i
-                        className={`fa-solid fa-chevron-right text-[10px] text-zinc-600 group-hover:text-zinc-400 transition-transform ${
-                          isCollapsed ? "" : "rotate-90"
-                        }`}
-                      />
-                      <span className="uppercase font-medium tracking-wide text-xs">
-                        {lang}
-                      </span>
-                      <span className="text-[11px] text-zinc-600 font-normal">
-                        {count} {count === 1 ? "item" : "items"}
-                      </span>
-                    </button>
-
-                    {!isCollapsed && (
-                      <div className="pl-5 mt-1">
-                        {renderPlatformSection(
-                          "android",
-                          "Android",
-                          langData.android,
-                        )}
-                        {renderPlatformSection(
-                          "ios",
-                          "iOS",
-                          langData.ios,
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Footer */}
-            <div className="flex gap-3 px-5 py-4 border-t border-zinc-800">
-              <button
-                type="button"
-                onClick={() => openFolder.mutate()}
-                className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm flex items-center justify-center gap-2 transition-colors"
-              >
-                <i className="fa-solid fa-folder-open text-xs" />{" "}
-                Open in Explorer
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm transition-colors"
-              >
-                Done
-              </button>
-            </div>
-          </>
+  return (
+    <Modal
+      title={title}
+      subtitle={subtitle}
+      icon={cn(
+        "fa-solid fa-wand-magic-sparkles text-sm",
+        error ? "text-red-400" : "text-indigo-400",
+      )}
+      size="xl"
+      onClose={onClose}
+      // A stray click must not hide a running export
+      closeOnBackdrop={false}
+      headerAction={!isDone && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-xs px-3 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+        >
+          Cancel
+        </button>
+      )}
+    >
+      {/* Progress bar — visible in both states */}
+      <div className="px-5 pb-4">
+        <div className="bg-zinc-800 rounded-full h-1 overflow-hidden">
+          <div
+            className={cn(
+              "h-full rounded-full transition-all duration-300",
+              error
+                ? "bg-red-500"
+                : isDone && errorCount > 0
+                ? "bg-amber-500"
+                : "bg-indigo-500",
+            )}
+            style={{ width: `${isDone && !error ? 100 : percent}%` }}
+          />
+        </div>
+        {!isDone && (
+          <div className="flex justify-end mt-1.5">
+            <span className="text-[11px] text-zinc-600 tabular-nums">
+              {current} / {total}
+            </span>
+          </div>
         )}
       </div>
-    </div>
+
+      {/* Run-level failure: the export could not run at all */}
+      {error && (
+        <>
+          <div className="mx-5 mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm">
+            <div className="font-medium text-red-300 mb-0.5">
+              The export could not run
+            </div>
+            <div className="text-xs text-red-300/80 break-words">{error}</div>
+          </div>
+          <ModalFooter>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm transition-colors"
+            >
+              Close
+            </button>
+          </ModalFooter>
+        </>
+      )}
+
+      {isDone && !error && (
+        <>
+          {/* Toolbar */}
+          <div className="flex items-center justify-between px-5 pb-3">
+            <span className="text-[11px] uppercase tracking-wider text-zinc-500 font-medium">
+              Results
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowPreviews(!showPreviews)}
+              className="text-[11px] text-zinc-500 hover:text-zinc-300 flex items-center gap-1.5 transition-colors"
+            >
+              <i
+                className={`fa-solid ${
+                  showPreviews ? "fa-th-large" : "fa-list"
+                } text-[10px]`}
+              />
+              {showPreviews ? "Grid" : "List"}
+            </button>
+          </div>
+
+          <ModalBody className="pb-2">
+            {/* Failures first, with the real reason */}
+            {failed.length > 0 && (
+              <div className="mb-3">
+                <div className="text-[11px] uppercase tracking-wider text-red-400 mb-1.5 font-medium">
+                  Failed
+                </div>
+                <div className="space-y-1">
+                  {failed.map((r) => (
+                    <div
+                      key={r.relativePath}
+                      className="rounded-lg border border-red-500/20 bg-red-500/5 px-3 py-2 text-xs"
+                    >
+                      <div className="flex items-center gap-2 text-zinc-300">
+                        <i className="fa-solid fa-triangle-exclamation text-[10px] text-red-400" />
+                        <span>
+                          {r.language}/{r.platform}: {r.screenshotName}
+                        </span>
+                      </div>
+                      <div className="mt-0.5 pl-[18px] text-red-300/80 break-words">
+                        {r.error}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Results by language → platform */}
+            {languages.map((lang) => {
+              const langData = groupedResults[lang];
+              const isCollapsed = collapsedLangs.has(lang);
+              const count = langItemCount(langData);
+
+              return (
+                <div
+                  key={lang}
+                  className="mb-2 last:mb-0"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleLang(lang)}
+                    className="flex items-center gap-2 w-full text-left text-sm text-zinc-300 hover:text-white py-1.5 group"
+                  >
+                    <i
+                      className={cn(
+                        "fa-solid fa-chevron-right text-[10px] text-zinc-600 group-hover:text-zinc-400 transition-transform",
+                        !isCollapsed && "rotate-90",
+                      )}
+                    />
+                    <span className="uppercase font-medium tracking-wide text-xs">
+                      {lang}
+                    </span>
+                    <span className="text-[11px] text-zinc-600 font-normal">
+                      {count} {count === 1 ? "item" : "items"}
+                    </span>
+                  </button>
+
+                  {!isCollapsed && (
+                    <div className="pl-5 mt-1">
+                      {renderPlatformSection(
+                        "android",
+                        "Android",
+                        langData.android,
+                      )}
+                      {renderPlatformSection(
+                        "ios",
+                        "iOS",
+                        langData.ios,
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </ModalBody>
+
+          <ModalFooter>
+            <button
+              type="button"
+              onClick={() => openFolder.mutate()}
+              className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm flex items-center justify-center gap-2 transition-colors"
+            >
+              <i className="fa-solid fa-folder-open text-xs" /> Open in Explorer
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-sm transition-colors"
+            >
+              Done
+            </button>
+          </ModalFooter>
+        </>
+      )}
+    </Modal>
   );
 }

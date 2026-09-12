@@ -108,15 +108,15 @@ export const useAppStore = create<AppState>()(
           activeModal: "generate",
         }),
 
-      // ── Modals & popovers ──────────────────────────────────────────
+      // ── Modals & overlays ──────────────────────────────────────────
       activeModal: null,
       openModal: (activeModal) => set({ activeModal }),
       closeModal: () => set({ activeModal: null }),
 
-      openPopovers: 0,
-      popoverOpened: () => set((s) => ({ openPopovers: s.openPopovers + 1 })),
-      popoverClosed: () =>
-        set((s) => ({ openPopovers: Math.max(0, s.openPopovers - 1) })),
+      openOverlays: 0,
+      overlayOpened: () => set((s) => ({ openOverlays: s.openOverlays + 1 })),
+      overlayClosed: () =>
+        set((s) => ({ openOverlays: Math.max(0, s.openOverlays - 1) })),
 
       // ── Toasts ─────────────────────────────────────────────────────
       toasts: [],
@@ -156,10 +156,10 @@ export const selectDimensions = (state: AppState) => {
 };
 
 /**
- * Nothing is layered over the editor: the global hotkeys are live and
- * Escape falls through to the selection. Modals and popovers both count.
+ * Nothing is layered over the editor — no modal, picker or menu: the editor
+ * shortcuts are live and Escape falls through to the selection.
  */
-export const selectNoModalOpen = (state: AppState): boolean =>
-  state.activeModal === null && state.openPopovers === 0;
+export const selectNoOverlayOpen = (state: AppState): boolean =>
+  state.openOverlays === 0;
 
 export type { AppState, ModalId, ToastItem } from "./types.ts";

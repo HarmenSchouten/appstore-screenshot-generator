@@ -5,14 +5,15 @@
  * All fields are optional and fall back to sensible defaults.
  */
 
-import { useCallback } from "react";
 import type { TextLayerProps } from "@app-types";
+import { useLayerSetter } from "@hooks";
 import {
   ColorInput,
   SegmentedControl,
   Slider,
 } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
+import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
 
 interface TextEditorProps {
   layer: TextLayerProps;
@@ -51,11 +52,7 @@ const TRANSFORM_OPTIONS: {
 // ── Component ───────────────────────────────────────────────
 
 export function TextEditor({ layer, onUpdate }: TextEditorProps) {
-  const set = useCallback(
-    <K extends keyof TextLayerProps>(key: K, value: TextLayerProps[K]) =>
-      onUpdate({ [key]: value }),
-    [onUpdate],
-  );
+  const set = useLayerSetter(onUpdate);
 
   return (
     <div className="space-y-6">
@@ -69,7 +66,7 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
             onChange={(e) => set("text", e.target.value)}
             rows={3}
             placeholder="Enter text…"
-            className="w-full bg-zinc-800 border border-zinc-700/60 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-y"
+            className="input resize-y"
           />
         </div>
       </section>
@@ -142,35 +139,7 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
       <section className="space-y-3">
         <SectionHeading>Position &amp; Layout</SectionHeading>
 
-        <Slider
-          label="Position X"
-          value={layer.posX}
-          onChange={(v: number) => set("posX", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Position Y"
-          value={layer.posY}
-          onChange={(v: number) => set("posY", v)}
-          min={0}
-          max={100}
-          step={1}
-          unit="%"
-        />
-
-        <Slider
-          label="Rotation"
-          value={layer.rotation}
-          onChange={(v: number) => set("rotation", v)}
-          min={-180}
-          max={180}
-          step={1}
-          unit="°"
-        />
+        <PositionControls layer={layer} onChange={onUpdate} />
 
         <Slider
           label="Padding"
@@ -187,13 +156,9 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
       <section className="space-y-3">
         <SectionHeading>Appearance</SectionHeading>
 
-        <Slider
-          label="Opacity"
+        <OpacitySlider
           value={layer.opacity}
-          onChange={(v: number) => set("opacity", v)}
-          min={0}
-          max={1}
-          step={0.01}
+          onChange={(v) => set("opacity", v)}
         />
       </section>
     </div>

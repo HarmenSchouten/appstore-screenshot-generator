@@ -8,3 +8,4 @@ export { ColorInput } from "./ColorInput.tsx";
 export { Slider } from "./Slider.tsx";
 export { ImageSelect } from "./ImageSelect.tsx";
 export { SegmentedControl } from "./SegmentedControl.tsx";
+export { Select, type SelectGroup, type SelectOption } from "./Select.tsx";
