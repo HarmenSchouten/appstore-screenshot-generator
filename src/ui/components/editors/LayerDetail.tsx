@@ -6,7 +6,7 @@
 
 import type { Layer } from "@app-types";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
-import { BackgroundEditor } from "./BackgroundEditor.tsx";
+import { BackgroundEditor } from "./BackgroundEditor/BackgroundEditor.tsx";
 import { TextEditor } from "./TextEditor.tsx";
 import { PhoneFrameEditor } from "./PhoneFrameEditor.tsx";
 import { ImageEditor } from "./ImageEditor.tsx";
