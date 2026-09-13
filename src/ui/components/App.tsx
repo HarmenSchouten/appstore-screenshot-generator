@@ -10,12 +10,12 @@
  */
 
 import { useCallback, useEffect } from "react";
-import { TopBar } from "./TopBar.tsx";
+import { TopBar } from "./TopBar/TopBar.tsx";
 import { Sidebar } from "./Sidebar.tsx";
 import { Preview } from "./Preview.tsx";
 import { ScreenshotEditor } from "./editors/ScreenshotEditor.tsx";
 import { ProjectModal } from "./modals/ProjectModal.tsx";
-import { GenerateModal } from "./modals/GenerateModal.tsx";
+import { GenerateModal } from "./modals/GenerateModal/GenerateModal.tsx";
 import { ThemeEditorModal } from "./modals/ThemeEditorModal.tsx";
 import { MediaManagerModal } from "./modals/MediaManagerModal.tsx";
 import { ShortcutCheatSheetModal } from "./modals/ShortcutCheatSheetModal.tsx";
@@ -27,21 +27,12 @@ import {
 } from "@ui/store/index.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import type { Screenshot } from "@ui/types.ts";
-import {
-  useAppHotkeys,
-  useConfigAutoSave,
-  useGenerateAll,
-  useStoreRouteSync,
-} from "@hooks";
+import { useAppHotkeys, useConfigAutoSave, useStoreRouteSync } from "@hooks";
 
 export function App() {
   useStoreRouteSync();
   useConfigAutoSave();
-
-  // The one instance: its abort controller is what Cancel in the modal
-  // aborts, so every way of starting a run has to go through this `mutate`.
-  const { mutate: generate, cancel: cancelGenerate } = useGenerateAll();
-  useAppHotkeys({ onGenerate: generate });
+  useAppHotkeys();
 
   const theme = useAppStore((s) => s.config.theme);
   const app = useAppStore((s) => s.config.app);
@@ -88,7 +79,7 @@ export function App() {
 
   return (
     <div className="flex flex-col h-screen bg-zinc-950 text-white overflow-hidden">
-      <TopBar onGenerate={generate} />
+      <TopBar />
 
       <div className="flex flex-1 min-h-0">
         <Sidebar />
@@ -132,7 +123,6 @@ export function App() {
           progress={generateProgress}
           generating={generating}
           onClose={closeModal}
-          onCancel={cancelGenerate}
         />
       )}
 

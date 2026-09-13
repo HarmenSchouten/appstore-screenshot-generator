@@ -15,37 +15,24 @@ import {
   useSwitchProject,
 } from "@hooks";
 import {
-  ConfirmBar,
   Modal,
   ModalBody,
   useConfirm,
 } from "@ui/components/primitives/index.ts";
-import { cn } from "@ui/utils/cn.ts";
+import { ProjectRow, type ProjectRowMode } from "./ProjectRow.tsx";
 
 interface ProjectModalProps {
   projects: ProjectInfo[];
   currentProject: string | null;
 }
 
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return "";
-  }
-}
-
 export function ProjectModal({
   projects,
   currentProject,
 }: ProjectModalProps) {
+  // One row at a time is renaming or asking to be deleted
   const confirmDelete = useConfirm<string>();
-  const [editingProject, setEditingProject] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
+  const [renaming, setRenaming] = useState<string | null>(null);
 
   const closeModal = useAppStore((s) => s.closeModal);
 
@@ -54,40 +41,17 @@ export function ProjectModal({
   const deleteProject = useDeleteProject();
   const duplicateProject = useDuplicateProject();
 
-  const handleRename = (projectId: string) => {
-    if (!editName.trim()) return;
+  const modeOf = (projectId: string): ProjectRowMode =>
+    confirmDelete.armed === projectId
+      ? "confirm-delete"
+      : renaming === projectId
+      ? "rename"
+      : "view";
 
-    renameProject.mutate({ projectId, name: editName.trim() }, {
-      onSuccess: () => {
-        setEditingProject(null);
-        setEditName("");
-      },
-    });
-  };
-
-  const handleSwitch = (projectId: string) => {
-    switchProject.mutate(projectId, {
-      onSuccess: () => closeModal(),
-    });
-  };
-
-  const handleDelete = (projectId: string) => {
-    deleteProject.mutate(projectId, {
-      onSuccess: () => confirmDelete.disarm(),
-    });
-  };
-
-  const handleDuplicate = (project: ProjectInfo) => {
-    duplicateProject.mutate(
-      { projectId: project.id, name: `${project.name} (copy)` },
-      { onSuccess: () => closeModal() },
-    );
-  };
-
-  const startEditing = (project: ProjectInfo) => {
-    setEditingProject(project.id);
-    setEditName(project.name);
-    confirmDelete.disarm();
+  const setMode = (projectId: string, mode: ProjectRowMode) => {
+    setRenaming(mode === "rename" ? projectId : null);
+    if (mode === "confirm-delete") confirmDelete.arm(projectId);
+    else confirmDelete.disarm();
   };
 
   return (
@@ -98,140 +62,31 @@ export function ProjectModal({
       onClose={closeModal}
     >
       <ModalBody className="space-y-2">
-        {projects.map((p) =>
-          confirmDelete.armed === p.id
-            ? (
-              <ConfirmBar
-                key={p.id}
-                className="py-3"
-                message={
-                  <>
-                    Delete &ldquo;{p.name}&rdquo;?{" "}
-                    <span className="text-zinc-500">
-                      All project data will be permanently removed.
-                    </span>
-                  </>
-                }
-                onConfirm={() => handleDelete(p.id)}
-                onCancel={confirmDelete.disarm}
-              />
-            )
-            : (
-              <div
-                key={p.id}
-                className={cn(
-                  "rounded-lg border transition-colors",
-                  currentProject === p.id
-                    ? "bg-indigo-900/30 border-indigo-500/50"
-                    : "bg-zinc-800/50 border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600",
-                )}
-              >
-                {editingProject === p.id
-                  ? (
-                    // Rename mode
-                    <div className="p-3 flex gap-2">
-                      <input
-                        type="text"
-                        value={editName}
-                        onInput={(e) =>
-                          setEditName((e.target as HTMLInputElement).value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleRename(p.id);
-                          if (e.key === "Escape") {
-                            // Cancels the edit only; the modal stays
-                            e.stopPropagation();
-                            setEditingProject(null);
-                          }
-                        }}
-                        className="input flex-1 py-1.5"
-                        autoFocus
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRename(p.id)}
-                        disabled={!editName.trim()}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 rounded text-sm disabled:opacity-40 transition-colors"
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingProject(null)}
-                        className="px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded text-sm transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  )
-                  : (
-                    // Normal view
-                    <div className="p-3 flex items-center gap-3">
-                      <div
-                        className="flex-1 min-w-0 cursor-pointer"
-                        onClick={() => handleSwitch(p.id)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <i
-                            className={cn(
-                              "fa-solid fa-cube text-xs",
-                              currentProject === p.id
-                                ? "text-indigo-400"
-                                : "text-zinc-600",
-                            )}
-                          />
-                          <span className="font-medium text-sm truncate">
-                            {p.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 ml-5">
-                          {p.createdAt && (
-                            <span className="text-[11px] text-zinc-500">
-                              Created {formatDate(p.createdAt)}
-                            </span>
-                          )}
-                          {p.updatedAt && p.updatedAt !== p.createdAt && (
-                            <span className="text-[11px] text-zinc-500">
-                              Updated {formatDate(p.updatedAt)}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => startEditing(p)}
-                          className="btn-icon"
-                          title="Rename"
-                        >
-                          <i className="fa-solid fa-pen text-xs" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDuplicate(p)}
-                          className="btn-icon"
-                          title="Duplicate"
-                        >
-                          <i className="fa-solid fa-copy text-xs" />
-                        </button>
-                        {projects.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              confirmDelete.arm(p.id);
-                              setEditingProject(null);
-                            }}
-                            className="btn-icon hover:text-red-400"
-                            title="Delete"
-                          >
-                            <i className="fa-solid fa-trash-can text-xs" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
-              </div>
-            )
-        )}
+        {projects.map((p) => (
+          <ProjectRow
+            key={p.id}
+            project={p}
+            isCurrent={currentProject === p.id}
+            canDelete={projects.length > 1}
+            mode={modeOf(p.id)}
+            onModeChange={(mode) => setMode(p.id, mode)}
+            onSwitch={() =>
+              switchProject.mutate(p.id, { onSuccess: () => closeModal() })}
+            onRename={(name) =>
+              renameProject.mutate({ projectId: p.id, name }, {
+                onSuccess: () => setRenaming(null),
+              })}
+            onDuplicate={() =>
+              duplicateProject.mutate(
+                { projectId: p.id, name: `${p.name} (copy)` },
+                { onSuccess: () => closeModal() },
+              )}
+            onDelete={() =>
+              deleteProject.mutate(p.id, {
+                onSuccess: () => confirmDelete.disarm(),
+              })}
+          />
+        ))}
       </ModalBody>
     </Modal>
   );

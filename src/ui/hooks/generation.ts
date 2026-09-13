@@ -2,7 +2,6 @@
  * Generation — the export run and its results.
  */
 
-import { useCallback, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchGenerated,
@@ -14,27 +13,38 @@ import { queryKeys } from "@ui/utils/query.ts";
 import { flushPersist } from "@ui/utils/config-persistence.ts";
 
 /**
- * Kicks off screenshot generation via the SSE stream, feeds progress events
- * into the store, and exposes `cancel()`: aborting the fetch closes the
- * stream, which the server turns into cancellation after the screenshot in
- * flight.
- *
- * One instance per app: the abort controller lives in this hook, so a run
- * started through another instance's `mutate` cannot be cancelled by this
- * one. App owns it and hands `mutate` to the top bar and the hotkeys (#68).
+ * The run in flight, if any. Module state rather than a ref in the hook: the
+ * top bar's button and the hotkey each mount their own `useGenerateAll`, and
+ * the modal's Cancel must abort whichever of them started the run. A
+ * per-instance ref could only abort its own (#68, #70).
+ */
+let activeRun: AbortController | null = null;
+
+/**
+ * Abort the export run in flight — the fetch closes the stream, which the
+ * server turns into cancellation after the screenshot being rendered. A
+ * no-op when nothing is running.
+ */
+export function cancelGeneration() {
+  activeRun?.abort();
+}
+
+/**
+ * Kicks off screenshot generation via the SSE stream and feeds progress
+ * events into the store. Any component may mount one; the store's
+ * `generating` flag keeps a second run from starting while one is live.
  */
 export function useGenerateAll() {
   const queryClient = useQueryClient();
-  const abortRef = useRef<AbortController | null>(null);
 
-  const mutation = useMutation({
+  return useMutation({
     // onError below reports with context; the global toast would duplicate it
     meta: { suppressErrorToast: true },
     mutationFn: async () => {
       await flushPersist();
 
       const controller = new AbortController();
-      abortRef.current = controller;
+      activeRun = controller;
       try {
         await generateStream((event) => {
           if (event.type === "start") {
@@ -61,7 +71,7 @@ export function useGenerateAll() {
           }
         }, controller.signal);
       } finally {
-        abortRef.current = null;
+        if (activeRun === controller) activeRun = null;
       }
     },
     onMutate: () => {
@@ -115,10 +125,6 @@ export function useGenerateAll() {
       queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
     },
   });
-
-  const cancel = useCallback(() => abortRef.current?.abort(), []);
-
-  return { ...mutation, cancel };
 }
 
 /** Opens the output folder in the system file explorer. */

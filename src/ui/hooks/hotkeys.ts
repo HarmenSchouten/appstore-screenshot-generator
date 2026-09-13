@@ -14,7 +14,7 @@ import {
   selectScreenshots,
   useAppStore,
 } from "@ui/store/index.ts";
-import { useOpenOutputFolder } from "./generation.ts";
+import { useGenerateAll, useOpenOutputFolder } from "./generation.ts";
 import { type ShortcutId, SHORTCUTS } from "./shortcut-definitions.ts";
 
 const CONFIRM_WINDOW_MS = 1500;
@@ -92,15 +92,11 @@ export function useShortcut(
   );
 }
 
-interface AppHotkeyHandlers {
-  /** Start an export run — App's single `useGenerateAll` instance. */
-  onGenerate: () => void;
-}
-
-export function useAppHotkeys({ onGenerate }: AppHotkeyHandlers) {
+export function useAppHotkeys() {
   const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
   const enabled = useAppStore(selectNoOverlayOpen);
   const openOutputFolder = useOpenOutputFolder();
+  const generateAll = useGenerateAll();
 
   // ── Tier 1 — EmptyState shortcuts ──────────────────────────────────
 
@@ -109,7 +105,7 @@ export function useAppHotkeys({ onGenerate }: AppHotkeyHandlers) {
   }, enabled);
 
   useShortcut("generateAll", () => {
-    if (!useAppStore.getState().generating) onGenerate();
+    if (!useAppStore.getState().generating) generateAll.mutate();
   }, enabled);
 
   useShortcut("openThemeEditor", () => {
