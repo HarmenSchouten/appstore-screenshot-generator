@@ -1,26 +1,31 @@
 import type {
   DeviceMaterialPreset,
   DevicePreset,
-  DevicePresetId,
   Platform,
   PlatformDefaults,
 } from "@app-types";
-import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from "./presets/index.ts";
+import { ALL_DEVICE_PRESETS, type DevicePresetId } from "./presets.ts";
 
-export * from "./presets/index.ts";
-
-export const DEVICE_PRESET_REFERENCE_WIDTH = 400;
+export * from "./presets.ts";
+export { DEVICE_PRESET_REFERENCE_WIDTH } from "./define.ts";
 
 /**
- * Material fields a preset may leave out. Sizes are in reference-width
- * units like the rest of the preset; the button fill is the generic dark
- * metal the legacy presets used before they got their own.
+ * Lookup table over `ALL_DEVICE_PRESETS`. Derived rather than written out:
+ * the array is the only list of presets anyone maintains.
+ */
+export const DEVICE_PRESETS = Object.fromEntries(
+  ALL_DEVICE_PRESETS.map((preset) => [preset.id, preset]),
+) as Readonly<Record<DevicePresetId, DevicePreset>>;
+
+/**
+ * Material fields a preset may leave out. Sizes are in reference-width units
+ * like the rest of the preset. `buttonFill` is not here: the renderer falls
+ * back to `frameFill`, so only a frame whose buttons differ writes one.
  */
 export const DEFAULT_MATERIAL = {
   borderWidth: 1,
   faceInset: 0,
   faceBorderWidth: 1,
-  buttonFill: "linear-gradient(90deg, #4a4b52 0%, #22242a 100%)",
 } satisfies Partial<DeviceMaterialPreset>;
 
 export const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
@@ -32,6 +37,7 @@ export const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
   },
 };
 
+/** Fallback for configs written before `platformDefaults` existed (#61). */
 export const LEGACY_PLATFORM_DEFAULTS: PlatformDefaults = {
   android: {
     defaultDevicePresetId: "android-legacy-classic",
@@ -49,20 +55,13 @@ export function getDevicePreset(id: DevicePresetId): DevicePreset {
   return DEVICE_PRESETS[id];
 }
 
-export function getAllDevicePresets(): DevicePreset[] {
-  return [...ALL_DEVICE_PRESETS];
-}
-
+/** In registry order: the model dropdowns list presets exactly like this. */
 export function getDevicePresetsForPlatform(
   platform: Platform,
 ): DevicePreset[] {
-  return getAllDevicePresets().filter((preset) => preset.platform === platform);
+  return ALL_DEVICE_PRESETS.filter((preset) => preset.platform === platform);
 }
 
 export function isDevicePresetId(value: string): value is DevicePresetId {
   return Object.hasOwn(DEVICE_PRESETS, value);
-}
-
-export function getDevicePresetSummary(id: DevicePresetId): string {
-  return getDevicePreset(id).summary;
 }

@@ -1,5 +1,10 @@
 import { assertSnapshot } from "@std/testing/snapshot";
-import { assert, assertStringIncludes, assertThrows } from "@std/assert";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  assertThrows,
+} from "@std/assert";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
@@ -140,6 +145,28 @@ Deno.test("renderScreenshot: explicit layer model wins over the platform default
 
   assertStringIncludes(html, aspectRatioFor("ios-iphone-15-pro"));
   assert(!html.includes(aspectRatioFor("android-pixel-9-pro")));
+});
+
+// A preset whose buttons are the frame's own metal leaves `buttonFill` out
+// and the renderer falls back to `frameFill` (#72), rather than to the
+// generic dark gradient DEFAULT_MATERIAL used to supply.
+Deno.test("renderScreenshot: buttons fall back to the frame fill", () => {
+  const preset = getDevicePreset("ios-iphone-15-pro");
+  assertEquals(preset.material.buttonFill, undefined, "fixture preset");
+
+  // Fixture's phone frame pins model: "ios-iphone-15-pro".
+  const html = renderScreenshot({
+    screenshot: makeDefaultScreenshot(),
+    theme: baseConfig.theme,
+    app: baseConfig.app,
+    platform: "ios",
+    defaultDevicePresetId: "ios-iphone-15-pro",
+    dimensions: baseConfig.languages[0].platforms.ios.dimensions,
+  });
+
+  // The button's background layers the two sheens over the fill, so the
+  // fill is what the declaration ends on.
+  assertStringIncludes(html, `transparent 20%), ${preset.material.frameFill}`);
 });
 
 Deno.test("renderScreenshot: shape, glow and image layers snapshot", async (t) => {

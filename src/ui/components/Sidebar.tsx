@@ -9,10 +9,7 @@
 import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { arrayMove } from "@dnd-kit/sortable";
-import {
-  getDevicePresetsForPlatform,
-  getDevicePresetSummary,
-} from "@device-presets";
+import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
@@ -142,7 +139,7 @@ function SidebarInner() {
           className="px-2.5 py-1.5 text-xs rounded"
         />
         <div className="mt-1.5 text-[10px] text-zinc-600">
-          {getDevicePresetSummary(platformDefaultDevicePresetId)}
+          {getDevicePreset(platformDefaultDevicePresetId).summary}
         </div>
       </div>
     </aside>
