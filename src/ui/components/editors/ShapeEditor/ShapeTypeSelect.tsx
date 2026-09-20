@@ -1,62 +1,20 @@
 /**
  * ShapeTypeSelect — categorised dropdown for picking a shape type.
+ * Groups and labels come from `SHAPE_META`, so a new shape only registers once.
  */
 
-import type { ShapeType } from "@app-types";
+import type { ShapeFamily, ShapeType } from "@app-types";
+import { SHAPE_FAMILY_LABELS, SHAPE_META, SHAPE_TYPES } from "@lib";
 import { Select, type SelectGroup } from "@ui/components/inputs/index.ts";
 
-const SHAPE_GROUPS: SelectGroup<ShapeType>[] = [
-  {
-    label: "Basic",
-    options: [
-      { value: "circle", label: "Circle" },
-      { value: "ring", label: "Ring" },
-      { value: "rectangle", label: "Rectangle" },
-      { value: "pill", label: "Pill" },
-    ],
-  },
-  {
-    label: "Lines & Curves",
-    options: [
-      { value: "curved-line", label: "Curved Line" },
-      { value: "s-curve", label: "S-Curve" },
-      { value: "wave-line", label: "Wave Line" },
-    ],
-  },
-  {
-    label: "Arrows & Chevrons",
-    options: [
-      { value: "chevron", label: "Chevron" },
-      { value: "double-chevron", label: "Double Chevron" },
-      { value: "arrow", label: "Arrow" },
-    ],
-  },
-  {
-    label: "Geometric",
-    options: [
-      { value: "triangle", label: "Triangle" },
-      { value: "diamond", label: "Diamond" },
-      { value: "hexagon", label: "Hexagon" },
-      { value: "star", label: "Star" },
-      { value: "sparkle", label: "Sparkle" },
-      { value: "cross", label: "Cross" },
-    ],
-  },
-  {
-    label: "Organic",
-    options: [
-      { value: "blob", label: "Blob" },
-      { value: "crescent", label: "Crescent" },
-    ],
-  },
-  {
-    label: "Patterns",
-    options: [
-      { value: "dots-grid", label: "Dots Grid" },
-      { value: "scattered-dots", label: "Scattered Dots" },
-    ],
-  },
-];
+const SHAPE_GROUPS: SelectGroup<ShapeType>[] = (
+  Object.keys(SHAPE_FAMILY_LABELS) as ShapeFamily[]
+).map((family) => ({
+  label: SHAPE_FAMILY_LABELS[family],
+  options: SHAPE_TYPES
+    .filter((type) => SHAPE_META[type].family === family)
+    .map((type) => ({ value: type, label: SHAPE_META[type].label })),
+}));
 
 interface ShapeTypeSelectProps {
   value: ShapeType;

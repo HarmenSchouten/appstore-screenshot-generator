@@ -24,20 +24,16 @@ export function resolveBackground(
 }
 
 /** BackgroundLayer renderer. */
-export function BackgroundLayer({
-  opacity,
-  theme,
-  ...rest
-}: BackgroundLayerRendererProps) {
-  const background = resolveBackground(rest as BackgroundLayerProps, theme);
-
+export function BackgroundLayer(
+  { theme, ...layer }: BackgroundLayerRendererProps,
+) {
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
-        background,
-        opacity,
+        background: resolveBackground(layer, theme),
+        opacity: layer.opacity,
       }}
     />
   );

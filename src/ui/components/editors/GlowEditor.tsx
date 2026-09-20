@@ -4,6 +4,7 @@
 
 import type { GlowLayerProps } from "@app-types";
 import { useLayerSetter } from "@hooks";
+import { LAYER_DEFAULTS } from "@lib";
 import { ColorInput, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
@@ -39,7 +40,7 @@ export function GlowEditor({ layer, onUpdate }: GlowEditorProps) {
 
         <Slider
           label="Blur"
-          value={layer.blur ?? 80}
+          value={layer.blur ?? LAYER_DEFAULTS.glow.blur}
           onChange={(v: number) => set("blur", v)}
           min={0}
           max={200}

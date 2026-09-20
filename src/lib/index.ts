@@ -209,3 +209,22 @@ let nextLayerId = 1;
 export function generateLayerId(): string {
   return globalThis.crypto.randomUUID?.() ?? `layer-${nextLayerId++}`;
 }
+
+// ============================================================
+// Layers
+// ============================================================
+
+export * from "./layers.ts";
+
+// ============================================================
+// Exhaustiveness
+// ============================================================
+
+/**
+ * Marks the end of a switch over a union. Type-checks only when every case
+ * is handled; a new member is a compile error at each site, not a silent
+ * fallthrough.
+ */
+export function assertNever(value: never): never {
+  throw new Error(`Unhandled case: ${JSON.stringify(value)}`);
+}

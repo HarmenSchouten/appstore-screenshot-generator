@@ -5,7 +5,8 @@
  */
 
 import { Hono } from "hono";
-import type { Screenshot } from "@app-types";
+import type { Screenshot, ShapeLayerProps } from "@app-types";
+import { SHAPE_META, SHAPE_TYPES } from "@lib";
 import { notFound, onError } from "@routes/http.ts";
 
 /**
@@ -183,6 +184,42 @@ export function makeEffectsScreenshot(): Screenshot {
         rotation: 0,
         opacity: 1,
       },
+    ],
+  };
+}
+
+/**
+ * Every shape type at its defaults, plus a filled variant of each shape
+ * that has the toggle — one layer per ShapeLayer branch.
+ */
+export function makeAllShapesScreenshot(): Screenshot {
+  const shape = (
+    shapeType: ShapeLayerProps["shapeType"],
+    i: number,
+    filled: boolean,
+  ): ShapeLayerProps => ({
+    id: `${shapeType}${filled ? "-filled" : ""}`,
+    type: "shape",
+    shapeType,
+    size: 120,
+    color: "#fbbf24",
+    filled,
+    posX: 10 + (i % 5) * 20,
+    posY: 10 + Math.floor(i / 5) * 12,
+    rotation: 0,
+    opacity: 1,
+  });
+  const outlined = SHAPE_TYPES.map((t, i) => shape(t, i, false));
+  const filled = SHAPE_TYPES.filter((t) => SHAPE_META[t].paint === "toggle")
+    .map((t, i) => shape(t, i + outlined.length, true));
+  return {
+    id: "shot-shapes",
+    name: "All shapes",
+    role: "screenshot",
+    layers: [
+      { id: "bg", type: "background", opacity: 1 },
+      ...outlined,
+      ...filled,
     ],
   };
 }

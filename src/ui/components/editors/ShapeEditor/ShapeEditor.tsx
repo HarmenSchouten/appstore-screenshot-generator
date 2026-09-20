@@ -8,8 +8,10 @@
  * 4. Size & Position — size, position, rotation, blur, opacity
  */
 
+import type { ReactElement } from "react";
 import type { ShapeLayerProps } from "@app-types";
 import { type LayerSetter, useLayerSetter } from "@hooks";
+import { assertNever, isStroked, resolveShape, SHAPE_META } from "@lib";
 import { ColorInput, Slider } from "@ui/components/inputs/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
 import { SectionHeading } from "@ui/components/editors/SectionHeading.tsx";
@@ -28,9 +30,7 @@ import {
   LineOptions,
   RectangleOptions,
   ScatteredDotsOptions,
-  showStrokeWidth,
   StarOptions,
-  supportsFill,
   WaveOptions,
 } from "./ShapeOptions.tsx";
 
@@ -41,6 +41,8 @@ interface ShapeEditorProps {
 
 export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
   const set = useLayerSetter(onUpdate);
+  const s = resolveShape(layer);
+  const { paint } = SHAPE_META[s.shapeType];
 
   const shapeOptions = renderShapeOptions(layer, set);
 
@@ -50,7 +52,7 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
       <section className="space-y-3">
         <SectionHeading>Shape</SectionHeading>
         <ShapeTypeSelect
-          value={layer.shapeType}
+          value={s.shapeType}
           onChange={(v) => set("shapeType", v)}
         />
       </section>
@@ -62,15 +64,15 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
         <div>
           <label className="text-xs text-zinc-500 block mb-1.5">Color</label>
           <ColorInput
-            value={layer.color}
+            value={s.color}
             onChange={(v: string) => set("color", v)}
           />
         </div>
 
-        {supportsFill(layer.shapeType) && (
+        {paint === "toggle" && (
           <SegmentedControl
             label="Fill"
-            value={layer.filled ? "filled" : "outline"}
+            value={s.filled ? "filled" : "outline"}
             onChange={(v) => set("filled", v === "filled")}
             options={[
               { value: "outline", label: "Outline" },
@@ -79,10 +81,10 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
           />
         )}
 
-        {showStrokeWidth(layer.shapeType, layer.filled) && (
+        {isStroked(s.shapeType, s.filled) && (
           <Slider
             label="Stroke Width"
-            value={layer.strokeWidth ?? 2}
+            value={s.strokeWidth}
             onChange={(v: number) => set("strokeWidth", v)}
             min={1}
             max={20}
@@ -106,7 +108,7 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
 
         <Slider
           label="Size"
-          value={layer.size}
+          value={s.size}
           onChange={(v: number) => set("size", v)}
           min={10}
           max={2000}
@@ -118,7 +120,7 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
 
         <Slider
           label="Blur"
-          value={layer.blur ?? 0}
+          value={s.blur}
           onChange={(v: number) => set("blur", v)}
           min={0}
           max={50}
@@ -127,7 +129,7 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
         />
 
         <OpacitySlider
-          value={layer.opacity}
+          value={s.opacity}
           onChange={(v) => set("opacity", v)}
         />
       </section>
@@ -137,11 +139,21 @@ export function ShapeEditor({ layer, onUpdate }: ShapeEditorProps) {
 
 // ── Conditional options dispatcher ──────────────────────────
 
+/** The family panel for the shape, or null for shapes with no extra options. */
 function renderShapeOptions(
   layer: ShapeLayerProps,
   set: LayerSetter<ShapeLayerProps>,
-): JSX.Element | null {
+): ReactElement | null {
   switch (layer.shapeType) {
+    case "circle":
+    case "ring":
+    case "pill":
+    case "triangle":
+    case "diamond":
+    case "hexagon":
+    case "sparkle":
+    case "cross":
+      return null;
     case "rectangle":
       return <RectangleOptions layer={layer} set={set} />;
     case "curved-line":
@@ -166,6 +178,6 @@ function renderShapeOptions(
     case "scattered-dots":
       return <ScatteredDotsOptions layer={layer} set={set} />;
     default:
-      return null;
+      return assertNever(layer);
   }
 }

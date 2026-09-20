@@ -24,18 +24,33 @@ export interface DeviceButtonPreset {
   radius: number;
 }
 
-export interface DeviceCutoutPreset {
-  type: "dynamic-island" | "hole-punch" | "none";
+interface DeviceCutoutBase {
+  /** Distance from the top of the frame */
   top: number;
-  width?: number;
-  height?: number;
-  radius?: number;
-  diameter?: number;
-  background?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  shadow?: string;
+  background: string;
+  borderColor: string;
+  borderWidth: number;
+  shadow: string;
 }
+
+/** A pill-shaped camera housing, centred horizontally */
+export interface DynamicIslandCutoutPreset extends DeviceCutoutBase {
+  type: "dynamic-island";
+  width: number;
+  height: number;
+  radius: number;
+}
+
+/** A round camera hole, centred horizontally */
+export interface HolePunchCutoutPreset extends DeviceCutoutBase {
+  type: "hole-punch";
+  diameter: number;
+}
+
+/** A camera cutout in the screen; a preset without one omits `cutout`. */
+export type DeviceCutoutPreset =
+  | DynamicIslandCutoutPreset
+  | HolePunchCutoutPreset;
 
 export interface DeviceScreenPreset {
   top: number;
@@ -45,18 +60,25 @@ export interface DeviceScreenPreset {
   radius: number;
 }
 
+/**
+ * Surface finish. Fields that describe an optional feature (a face plate,
+ * a frame border, a highlight) turn it on by being present; the sizes and
+ * the button colour come from `DEFAULT_MATERIAL` when omitted.
+ */
 export interface DeviceMaterialPreset {
   frameFill: string;
+  /** Frame border; omitted = none */
+  borderColor?: string;
+  borderWidth?: number;
+  /** Inner face plate; omitted = none */
   faceFill?: string;
   faceInset?: number;
   faceBorderColor?: string;
   faceBorderWidth?: number;
   faceShadow?: string;
-  borderColor?: string;
-  borderWidth?: number;
   buttonFill?: string;
   shadow?: string;
-  screenShadow?: string;
+  /** Top-edge sheen over the frame; omitted = none */
   topHighlight?: string;
 }
 
@@ -72,7 +94,7 @@ export interface DevicePreset {
   outerRadius: number;
   screen: DeviceScreenPreset;
   cutout?: DeviceCutoutPreset;
-  buttons?: DeviceButtonPreset[];
+  buttons: DeviceButtonPreset[];
   material: DeviceMaterialPreset;
   summary: string;
 }

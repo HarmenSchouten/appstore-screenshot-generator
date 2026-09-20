@@ -4,6 +4,7 @@
 
 import type { ImageLayerProps } from "@app-types";
 import { useAssets, useLayerSetter } from "@hooks";
+import { LAYER_DEFAULTS } from "@lib";
 import { ImageSelect, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
@@ -50,7 +51,7 @@ export function ImageEditor({ layer, onUpdate }: ImageEditorProps) {
 
         <Slider
           label="Border Radius"
-          value={layer.borderRadius ?? 0}
+          value={layer.borderRadius ?? LAYER_DEFAULTS.image.borderRadius}
           onChange={(v: number) => set("borderRadius", v)}
           min={0}
           max={1000}

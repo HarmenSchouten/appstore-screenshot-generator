@@ -2,59 +2,39 @@
  * Shape-specific option panels.
  *
  * Each panel renders only the controls relevant to a particular shape
- * (or family of shapes). They receive the full layer + a `set` helper.
+ * family. It receives the layer narrowed to that family — so its sliders
+ * read the family's resolved defaults — plus the editor's `set` helper.
  */
 
-import type { ShapeLayerProps, ShapeType } from "@app-types";
+import type {
+  ArrowShapeProps,
+  BasicShapeProps,
+  GeometricShapeProps,
+  LineShapeProps,
+  OrganicShapeProps,
+  PatternShapeProps,
+  ShapeLayerProps,
+} from "@app-types";
 import type { LayerSetter } from "@hooks";
+import { resolveShape } from "@lib";
 import { Slider } from "@ui/components/inputs/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/SegmentedControl.tsx";
 
-interface OptionsProps {
-  layer: ShapeLayerProps;
+interface OptionsProps<L extends ShapeLayerProps> {
+  layer: L;
   set: LayerSetter<ShapeLayerProps>;
 }
 
-// ── Helpers ─────────────────────────────────────────────────
+// ── Basic ───────────────────────────────────────────────────
 
-/** Which shapes support a filled / outline toggle? */
-const SUPPORTS_FILL: ShapeType[] = [
-  "rectangle",
-  "pill",
-  "triangle",
-  "diamond",
-  "hexagon",
-  "star",
-  "sparkle",
-  "cross",
-  "blob",
-];
-
-/** Which shapes are always stroked (never filled)? */
-const ALWAYS_STROKED: ShapeType[] = [
-  "ring",
-  "curved-line",
-  "s-curve",
-  "wave-line",
-  "chevron",
-  "double-chevron",
-  "arrow",
-];
-
-export function supportsFill(t: ShapeType) {
-  return SUPPORTS_FILL.includes(t);
-}
-export function showStrokeWidth(t: ShapeType, filled?: boolean) {
-  return ALWAYS_STROKED.includes(t) || (SUPPORTS_FILL.includes(t) && !filled);
-}
-
-// ── Panels ──────────────────────────────────────────────────
-
-export function RectangleOptions({ layer, set }: OptionsProps) {
+export function RectangleOptions(
+  { layer, set }: OptionsProps<BasicShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <Slider
       label="Corner Radius"
-      value={layer.borderRadius ?? 0}
+      value={s.borderRadius}
       onChange={(v: number) => set("borderRadius", v)}
       min={0}
       max={50}
@@ -63,12 +43,15 @@ export function RectangleOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function LineOptions({ layer, set }: OptionsProps) {
+// ── Lines ───────────────────────────────────────────────────
+
+export function LineOptions({ layer, set }: OptionsProps<LineShapeProps>) {
+  const s = resolveShape(layer);
   return (
     <>
       <SegmentedControl
         label="Orientation"
-        value={layer.orientation ?? "horizontal"}
+        value={s.orientation}
         onChange={(v) => set("orientation", v)}
         options={[
           { value: "horizontal", label: "─" },
@@ -79,7 +62,7 @@ export function LineOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Curvature"
-        value={layer.curvature ?? 30}
+        value={s.curvature}
         onChange={(v: number) => set("curvature", v)}
         min={-100}
         max={100}
@@ -87,7 +70,7 @@ export function LineOptions({ layer, set }: OptionsProps) {
       />
       <SegmentedControl
         label="Dash Style"
-        value={layer.dashStyle ?? "solid"}
+        value={s.dashStyle}
         onChange={(v) => set("dashStyle", v)}
         options={[
           { value: "solid", label: "Solid" },
@@ -97,7 +80,7 @@ export function LineOptions({ layer, set }: OptionsProps) {
       />
       <SegmentedControl
         label="Line Cap"
-        value={layer.lineCap ?? "round"}
+        value={s.lineCap}
         onChange={(v) => set("lineCap", v)}
         options={[
           { value: "round", label: "Round" },
@@ -109,13 +92,14 @@ export function LineOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function WaveOptions({ layer, set }: OptionsProps) {
+export function WaveOptions({ layer, set }: OptionsProps<LineShapeProps>) {
+  const s = resolveShape(layer);
   return (
     <>
       <LineOptions layer={layer} set={set} />
       <Slider
         label="Waves"
-        value={layer.count ?? 3}
+        value={s.count}
         onChange={(v: number) => set("count", v)}
         min={1}
         max={10}
@@ -125,11 +109,16 @@ export function WaveOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function DirectionOptions({ layer, set }: OptionsProps) {
+// ── Arrows & chevrons ───────────────────────────────────────
+
+export function DirectionOptions(
+  { layer, set }: OptionsProps<ArrowShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <SegmentedControl
       label="Direction"
-      value={layer.direction ?? "right"}
+      value={s.direction}
       onChange={(v) => set("direction", v)}
       options={[
         { value: "up", label: "↑" },
@@ -141,13 +130,14 @@ export function DirectionOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function ChevronOptions({ layer, set }: OptionsProps) {
+export function ChevronOptions({ layer, set }: OptionsProps<ArrowShapeProps>) {
+  const s = resolveShape(layer);
   return (
     <>
       <DirectionOptions layer={layer} set={set} />
       <Slider
         label="Angle"
-        value={layer.angle ?? 45}
+        value={s.angle}
         onChange={(v: number) => set("angle", v)}
         min={30}
         max={120}
@@ -158,13 +148,16 @@ export function ChevronOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function DoubleChevronOptions({ layer, set }: OptionsProps) {
+export function DoubleChevronOptions(
+  { layer, set }: OptionsProps<ArrowShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <>
       <ChevronOptions layer={layer} set={set} />
       <Slider
         label="Gap"
-        value={layer.gap ?? 15}
+        value={s.gap}
         onChange={(v: number) => set("gap", v)}
         min={5}
         max={40}
@@ -175,12 +168,17 @@ export function DoubleChevronOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function StarOptions({ layer, set }: OptionsProps) {
+// ── Geometric ───────────────────────────────────────────────
+
+export function StarOptions(
+  { layer, set }: OptionsProps<GeometricShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <>
       <Slider
         label="Points"
-        value={layer.points ?? 5}
+        value={s.points}
         onChange={(v: number) => set("points", v)}
         min={3}
         max={12}
@@ -188,7 +186,7 @@ export function StarOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Inner Radius"
-        value={Math.round((layer.innerRadius ?? 0.4) * 100)}
+        value={Math.round(s.innerRadius * 100)}
         onChange={(v: number) => set("innerRadius", v / 100)}
         min={10}
         max={80}
@@ -199,12 +197,15 @@ export function StarOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function BlobOptions({ layer, set }: OptionsProps) {
+// ── Organic ─────────────────────────────────────────────────
+
+export function BlobOptions({ layer, set }: OptionsProps<OrganicShapeProps>) {
+  const s = resolveShape(layer);
   return (
     <>
       <Slider
         label="Complexity"
-        value={layer.complexity ?? 6}
+        value={s.complexity}
         onChange={(v: number) => set("complexity", v)}
         min={3}
         max={12}
@@ -212,7 +213,7 @@ export function BlobOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Seed"
-        value={layer.seed ?? 1}
+        value={s.seed}
         onChange={(v: number) => set("seed", v)}
         min={1}
         max={100}
@@ -222,11 +223,14 @@ export function BlobOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function CrescentOptions({ layer, set }: OptionsProps) {
+export function CrescentOptions(
+  { layer, set }: OptionsProps<OrganicShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <Slider
       label="Inner Radius"
-      value={Math.round((layer.innerRadius ?? 0.7) * 100)}
+      value={Math.round(s.innerRadius * 100)}
       onChange={(v: number) => set("innerRadius", v / 100)}
       min={20}
       max={90}
@@ -236,12 +240,17 @@ export function CrescentOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function DotsGridOptions({ layer, set }: OptionsProps) {
+// ── Patterns ────────────────────────────────────────────────
+
+export function DotsGridOptions(
+  { layer, set }: OptionsProps<PatternShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <>
       <Slider
         label="Rows"
-        value={layer.rows ?? 4}
+        value={s.rows}
         onChange={(v: number) => set("rows", v)}
         min={1}
         max={10}
@@ -249,7 +258,7 @@ export function DotsGridOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Columns"
-        value={layer.columns ?? 4}
+        value={s.columns}
         onChange={(v: number) => set("columns", v)}
         min={1}
         max={10}
@@ -257,7 +266,7 @@ export function DotsGridOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Spacing"
-        value={layer.spacing ?? 20}
+        value={s.spacing}
         onChange={(v: number) => set("spacing", v)}
         min={5}
         max={40}
@@ -265,7 +274,7 @@ export function DotsGridOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Dot Size"
-        value={layer.dotSize ?? 3}
+        value={s.dotSize}
         onChange={(v: number) => set("dotSize", v)}
         min={1}
         max={10}
@@ -275,12 +284,15 @@ export function DotsGridOptions({ layer, set }: OptionsProps) {
   );
 }
 
-export function ScatteredDotsOptions({ layer, set }: OptionsProps) {
+export function ScatteredDotsOptions(
+  { layer, set }: OptionsProps<PatternShapeProps>,
+) {
+  const s = resolveShape(layer);
   return (
     <>
       <Slider
         label="Count"
-        value={layer.count ?? 12}
+        value={s.count}
         onChange={(v: number) => set("count", v)}
         min={3}
         max={50}
@@ -288,7 +300,7 @@ export function ScatteredDotsOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Dot Size"
-        value={layer.dotSize ?? 2}
+        value={s.dotSize}
         onChange={(v: number) => set("dotSize", v)}
         min={1}
         max={10}
@@ -296,7 +308,7 @@ export function ScatteredDotsOptions({ layer, set }: OptionsProps) {
       />
       <Slider
         label="Seed"
-        value={layer.seed ?? 1}
+        value={s.seed}
         onChange={(v: number) => set("seed", v)}
         min={1}
         max={100}

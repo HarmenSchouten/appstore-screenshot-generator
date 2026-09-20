@@ -1,17 +1,21 @@
 import { assertSnapshot } from "@std/testing/snapshot";
-import { assert, assertStringIncludes } from "@std/assert";
+import { assert, assertStringIncludes, assertThrows } from "@std/assert";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   DEVICE_PRESET_REFERENCE_WIDTH,
   getDevicePreset,
 } from "@device-presets";
-import type { DevicePresetId } from "@app-types";
+import type { DevicePresetId, Layer, RenderOptions } from "@app-types";
 import { FEATURE_GRAPHIC_SIZE, getScreenshotDimensions } from "@lib";
 import { getDefaultConfig } from "@/projects.ts";
 import {
+  makeAllShapesScreenshot,
   makeDefaultScreenshot,
   makeEffectsScreenshot,
   makeFeatureGraphic,
 } from "@/test-helpers.ts";
+import { ScreenshotContent } from "./Screenshot.tsx";
 import { renderScreenshot } from "./server.ts";
 
 // renderToStaticMarkup is deterministic, so full-document snapshots catch
@@ -151,4 +155,77 @@ Deno.test("renderScreenshot: shape, glow and image layers snapshot", async (t) =
 
   assertStringIncludes(html, "/assets/images/logo.png");
   await assertSnapshot(t, html);
+});
+
+Deno.test("renderScreenshot: every shape type snapshot", async (t) => {
+  const html = renderScreenshot({
+    screenshot: makeAllShapesScreenshot(),
+    theme: baseConfig.theme,
+    app: baseConfig.app,
+    platform: "android",
+    defaultDevicePresetId: "android-pixel-9-pro",
+    dimensions: baseConfig.languages[0].platforms.android.dimensions,
+    assetUrlPrefix: "/assets/",
+  });
+
+  await assertSnapshot(t, html);
+});
+
+// An unknown shape used to fall through to a circle; #71 made every switch
+// exhaustive, so a stale config fails loudly instead of drawing the wrong thing.
+Deno.test("renderScreenshot: an unknown shape type throws", () => {
+  const screenshot = makeDefaultScreenshot();
+  screenshot.layers.push({
+    id: "bad",
+    type: "shape",
+    shapeType: "hexagram",
+    size: 100,
+    color: "#fff",
+    posX: 50,
+    posY: 50,
+    rotation: 0,
+    opacity: 1,
+  } as unknown as Layer);
+
+  assertThrows(
+    () =>
+      renderScreenshot({
+        screenshot,
+        theme: baseConfig.theme,
+        app: baseConfig.app,
+        platform: "ios",
+        defaultDevicePresetId: "ios-iphone-15-pro",
+        dimensions: baseConfig.languages[0].platforms.ios.dimensions,
+      }),
+    Error,
+    "Unhandled case",
+  );
+});
+
+// The empty-screen pulse made a PNG's opacity depend on when Chrome
+// captured it (#71): the export document renders the placeholder static,
+// at the pulse's resting opacity, while the preview keeps animating.
+Deno.test("renderScreenshot: an empty phone frame is static in the export document", () => {
+  const screenshot = makeDefaultScreenshot();
+  const phone = screenshot.layers.find((l) => l.type === "phone-frame");
+  assert(phone && phone.type === "phone-frame");
+  delete phone.imagePath;
+
+  const options: RenderOptions = {
+    screenshot,
+    theme: baseConfig.theme,
+    app: baseConfig.app,
+    platform: "ios",
+    defaultDevicePresetId: "ios-iphone-15-pro",
+    dimensions: baseConfig.languages[0].platforms.ios.dimensions,
+  };
+  const exported = renderScreenshot(options);
+  assertStringIncludes(exported, "No screenshot");
+  assertStringIncludes(exported, "opacity:0.4");
+  assert(!exported.includes("animation:"), "export must not animate");
+
+  const preview = renderToStaticMarkup(
+    createElement(ScreenshotContent, { options }),
+  );
+  assertStringIncludes(preview, "animation:phoneFrameEmptyPulse");
 });

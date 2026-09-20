@@ -1,13 +1,25 @@
 import type { DevicePresetId } from "./device.ts";
-import type { ShapeType } from "./effects.ts";
+import type {
+  ArrowDirection,
+  ArrowShapeType,
+  BasicShapeType,
+  GeometricShapeType,
+  LineCap,
+  LineDashStyle,
+  LineOrientation,
+  LineShapeType,
+  OrganicShapeType,
+  PatternShapeType,
+} from "./effects.ts";
 import type { TypographyOptions } from "./typography.ts";
 
-interface BaseLayerProps {
+export interface BaseLayerProps {
   id: string;
   opacity: number;
 }
 
-interface PositionalLayerProps {
+/** Where a layer sits: centred on (posX, posY) percent of the canvas, rotated in degrees. */
+export interface PositionalLayerProps {
   posX: number;
   posY: number;
   rotation: number;
@@ -67,11 +79,17 @@ export interface GlowLayerProps extends BaseLayerProps, PositionalLayerProps {
   blur?: number;
 }
 
-/** A decorative SVG shape — carries all existing shape properties */
-export interface ShapeLayerProps extends BaseLayerProps, PositionalLayerProps {
+// ============================================================
+// Shape Layers — one interface per family
+// ============================================================
+
+/**
+ * What every shape carries. `filled` and `strokeWidth` sit here rather than
+ * on the families that use them because all but the patterns read at least
+ * one of them; which shapes expose the toggle is `SHAPE_META[type].paint`.
+ */
+interface ShapeBaseProps extends BaseLayerProps, PositionalLayerProps {
   type: "shape";
-  /** Which shape to render */
-  shapeType: ShapeType;
   /** Size of the shape in pixels */
   size: number;
   /** Color (hex) */
@@ -82,59 +100,104 @@ export interface ShapeLayerProps extends BaseLayerProps, PositionalLayerProps {
   filled?: boolean;
   /** Stroke width for outlines (1–20) */
   strokeWidth?: number;
-  /** Border radius for rectangles (0–50) */
-  borderRadius?: number;
+}
 
-  // Line-specific
-  /** Line orientation preset */
-  orientation?: "horizontal" | "vertical" | "diagonal-down" | "diagonal-up";
+/** circle, ring, rectangle, pill */
+export interface BasicShapeProps extends ShapeBaseProps {
+  shapeType: BasicShapeType;
+  /** Corner radius for rectangles (0–50, in viewBox units) */
+  borderRadius?: number;
+}
+
+/** curved-line, s-curve, wave-line */
+export interface LineShapeProps extends ShapeBaseProps {
+  shapeType: LineShapeType;
+  /** Line orientation preset; also picks the axis a curve bends on */
+  orientation?: LineOrientation;
   /** Curvature amount (−100 to 100) */
   curvature?: number;
-  /** Start X position as percentage (0–100) */
+  /** Custom endpoints (0–100 %); both X values set = orientation preset ignored */
   startX?: number;
-  /** Start Y position as percentage (0–100) */
   startY?: number;
-  /** End X position as percentage (0–100) */
   endX?: number;
-  /** End Y position as percentage (0–100) */
   endY?: number;
   /** Line dash style */
-  dashStyle?: "solid" | "dashed" | "dotted";
+  dashStyle?: LineDashStyle;
   /** Line cap style */
-  lineCap?: "round" | "square" | "butt";
-
-  // Chevron-specific
-  /** Direction chevron points to */
-  direction?: "up" | "down" | "left" | "right";
-  /** Chevron angle in degrees (30–120) */
-  angle?: number;
-  /** Number of stacked shapes (1–4) */
+  lineCap?: LineCap;
+  /** Number of waves (wave-line) */
   count?: number;
-  /** Gap between stacked shapes in pixels */
+}
+
+/** chevron, double-chevron, arrow */
+export interface ArrowShapeProps extends ShapeBaseProps {
+  shapeType: ArrowShapeType;
+  /** Direction the shape points to */
+  direction?: ArrowDirection;
+  /** Chevron opening angle in degrees (30–120) */
+  angle?: number;
+  /** Gap between the two chevrons (double-chevron) */
   gap?: number;
+  /** Line cap style */
+  lineCap?: LineCap;
+}
 
-  // Star / sparkle / crescent-specific
-  /** Number of points (4–8) */
+/** triangle, diamond, hexagon, star, sparkle, cross */
+export interface GeometricShapeProps extends ShapeBaseProps {
+  shapeType: GeometricShapeType;
+  /** Number of points (star) */
   points?: number;
-  /** Inner radius ratio (0.2–0.8); crescent uses it for the bite */
+  /** Inner radius ratio (star, 0.2–0.8) */
   innerRadius?: number;
+  /** Line cap style for an outlined cross */
+  lineCap?: LineCap;
+}
 
-  // Pattern-specific
-  /** Number of rows for grid patterns */
-  rows?: number;
-  /** Number of columns for grid patterns */
-  columns?: number;
-  /** Spacing between pattern elements */
-  spacing?: number;
-  /** Size of individual dots in patterns */
-  dotSize?: number;
-
-  // Blob-specific
-  /** Complexity / number of control points (3–8) */
+/** blob, crescent */
+export interface OrganicShapeProps extends ShapeBaseProps {
+  shapeType: OrganicShapeType;
+  /** Complexity / number of control points (blob, 3–8) */
   complexity?: number;
   /** Random seed for reproducible blobs */
   seed?: number;
+  /** Inner radius ratio of the bite (crescent) */
+  innerRadius?: number;
 }
+
+/** dots-grid, scattered-dots */
+export interface PatternShapeProps extends ShapeBaseProps {
+  shapeType: PatternShapeType;
+  /** Rows (dots-grid) */
+  rows?: number;
+  /** Columns (dots-grid) */
+  columns?: number;
+  /** Spacing between dots (dots-grid) */
+  spacing?: number;
+  /** Radius of one dot */
+  dotSize?: number;
+  /** Number of dots (scattered-dots) */
+  count?: number;
+  /** Random seed for reproducible scatter */
+  seed?: number;
+}
+
+/** A decorative SVG shape, discriminated by `shapeType` into its family */
+export type ShapeLayerProps =
+  | BasicShapeProps
+  | LineShapeProps
+  | ArrowShapeProps
+  | GeometricShapeProps
+  | OrganicShapeProps
+  | PatternShapeProps;
+
+/** The family member of `ShapeLayerProps` whose `shapeType` includes `T`. */
+export type ShapePropsFor<T extends ShapeLayerProps["shapeType"]> = MemberFor<
+  ShapeLayerProps,
+  T
+>;
+type MemberFor<M, T> = M extends { shapeType: infer S }
+  ? T extends S ? M : never
+  : never;
 
 // ============================================================
 // Background Layer
