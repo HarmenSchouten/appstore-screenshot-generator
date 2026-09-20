@@ -1,43 +1,27 @@
 import type { TextLayerProps } from "@app-types";
+import { LAYER_DEFAULTS, withDefaults } from "@lib";
+import { PositionedLayer } from "./PositionedLayer.tsx";
 
-export const TextLayer = ({
-  text,
-  posX,
-  posY,
-  rotation,
-  opacity,
-  fontSize = 48,
-  fontWeight = 700,
-  lineHeight = 1.2,
-  letterSpacing,
-  textColor = "#ffffff",
-  textAlign = "center",
-  textTransform,
-  horizontalPadding = 6,
-}: TextLayerProps) => {
+export const TextLayer = (layer: TextLayerProps) => {
+  const t = withDefaults(LAYER_DEFAULTS.text, layer);
+
   return (
-    <div
+    <PositionedLayer
+      layer={t}
       style={{
-        position: "absolute",
-        left: `${posX}%`,
-        top: `${posY}%`,
-        transform: `translate(-50%, -50%)${
-          rotation ? ` rotate(${rotation}deg)` : ""
-        }`,
-        width: `${100 - horizontalPadding * 2}%`,
-        opacity,
-        fontSize: `${fontSize}px`,
-        fontWeight,
-        lineHeight,
-        letterSpacing: letterSpacing != null ? `${letterSpacing}px` : undefined,
-        color: textColor,
-        textAlign,
-        textTransform: textTransform ?? undefined,
+        width: `${100 - t.horizontalPadding * 2}%`,
+        fontSize: `${t.fontSize}px`,
+        fontWeight: t.fontWeight,
+        lineHeight: t.lineHeight,
+        letterSpacing: `${t.letterSpacing}px`,
+        color: t.textColor,
+        textAlign: t.textAlign,
+        textTransform: t.textTransform,
         whiteSpace: "pre-wrap",
         wordBreak: "break-word",
       }}
     >
-      {text}
-    </div>
+      {t.text}
+    </PositionedLayer>
   );
 };

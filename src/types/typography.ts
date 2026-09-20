@@ -22,6 +22,10 @@ export interface TypographyOptions {
   textAlign?: "left" | "center" | "right";
   /** Text transform */
   textTransform?: "none" | "uppercase" | "capitalize";
-  /** Horizontal padding as percentage (2-15) */
+  /**
+   * Inset from each side of the canvas as a percentage of its width: the
+   * text box is `100 − 2 × inset` percent wide and wraps inside it. Not CSS
+   * padding; the key stays because it is persisted in project configs.
+   */
   horizontalPadding?: number;
 }

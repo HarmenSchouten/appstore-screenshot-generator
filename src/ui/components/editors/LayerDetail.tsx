@@ -4,7 +4,9 @@
  * Shows the layer name, type badge, and the type-specific editor.
  */
 
+import type { ReactElement } from "react";
 import type { Layer } from "@app-types";
+import { assertNever } from "@lib";
 import { LAYER_META, layerDisplayName } from "./layer-meta.ts";
 import { BackgroundEditor } from "./BackgroundEditor/BackgroundEditor.tsx";
 import { TextEditor } from "./TextEditor.tsx";
@@ -25,7 +27,7 @@ function LayerEditor(
     layer: Layer;
     onUpdate: (updates: Partial<Layer>) => void;
   },
-): React.ReactElement {
+): ReactElement {
   switch (layer.type) {
     case "background":
       return <BackgroundEditor layer={layer} onUpdate={onUpdate} />;
@@ -39,6 +41,8 @@ function LayerEditor(
       return <GlowEditor layer={layer} onUpdate={onUpdate} />;
     case "shape":
       return <ShapeEditor layer={layer} onUpdate={onUpdate} />;
+    default:
+      return assertNever(layer);
   }
 }
 

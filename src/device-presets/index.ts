@@ -1,4 +1,5 @@
 import type {
+  DeviceMaterialPreset,
   DevicePreset,
   DevicePresetId,
   Platform,
@@ -9,6 +10,18 @@ import { ALL_DEVICE_PRESETS, DEVICE_PRESETS } from "./presets/index.ts";
 export * from "./presets/index.ts";
 
 export const DEVICE_PRESET_REFERENCE_WIDTH = 400;
+
+/**
+ * Material fields a preset may leave out. Sizes are in reference-width
+ * units like the rest of the preset; the button fill is the generic dark
+ * metal the legacy presets used before they got their own.
+ */
+export const DEFAULT_MATERIAL = {
+  borderWidth: 1,
+  faceInset: 0,
+  faceBorderWidth: 1,
+  buttonFill: "linear-gradient(90deg, #4a4b52 0%, #22242a 100%)",
+} satisfies Partial<DeviceMaterialPreset>;
 
 export const DEFAULT_PLATFORM_DEFAULTS: PlatformDefaults = {
   android: {

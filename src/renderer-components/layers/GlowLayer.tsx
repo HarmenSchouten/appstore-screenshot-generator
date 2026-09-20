@@ -1,29 +1,19 @@
 import type { GlowLayerProps } from "@app-types";
+import { LAYER_DEFAULTS, withDefaults } from "@lib";
+import { PositionedLayer } from "./PositionedLayer.tsx";
 
-export const GlowLayer = ({
-  color,
-  size,
-  blur = 80,
-  posX,
-  posY,
-  rotation,
-  opacity,
-}: GlowLayerProps) => {
+export const GlowLayer = (layer: GlowLayerProps) => {
+  const { color, size, blur } = withDefaults(LAYER_DEFAULTS.glow, layer);
+
   return (
-    <div
+    <PositionedLayer
+      layer={layer}
       style={{
-        position: "absolute",
-        left: `${posX}%`,
-        top: `${posY}%`,
         width: `${size}px`,
         height: `${size}px`,
         borderRadius: "50%",
         background: color,
         filter: `blur(${blur}px)`,
-        opacity,
-        transform: `translate(-50%, -50%)${
-          rotation ? ` rotate(${rotation}deg)` : ""
-        }`,
       }}
     />
   );

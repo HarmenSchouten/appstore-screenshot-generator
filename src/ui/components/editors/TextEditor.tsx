@@ -2,11 +2,12 @@
  * TextEditor — edit text content, typography, color, and position.
  *
  * Uses the project theme's fontFamily for preview coherence.
- * All fields are optional and fall back to sensible defaults.
+ * Optional typography fields show their `LAYER_DEFAULTS.text` value.
  */
 
 import type { TextLayerProps } from "@app-types";
 import { useLayerSetter } from "@hooks";
+import { LAYER_DEFAULTS, withDefaults } from "@lib";
 import {
   ColorInput,
   SegmentedControl,
@@ -53,6 +54,7 @@ const TRANSFORM_OPTIONS: {
 
 export function TextEditor({ layer, onUpdate }: TextEditorProps) {
   const set = useLayerSetter(onUpdate);
+  const t = withDefaults(LAYER_DEFAULTS.text, layer);
 
   return (
     <div className="space-y-6">
@@ -77,7 +79,7 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
 
         <Slider
           label="Font Size"
-          value={layer.fontSize ?? 48}
+          value={t.fontSize}
           onChange={(v: number) => set("fontSize", v)}
           min={12}
           max={150}
@@ -88,28 +90,28 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
         <SegmentedControl
           label="Weight"
           options={WEIGHT_OPTIONS}
-          value={layer.fontWeight ?? 700}
+          value={t.fontWeight}
           onChange={(v: number) => set("fontWeight", v)}
         />
 
         <SegmentedControl
           label="Alignment"
           options={ALIGN_OPTIONS}
-          value={layer.textAlign ?? "center"}
+          value={t.textAlign}
           onChange={(v: "left" | "center" | "right") => set("textAlign", v)}
         />
 
         <SegmentedControl
           label="Transform"
           options={TRANSFORM_OPTIONS}
-          value={layer.textTransform ?? "none"}
+          value={t.textTransform}
           onChange={(v: "none" | "uppercase" | "capitalize") =>
             set("textTransform", v)}
         />
 
         <Slider
           label="Line Height"
-          value={layer.lineHeight ?? 1.2}
+          value={t.lineHeight}
           onChange={(v: number) => set("lineHeight", v)}
           min={0.8}
           max={2.5}
@@ -118,7 +120,7 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
 
         <Slider
           label="Letter Spacing"
-          value={layer.letterSpacing ?? 0}
+          value={t.letterSpacing}
           onChange={(v: number) => set("letterSpacing", v)}
           min={-2}
           max={10}
@@ -129,7 +131,7 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
         <div>
           <label className="text-xs text-zinc-500 block mb-1.5">Color</label>
           <ColorInput
-            value={layer.textColor ?? "#ffffff"}
+            value={t.textColor}
             onChange={(c: string) => set("textColor", c)}
           />
         </div>
@@ -142,8 +144,8 @@ export function TextEditor({ layer, onUpdate }: TextEditorProps) {
         <PositionControls layer={layer} onChange={onUpdate} />
 
         <Slider
-          label="Padding"
-          value={layer.horizontalPadding ?? 6}
+          label="Side Inset"
+          value={t.horizontalPadding}
           onChange={(v: number) => set("horizontalPadding", v)}
           min={0}
           max={30}

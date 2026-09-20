@@ -5,8 +5,9 @@
  * Works identically in browser preview and server-side HTML generation.
  */
 
-import React from "react";
+import type { ReactElement } from "react";
 import type { Layer, RenderOptions, ThemeConfig } from "@app-types";
+import { assertNever } from "@lib";
 import { getBaseStylesCSS } from "./BaseStyles.tsx";
 import {
   BackgroundLayer,
@@ -21,14 +22,22 @@ interface ScreenshotProps {
   options: RenderOptions;
 }
 
+interface ScreenshotContentProps extends ScreenshotProps {
+  /**
+   * Whether layers may animate. On in the preview; the export document turns
+   * it off so a PNG never depends on when Chrome captured it.
+   */
+  animate?: boolean;
+}
+
 /**
  * Screenshot Content (without HTML wrapper)
  *
  * Use this for client-side preview where you already have a document.
  */
 export function ScreenshotContent(
-  { options }: ScreenshotProps,
-): React.ReactElement {
+  { options, animate = true }: ScreenshotContentProps,
+): ReactElement {
   const {
     screenshot,
     assetUrlPrefix = "/assets/",
@@ -44,6 +53,7 @@ export function ScreenshotContent(
           assetUrlPrefix={assetUrlPrefix}
           containerWidth={options.dimensions.width}
           defaultDevicePresetId={options.defaultDevicePresetId}
+          animate={animate}
         />
       ))}
     </div>
@@ -51,12 +61,20 @@ export function ScreenshotContent(
 }
 
 const ScreenshotLayer = (
-  { layer, theme, assetUrlPrefix, containerWidth, defaultDevicePresetId }: {
+  {
+    layer,
+    theme,
+    assetUrlPrefix,
+    containerWidth,
+    defaultDevicePresetId,
+    animate,
+  }: {
     layer: Layer;
     theme: ThemeConfig;
     assetUrlPrefix: string;
     containerWidth: number;
     defaultDevicePresetId: RenderOptions["defaultDevicePresetId"];
+    animate: boolean;
   },
 ) => {
   switch (layer.type) {
@@ -71,6 +89,7 @@ const ScreenshotLayer = (
           assetUrlPrefix={assetUrlPrefix}
           containerWidth={containerWidth}
           defaultDevicePresetId={defaultDevicePresetId}
+          animate={animate}
         />
       );
     case "image":
@@ -80,7 +99,7 @@ const ScreenshotLayer = (
     case "shape":
       return <ShapeLayer {...layer} />;
     default:
-      return null;
+      return assertNever(layer);
   }
 };
 
@@ -90,7 +109,7 @@ const ScreenshotLayer = (
  * Use this for server-side rendering to generate complete HTML documents.
  * Includes <html>, <head>, <body> and all necessary styles.
  */
-export function Screenshot({ options }: ScreenshotProps): React.ReactElement {
+export function Screenshot({ options }: ScreenshotProps): ReactElement {
   const { screenshot, theme, app, dimensions } = options;
 
   return (
@@ -105,7 +124,7 @@ export function Screenshot({ options }: ScreenshotProps): React.ReactElement {
         <style dangerouslySetInnerHTML={{ __html: getBaseStylesCSS(theme) }} />
       </head>
       <body>
-        <ScreenshotContent options={options} />
+        <ScreenshotContent options={options} animate={false} />
       </body>
     </html>
   );

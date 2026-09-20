@@ -15,9 +15,14 @@ export function assetUrl(path: string | undefined, prefix: string): string {
 }
 
 /**
- * Seeded random number generator for consistent shape rendering
+ * Deterministic value in [0, 1) for an integer seed: one mulberry32 step.
+ * Pure integer arithmetic, so the browser preview and the export engine
+ * agree bit for bit — `Math.sin`, which this replaced, is
+ * implementation-defined and may differ between JavaScript engines.
  */
 export function seededRandom(seed: number): number {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
+  let t = ((seed | 0) + 0x6D2B79F5) | 0;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }

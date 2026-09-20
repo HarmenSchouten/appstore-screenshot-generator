@@ -62,5 +62,10 @@ export function getBaseStylesCSS(
       position: relative;
       overflow: hidden;
     }
+
+    @keyframes phoneFrameEmptyPulse {
+      0%, 100% { opacity: 0.33; }
+      50% { opacity: 0.5; }
+    }
   `;
 }

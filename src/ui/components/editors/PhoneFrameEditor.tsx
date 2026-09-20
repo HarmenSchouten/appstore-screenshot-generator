@@ -6,6 +6,7 @@ import type { DevicePresetId, PhoneFrameLayerProps } from "@app-types";
 import { getAllDevicePresets, getDevicePreset } from "@device-presets";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import { useAssets, useLayerSetter } from "@hooks";
+import { LAYER_DEFAULTS } from "@lib";
 import { ImageSelect, Select, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
@@ -82,7 +83,7 @@ export function PhoneFrameEditor(
 
         <Slider
           label="Scale"
-          value={layer.scale ?? 70}
+          value={layer.scale ?? LAYER_DEFAULTS["phone-frame"].scale}
           onChange={(v: number) => set("scale", v)}
           min={10}
           max={100}

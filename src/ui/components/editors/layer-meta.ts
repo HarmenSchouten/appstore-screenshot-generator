@@ -4,7 +4,13 @@
 
 import type { Layer } from "@app-types";
 import { DEVICE_PRESETS } from "@device-presets";
-import { generateLayerId } from "@lib";
+import {
+  assertNever,
+  generateLayerId,
+  LAYER_DEFAULTS,
+  POSITION_DEFAULTS,
+  SHAPE_META,
+} from "@lib";
 
 // ── Layer metadata ──────────────────────────────────────────────────
 
@@ -60,12 +66,13 @@ function layerBaseName(layer: Layer): string {
       }
       return "Image";
     case "shape":
-      return layer.shapeType
-        .split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+      return SHAPE_META[layer.shapeType].label;
     case "glow":
       return "Glow";
     case "background":
       return "Background";
+    default:
+      return assertNever(layer);
   }
 }
 
@@ -81,49 +88,27 @@ export const LAYER_TYPES: Layer["type"][] =
   (Object.keys(LAYER_META) as Layer["type"][])
     .sort((a, b) => LAYER_META[a].label.localeCompare(LAYER_META[b].label));
 
+/**
+ * A new layer: centred, plus that type's `LAYER_DEFAULTS` written out so
+ * the editor shows the same values the preview renders.
+ */
 export function createDefaultLayer(type: Layer["type"]): Layer {
-  const base = {
-    id: generateLayerId(),
-    posX: 50,
-    posY: 50,
-    opacity: 1,
-    rotation: 0,
-  };
+  const base = { id: generateLayerId(), ...POSITION_DEFAULTS };
   switch (type) {
     case "text":
-      return {
-        ...base,
-        type: "text",
-        text: "New Text",
-        fontSize: 48,
-        fontWeight: 700,
-        textAlign: "center" as const,
-        textColor: "#ffffff",
-        lineHeight: 1.2,
-      };
+      return { ...base, type, text: "New Text", ...LAYER_DEFAULTS.text };
     case "phone-frame":
       // No `model`: the layer inherits the platform's default device.
-      return {
-        ...base,
-        type: "phone-frame",
-        scale: 70,
-      };
+      return { ...base, type, ...LAYER_DEFAULTS["phone-frame"] };
     case "image":
-      return { ...base, type: "image", imagePath: "", size: 20 };
+      return { ...base, type, imagePath: "", ...LAYER_DEFAULTS.image };
     case "glow":
-      return { ...base, type: "glow", color: "#8b5cf6", size: 200 };
+      return { ...base, type, ...LAYER_DEFAULTS.glow };
     case "shape":
-      return {
-        ...base,
-        type: "shape",
-        shapeType: "circle",
-        size: 200,
-        color: "#ffffff",
-      };
+      return { ...base, type, ...LAYER_DEFAULTS.shape };
     case "background":
-      return {
-        ...base,
-        type: "background",
-      };
+      return { id: base.id, opacity: base.opacity, type };
+    default:
+      return assertNever(type);
   }
 }
