@@ -144,7 +144,7 @@ function PhoneFrameCore(
           key={index}
           button={button}
           scale={s}
-          fill={material.buttonFill}
+          fill={material.buttonFill ?? material.frameFill}
         />
       ))}
       {frameFaceStyle && <div style={frameFaceStyle} />}

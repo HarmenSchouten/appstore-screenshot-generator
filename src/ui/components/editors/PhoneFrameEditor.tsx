@@ -3,7 +3,7 @@
  */
 
 import type { DevicePresetId, PhoneFrameLayerProps } from "@app-types";
-import { getAllDevicePresets, getDevicePreset } from "@device-presets";
+import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import { useAssets, useLayerSetter } from "@hooks";
 import { LAYER_DEFAULTS } from "@lib";
@@ -40,9 +40,8 @@ export function PhoneFrameEditor(
 
   const set = useLayerSetter(onUpdate);
 
-  const presets = getAllDevicePresets();
-  const iosPresets = presets.filter((p) => p.platform === "ios");
-  const androidPresets = presets.filter((p) => p.platform === "android");
+  const iosPresets = getDevicePresetsForPlatform("ios");
+  const androidPresets = getDevicePresetsForPlatform("android");
 
   return (
     <div className="space-y-6">

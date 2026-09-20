@@ -3,17 +3,12 @@
  */
 
 import type { Platform } from "./base.ts";
+// Type-only, so it is erased at runtime and the @app-types ⇄ @device-presets
+// cycle never exists in the emitted code. The union is derived from the
+// registry, so a new preset needs no edit here (#72).
+import type { DevicePresetId } from "@device-presets";
 
-export type DevicePresetId =
-  | "ios-iphone-15-pro"
-  | "ios-iphone-15-pro-max"
-  | "ios-iphone-17-pro"
-  | "ios-iphone-17-pro-max"
-  | "ios-legacy-classic"
-  | "android-pixel-9-pro"
-  | "android-galaxy-s24-ultra"
-  | "android-oneplus-13"
-  | "android-legacy-classic";
+export type { DevicePresetId };
 
 export interface DeviceButtonPreset {
   side: "left" | "right";
@@ -25,7 +20,7 @@ export interface DeviceButtonPreset {
 }
 
 interface DeviceCutoutBase {
-  /** Distance from the top of the frame */
+  /** Distance from the top of the screen, which the cutout sits inside */
   top: number;
   background: string;
   borderColor: string;
@@ -62,8 +57,8 @@ export interface DeviceScreenPreset {
 
 /**
  * Surface finish. Fields that describe an optional feature (a face plate,
- * a frame border, a highlight) turn it on by being present; the sizes and
- * the button colour come from `DEFAULT_MATERIAL` when omitted.
+ * a frame border, a highlight) turn it on by being present; the sizes come
+ * from `DEFAULT_MATERIAL` when omitted.
  */
 export interface DeviceMaterialPreset {
   frameFill: string;
@@ -76,6 +71,7 @@ export interface DeviceMaterialPreset {
   faceBorderColor?: string;
   faceBorderWidth?: number;
   faceShadow?: string;
+  /** Buttons in a finish of their own; omitted = `frameFill` */
   buttonFill?: string;
   shadow?: string;
   /** Top-edge sheen over the frame; omitted = none */
@@ -83,10 +79,16 @@ export interface DeviceMaterialPreset {
 }
 
 /**
- * All measurements are defined for a reference width of 400px.
+ * All measurements are in units of `DEVICE_PRESET_REFERENCE_WIDTH`
+ * (`@device-presets`), which the renderer scales to the rendered width.
+ *
+ * `Id` is generic so a builder can return a preset typed to its own id
+ * literal — which is what the registry derives `DevicePresetId` from, and
+ * what would otherwise make that inference circular. Consumers use the bare
+ * `DevicePreset`.
  */
-export interface DevicePreset {
-  id: DevicePresetId;
+export interface DevicePreset<Id extends string = DevicePresetId> {
+  id: Id;
   label: string;
   platform: Platform;
   family: string;
@@ -94,7 +96,9 @@ export interface DevicePreset {
   outerRadius: number;
   screen: DeviceScreenPreset;
   cutout?: DeviceCutoutPreset;
-  buttons: DeviceButtonPreset[];
+  /** Readonly: presets are shared, immutable data — builders hand out the
+   * same arrays rather than copying them per preset. */
+  buttons: readonly DeviceButtonPreset[];
   material: DeviceMaterialPreset;
   summary: string;
 }
