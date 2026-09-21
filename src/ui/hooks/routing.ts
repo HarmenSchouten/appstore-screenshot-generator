@@ -21,7 +21,8 @@ import {
   type SelectionPatch,
   tailOf,
 } from "@ui/utils/route-selection.ts";
-import { switchGuard, useSwitchProject } from "./projects.ts";
+import { switchGuard } from "@ui/utils/switch-guard.ts";
+import { useSwitchProject } from "./projects.ts";
 
 /**
  * Resolve the current path against the loaded config.

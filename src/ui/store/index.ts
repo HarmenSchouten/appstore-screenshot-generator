@@ -136,7 +136,7 @@ export const selectDimensions = (
   state.config.languages?.find((l) => l.language === lang)
     ?.platforms?.[platform]?.dimensions ?? DEFAULT_DIMENSIONS[platform];
 
-export const selectScreenshotIds = (
+const selectScreenshotIds = (
   state: AppState,
   lang: string,
   platform: Platform,

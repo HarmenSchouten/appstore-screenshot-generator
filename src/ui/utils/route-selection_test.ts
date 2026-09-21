@@ -12,7 +12,6 @@
 import { assert, assertEquals } from "@std/assert";
 import {
   buildPath,
-  createSwitchGuard,
   nextSelection,
   parseSegments,
   requestSegments,
@@ -259,33 +258,4 @@ Deno.test("changing language or platform drops the screenshot", () => {
     platform: "android",
     screenshotId: "shot-9",
   });
-});
-
-Deno.test("the switch guard sends one activate per project", () => {
-  const guard = createSwitchGuard();
-
-  assert(guard.claim("beta"), "the first effect run sends the request");
-  assert(!guard.claim("beta"), "StrictMode's second run does not");
-
-  // Settling another project leaves the claim on beta alone
-  guard.settle("gamma");
-  assert(!guard.claim("beta"));
-
-  guard.settle("beta");
-  assert(guard.claim("beta"), "a later link to beta asks again");
-});
-
-Deno.test("only the newest switch may land", () => {
-  const guard = createSwitchGuard();
-
-  const toBeta = guard.start();
-  assert(guard.isLatest(toBeta));
-
-  // The user picks another project before beta answers
-  const toGamma = guard.start();
-  assert(!guard.isLatest(toBeta), "beta is superseded and must not hydrate");
-  assert(guard.isLatest(toGamma));
-
-  // Tokens are per switch, so a repeat of the same project supersedes too
-  assert(!guard.isLatest(guard.start() - 1));
 });

@@ -13,22 +13,15 @@ import {
 } from "@ui/utils/api.ts";
 import { selectRoute, useAppStore } from "@ui/store/index.ts";
 import {
-  createSwitchGuard,
   parseSegments,
   type ProjectRequest,
   requestSegments,
 } from "@ui/utils/route-selection.ts";
+import { switchGuard } from "@ui/utils/switch-guard.ts";
 import { queryKeys } from "@ui/utils/query.ts";
 import { flushPersist } from "@ui/utils/config-persistence.ts";
 
-/**
- * Module state, like the overlay stack: it outlives the reconciler effect,
- * which React remounts in development, and it is shared by every call site —
- * each of which is its own mutation observer.
- */
-export const switchGuard = createSwitchGuard();
-
-export interface SwitchProjectRequest extends ProjectRequest {
+interface SwitchProjectRequest extends ProjectRequest {
   /** Replace the current history entry — the path it holds is already gone. */
   replace?: boolean;
 }
@@ -39,6 +32,10 @@ export interface SwitchProjectRequest extends ProjectRequest {
  * navigates to what the request asked for and invalidates the per-project
  * queries. A switch that fails puts the path back on the loaded project; the
  * toast comes from the shared `MutationCache` handler.
+ *
+ * `switchGuard` decides what a settled switch may still do when others have
+ * been started since — the store follows every activate that succeeded, only
+ * one of them writes the URL.
  */
 export function useSwitchProject() {
   const queryClient = useQueryClient();
@@ -54,7 +51,8 @@ export function useSwitchProject() {
     onMutate: () => ({ token: switchGuard.start() }),
 
     onSuccess: ({ projectId, data }, request, { token }) => {
-      if (!switchGuard.isLatest(token)) return;
+      if (!switchGuard.apply(token)) return;
+      const owningUrl = switchGuard.mayNavigate(token);
 
       // A switch from the UI keeps the platform it was on; only the language
       // and the screenshot are scoped to a project. Read before hydrating,
@@ -70,18 +68,20 @@ export function useSwitchProject() {
       // against the project that is being left.
       useAppStore.getState().hydrate({ projectId, config: data.config });
 
-      const { canonicalPath } = selectRoute(
-        useAppStore.getState(),
-        requestSegments({ projectId, tail }),
-      );
-      if (pathname !== canonicalPath) {
-        // A link into this project already owns its history entry, so the
-        // correction replaces it; a switch from the UI pushes, and Back
-        // returns to the project it came from.
-        navigate(canonicalPath, {
-          replace: request.replace === true ||
-            parseSegments(pathname).project === projectId,
-        });
+      if (owningUrl) {
+        const { canonicalPath } = selectRoute(
+          useAppStore.getState(),
+          requestSegments({ projectId, tail }),
+        );
+        if (pathname !== canonicalPath) {
+          // A link into this project already owns its history entry, so the
+          // correction replaces it; a switch from the UI pushes, and Back
+          // returns to the project it came from.
+          navigate(canonicalPath, {
+            replace: request.replace === true ||
+              parseSegments(pathname).project === projectId,
+          });
+        }
       }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
@@ -89,9 +89,10 @@ export function useSwitchProject() {
     },
 
     onError: (_error, _request, context) => {
-      if (context && !switchGuard.isLatest(context.token)) return;
-      // The project the path asks for never loaded, so the path and the
-      // panels disagree; put the path back on the one that is loaded.
+      if (!context || !switchGuard.mayNavigate(context.token)) return;
+      // This switch never moved the server, so the path it asked for names a
+      // project that is not loaded; put it on whatever is loaded now — an
+      // older switch may have landed while this one was in flight.
       const state = useAppStore.getState();
       const { canonicalPath } = selectRoute(state, {
         ...parseSegments(pathname),

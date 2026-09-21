@@ -216,37 +216,3 @@ export function nextSelection(
     ? { ...next, screenshotId: null }
     : next;
 }
-
-/**
- * Guards the one project switch the app may be in the middle of.
- *
- * `claim` holds it to a single `activate` request per project — React
- * StrictMode runs a mount effect twice. `start`/`isLatest` keep a superseded
- * switch from landing: every call site is its own mutation observer, so a
- * switch the user has already replaced still runs its success callback, and
- * hydrating it would leave the store on a project the server no longer has
- * active — which the next auto-save would write over.
- */
-export function createSwitchGuard() {
-  let pending: string | null = null;
-  let issued = 0;
-  return {
-    /** False when that project is already being activated. */
-    claim(projectId: string): boolean {
-      if (pending === projectId) return false;
-      pending = projectId;
-      return true;
-    },
-    /** Release a claim once its request has settled, however it ended. */
-    settle(projectId: string): void {
-      if (pending === projectId) pending = null;
-    },
-    /** Take a token for a switch that is starting. */
-    start(): number {
-      return ++issued;
-    },
-    isLatest(token: number): boolean {
-      return token === issued;
-    },
-  };
-}
