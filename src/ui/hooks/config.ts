@@ -13,6 +13,7 @@ import {
   startConfigAutoSave,
 } from "@ui/utils/config-persistence.ts";
 import { useAppStore } from "@ui/store/index.ts";
+import { useNavigateSelection } from "./routing.ts";
 
 /**
  * Fetches initial application data (config, projects, current project)
@@ -47,40 +48,40 @@ export function useConfigAutoSave() {
 }
 
 /**
- * Copies one platform's screenshot config to another within the selected
- * language.
+ * Copies one platform's screenshot config to another within one language,
+ * then moves to the platform that was written.
  */
 export function useCopyPlatformConfig() {
+  const navigateSelection = useNavigateSelection();
+
   return useMutation({
     mutationFn: async ({
+      language,
       sourcePlatform,
       targetPlatform,
     }: {
+      language: string;
       sourcePlatform: Platform;
       targetPlatform: Platform;
     }) => {
       // Server-side edit of the source platform: land pending local edits
       // first, or the copy is taken from a stale config (see useAddLanguage)
       await flushPersist();
-      const { selectedLang } = useAppStore.getState();
-      return copyPlatform(selectedLang, sourcePlatform, targetPlatform);
+      return copyPlatform(language, sourcePlatform, targetPlatform);
     },
-    onSuccess: (updatedLang, { targetPlatform }) => {
+    onSuccess: (updatedLang, { language, targetPlatform }) => {
       useAppStore.setState((s) => {
         const newConfig = { ...s.config };
         const langIndex = newConfig.languages?.findIndex(
-          (l) => l.language === s.selectedLang,
+          (l) => l.language === language,
         ) ?? -1;
         if (langIndex >= 0 && newConfig.languages) {
           newConfig.languages = [...newConfig.languages];
           newConfig.languages[langIndex] = updatedLang;
         }
-        return {
-          config: newConfig,
-          selectedPlatform: targetPlatform,
-          selectedScreenshotId: null,
-        };
+        return { config: newConfig };
       });
+      navigateSelection({ platform: targetPlatform });
     },
   });
 }

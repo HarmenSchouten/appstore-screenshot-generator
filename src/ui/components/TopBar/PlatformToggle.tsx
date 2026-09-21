@@ -4,8 +4,11 @@
  */
 
 import type { Platform } from "@app-types";
-import { useAppStore } from "@ui/store/index.ts";
-import { useCopyPlatformConfig } from "@hooks";
+import {
+  useCopyPlatformConfig,
+  useNavigateSelection,
+  useSelection,
+} from "@hooks";
 import { SegmentedControl } from "@ui/components/inputs/index.ts";
 import { ConfirmBar, useConfirm } from "@ui/components/primitives/index.ts";
 import { PLATFORM_META } from "@ui/utils/platform-meta.ts";
@@ -17,19 +20,19 @@ const PLATFORM_OPTIONS = PLATFORMS.map((value) => ({
 }));
 
 export function PlatformToggle() {
-  const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const setSelectedPlatform = useAppStore((s) => s.setSelectedPlatform);
+  const selection = useSelection();
+  const navigateSelection = useNavigateSelection();
   const copyPlatform = useCopyPlatformConfig();
   const confirmCopy = useConfirm();
 
-  const other: Platform = selectedPlatform === "android" ? "ios" : "android";
+  const other: Platform = selection.platform === "android" ? "ios" : "android";
 
   return (
     <div className="flex items-center gap-1.5">
       <SegmentedControl<Platform>
         options={PLATFORM_OPTIONS}
-        value={selectedPlatform}
-        onChange={setSelectedPlatform}
+        value={selection.platform}
+        onChange={(platform) => navigateSelection({ platform })}
         tone="accent"
         size="sm"
       />
@@ -42,7 +45,8 @@ export function PlatformToggle() {
             confirmLabel="Copy"
             onConfirm={() => {
               copyPlatform.mutate({
-                sourcePlatform: selectedPlatform,
+                language: selection.lang,
+                sourcePlatform: selection.platform,
                 targetPlatform: other,
               });
               confirmCopy.disarm();
@@ -55,7 +59,7 @@ export function PlatformToggle() {
             type="button"
             onClick={() => confirmCopy.arm()}
             className="h-8 w-8 flex items-center justify-center text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
-            title={`Copy ${selectedPlatform} screenshots to ${
+            title={`Copy ${selection.platform} screenshots to ${
               PLATFORM_META[other].label
             }`}
           >

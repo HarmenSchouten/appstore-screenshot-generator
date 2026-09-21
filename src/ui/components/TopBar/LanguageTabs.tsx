@@ -6,7 +6,12 @@
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useAppStore } from "@ui/store/index.ts";
-import { useAddLanguage, useDeleteLanguage } from "@hooks";
+import {
+  useAddLanguage,
+  useDeleteLanguage,
+  useNavigateSelection,
+  useSelection,
+} from "@hooks";
 import { ConfirmBar, useConfirm } from "@ui/components/primitives/index.ts";
 import { cn } from "@ui/utils/cn.ts";
 import { getFlagForCode, LanguagePicker } from "./LanguagePicker.tsx";
@@ -17,8 +22,8 @@ export function LanguageTabs() {
   const languages = useAppStore(
     useShallow((s) => s.config.languages?.map((l) => l.language) ?? []),
   );
-  const selectedLang = useAppStore((s) => s.selectedLang);
-  const setSelectedLang = useAppStore((s) => s.setSelectedLang);
+  const selection = useSelection();
+  const navigateSelection = useNavigateSelection();
   const addLanguage = useAddLanguage();
   const deleteLanguage = useDeleteLanguage();
 
@@ -47,14 +52,14 @@ export function LanguageTabs() {
                 <div
                   className={cn(
                     "h-8 flex items-center rounded text-xs uppercase font-medium transition-colors",
-                    selectedLang === lang
+                    selection.lang === lang
                       ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
                       : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300",
                   )}
                 >
                   <button
                     type="button"
-                    onClick={() => setSelectedLang(lang)}
+                    onClick={() => navigateSelection({ lang })}
                     className={cn(
                       "h-full flex items-center gap-1.5 pl-2.5 rounded",
                       removable ? "pr-1" : "pr-2.5",
@@ -76,7 +81,7 @@ export function LanguageTabs() {
                       onClick={() => confirmDelete.arm(lang)}
                       className={cn(
                         "mr-1.5 rounded px-1 transition-colors hover:bg-red-600 hover:text-white",
-                        selectedLang === lang
+                        selection.lang === lang
                           ? "text-indigo-300"
                           : "text-zinc-600",
                       )}
@@ -103,7 +108,7 @@ export function LanguageTabs() {
       {pickerOpen && (
         <LanguagePicker
           existingLanguages={languages}
-          currentLanguage={selectedLang}
+          currentLanguage={selection.lang}
           onAdd={(code, copyFrom) => {
             addLanguage.mutate({ language: code, copyFrom });
             setPickerOpen(false);

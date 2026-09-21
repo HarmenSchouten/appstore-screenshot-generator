@@ -71,7 +71,9 @@ export function ProjectModal({
             mode={modeOf(p.id)}
             onModeChange={(mode) => setMode(p.id, mode)}
             onSwitch={() =>
-              switchProject.mutate(p.id, { onSuccess: () => closeModal() })}
+              switchProject.mutate({ projectId: p.id }, {
+                onSuccess: () => closeModal(),
+              })}
             onRename={(name) =>
               renameProject.mutate({ projectId: p.id, name }, {
                 onSuccess: () => setRenaming(null),

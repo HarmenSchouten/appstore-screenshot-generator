@@ -15,6 +15,8 @@ import {
   useAppStore,
 } from "@ui/store/index.ts";
 import { useGenerateAll, useOpenOutputFolder } from "./generation.ts";
+import { useNavigateSelection, useSelection } from "./routing.ts";
+import { useScreenshotActions } from "./screenshots.ts";
 import { type ShortcutId, SHORTCUTS } from "./shortcut-definitions.ts";
 
 const CONFIRM_WINDOW_MS = 1500;
@@ -92,17 +94,22 @@ export function useShortcut(
   );
 }
 
+/**
+ * The callbacks below close over the selection instead of reading it back
+ * imperatively: `useHotkeys` re-points every registration at the latest
+ * callback on each render, so the closure cannot go stale.
+ */
 export function useAppHotkeys() {
-  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
+  const selection = useSelection();
+  const navigateSelection = useNavigateSelection();
+  const screenshots = useScreenshotActions();
   const enabled = useAppStore(selectNoOverlayOpen);
   const openOutputFolder = useOpenOutputFolder();
   const generateAll = useGenerateAll();
 
   // ── Tier 1 — EmptyState shortcuts ──────────────────────────────────
 
-  useShortcut("addScreenshot", () => {
-    useAppStore.getState().addScreenshot();
-  }, enabled);
+  useShortcut("addScreenshot", screenshots.add, enabled);
 
   useShortcut("generateAll", () => {
     if (!useAppStore.getState().generating) generateAll.mutate();
@@ -117,23 +124,21 @@ export function useAppHotkeys() {
   }, enabled);
 
   useShortcut("togglePlatform", () => {
-    const state = useAppStore.getState();
-    state.setSelectedPlatform(
-      state.selectedPlatform === "android" ? "ios" : "android",
-    );
+    navigateSelection({
+      platform: selection.platform === "android" ? "ios" : "android",
+    });
   }, enabled);
 
   const cycleLanguage = useCallback((direction: 1 | -1) => {
-    const state = useAppStore.getState();
-    const languages = state.config.languages ?? [];
+    const languages = useAppStore.getState().config.languages ?? [];
     if (languages.length < 2) return;
     const currentIndex = languages.findIndex(
-      (l) => l.language === state.selectedLang,
+      (l) => l.language === selection.lang,
     );
     const nextIndex = (currentIndex + direction + languages.length) %
       languages.length;
-    state.setSelectedLang(languages[nextIndex].language);
-  }, []);
+    navigateSelection({ lang: languages[nextIndex].language });
+  }, [selection.lang, navigateSelection]);
 
   useShortcut("nextLanguage", () => cycleLanguage(1), enabled);
   useShortcut("prevLanguage", () => cycleLanguage(-1), enabled);
@@ -160,16 +165,19 @@ export function useAppHotkeys() {
     }
     // Second press within window — execute
     deleteArmedAt.current = 0;
-    const state = useAppStore.getState();
-    const id = state.selectedScreenshotId;
+    const id = selection.screenshotId;
     if (!id) return;
-    const screenshot = selectScreenshots(state).find((s) => s.id === id);
+    const screenshot = selectScreenshots(
+      useAppStore.getState(),
+      selection.lang,
+      selection.platform,
+    ).find((s) => s.id === id);
     if (screenshot?.role === "feature-graphic") {
-      state.removeFeatureGraphic();
+      screenshots.removeFeatureGraphic();
     } else {
-      state.removeScreenshot(id);
+      screenshots.remove(id);
     }
-  }, enabled && selectedScreenshotId !== null);
+  }, enabled && selection.screenshotId !== null);
 
   useShortcut("openOutputFolder", () => {
     openOutputFolder.mutate();
@@ -178,31 +186,33 @@ export function useAppHotkeys() {
   // ── Screenshot selection ───────────────────────────────────────────
 
   const stepScreenshot = useCallback((direction: 1 | -1) => {
-    const state = useAppStore.getState();
-    const items = selectScreenshots(state).filter(
-      (s) => s.role === "screenshot",
-    );
+    const items = selectScreenshots(
+      useAppStore.getState(),
+      selection.lang,
+      selection.platform,
+    ).filter((s) => s.role === "screenshot");
     if (items.length === 0) return;
     const currentIndex = items.findIndex(
-      (s) => s.id === state.selectedScreenshotId,
+      (s) => s.id === selection.screenshotId,
     );
     // If nothing (or the feature graphic) is selected, jump to first/last.
     const nextIndex = currentIndex === -1
       ? (direction === 1 ? 0 : items.length - 1)
       : (currentIndex + direction + items.length) % items.length;
-    state.setSelectedScreenshotId(items[nextIndex].id);
-  }, []);
+    screenshots.select(items[nextIndex].id);
+  }, [selection, screenshots]);
 
   useShortcut("nextScreenshot", () => stepScreenshot(1), enabled);
   useShortcut("prevScreenshot", () => stepScreenshot(-1), enabled);
 
   useShortcut("selectFeatureGraphic", () => {
-    const state = useAppStore.getState();
-    if (state.selectedPlatform !== "android") return;
-    const fg = selectScreenshots(state).find(
-      (s) => s.role === "feature-graphic",
-    );
-    if (fg) state.setSelectedScreenshotId(fg.id);
+    if (selection.platform !== "android") return;
+    const fg = selectScreenshots(
+      useAppStore.getState(),
+      selection.lang,
+      selection.platform,
+    ).find((s) => s.role === "feature-graphic");
+    if (fg) screenshots.select(fg.id);
   }, enabled);
 
   // ── Cheat sheet ────────────────────────────────────────────────────
@@ -217,7 +227,6 @@ export function useAppHotkeys() {
     if (closeTopOverlay()) return;
     // Escape in the text layer's field must not unmount the editor under it
     if (isInputFocused()) return;
-    const state = useAppStore.getState();
-    if (state.selectedScreenshotId) state.setSelectedScreenshotId(null);
+    if (selection.screenshotId) screenshots.select(null);
   });
 }

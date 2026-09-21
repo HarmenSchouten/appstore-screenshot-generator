@@ -44,10 +44,11 @@ function AppShell() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/:project?/:lang?/:platform?/:screenshotId?"
-          element={<App />}
-        />
+        {
+          /* One splat route: the segments are positional and are parsed and
+            validated in `utils/route-selection.ts`, not by the router */
+        }
+        <Route path="*" element={<App />} />
       </Routes>
     </BrowserRouter>
   );

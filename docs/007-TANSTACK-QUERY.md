@@ -99,12 +99,29 @@ in `store/index.ts` with the screenshot actions in `store/screenshots.ts`
 | Group | Contents |
 |-------|----------|
 | Project & config | `config`, `_configDirty`, `projects`, `currentProject`, `hydrate()`, `updateConfig()` |
-| Selection | `selectedLang`, `selectedPlatform`, `selectedScreenshotId` + setters |
-| Screenshots | `addScreenshot()`, `updateScreenshot()`, `removeScreenshot()`, etc. |
-| Device presets | `getDefaultDevicePreset()`, `updateDefaultDevicePreset()` |
+| Screenshots | `addScreenshot()`, `updateScreenshot()`, `removeScreenshot()`, etc. — each takes the `{ lang, platform }` it works in |
+| Device presets | `getDefaultDevicePreset(platform)`, `updateDefaultDevicePreset()` |
 | Generation | `generating`, `generateProgress`, `viewLastGenerated()` |
 | Modals & overlays | `activeModal: ModalId | null`, `openModal()`, `closeModal()`, `openOverlays` (counted by `useOverlay`) |
 | Toasts | `toasts`, `addToast()`, `removeToast()` |
+
+### What stays in the URL
+
+The project, language, platform and selected screenshot are **not** in the
+store: they live in the path, `/project/lang/platform/screenshotId`. There is
+no two-way sync. `src/ui/utils/route-selection.ts` is the one place segments
+are validated — it is pure, so its precedence rules (unknown project → the
+loaded one, a known other project → a request to activate it that carries its
+tail along, `/project/ios` → the platform, unknown language → the first,
+stale screenshot id → nothing selected) are unit-tested on their own.
+
+`useSelection()` resolves the path against the loaded config on every render;
+`useNavigateSelection()` patches it (a language or platform change pushes, a
+screenshot select or deselect replaces). `useRouteReconciler()`, mounted once
+in App, makes the only two writes back: a `replace` that spells out what a
+path resolved to, and the `activate` request for a project the URL names but
+the server does not have loaded. The server keeps exactly one project active,
+so a URL naming another is a request, not a fact.
 
 **Why config stays in Zustand:** Config is a local-first editable document.
 Screenshot and device-preset slices need synchronous `get().config` access to
@@ -147,7 +164,8 @@ src/ui/hooks/
   hotkeys.ts                # useAppHotkeys, useShortcut, useOverlay
   languages.ts              # useAddLanguage, useDeleteLanguage
   projects.ts               # useSwitchProject, useCreateProject, useDeleteProject, …
-  routing.ts                # useStoreRouteSync
+  routing.ts                # useSelection, useNavigateSelection, useRouteReconciler
+  screenshots.ts            # useScreenshotActions — store actions bound to the selection
   shortcut-definitions.ts   # SHORTCUTS — the one table: bindings and cheat sheet
 ```
 

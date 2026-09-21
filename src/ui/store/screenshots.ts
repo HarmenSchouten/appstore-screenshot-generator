@@ -66,20 +66,24 @@ export type ScreenshotActions = Pick<
   | "removeFeatureGraphic"
 >;
 
+/**
+ * Every action takes the language and platform it works in: the selection
+ * lives in the URL, which the store cannot read. The two that create a
+ * screenshot return its id so the caller can navigate to it.
+ */
 export const createScreenshotActions: StateCreator<
   AppState,
   [],
   [],
   ScreenshotActions
 > = (_set, get) => ({
-  addScreenshot: () => {
-    const { config, selectedLang, selectedPlatform } = get();
+  addScreenshot: ({ lang, platform }) => {
     const id = globalThis.crypto.randomUUID();
 
     const next = withScreenshots(
-      config,
-      selectedLang,
-      selectedPlatform,
+      get().config,
+      lang,
+      platform,
       (screenshots) => {
         const count = screenshots.filter(
           (s) => s.role === "screenshot",
@@ -90,20 +94,19 @@ export const createScreenshotActions: StateCreator<
         ];
       },
     );
-    if (!next) return;
+    if (!next) return null;
 
     get().updateConfig(next);
-    get().setSelectedScreenshotId(id);
+    return id;
   },
 
-  addFeatureGraphic: () => {
-    const { config, selectedLang, selectedPlatform } = get();
+  addFeatureGraphic: ({ lang, platform }) => {
     const id = globalThis.crypto.randomUUID();
 
     const next = withScreenshots(
-      config,
-      selectedLang,
-      selectedPlatform,
+      get().config,
+      lang,
+      platform,
       (screenshots) => {
         // Enforce uniqueness: only one feature-graphic per platform
         if (screenshots.some((s) => s.role === "feature-graphic")) return null;
@@ -113,20 +116,17 @@ export const createScreenshotActions: StateCreator<
         ];
       },
     );
-    if (!next) return;
+    if (!next) return null;
 
     get().updateConfig(next);
-    get().setSelectedScreenshotId(id);
+    return id;
   },
 
-  removeScreenshot: (id) => {
-    const { config, selectedLang, selectedPlatform, selectedScreenshotId } =
-      get();
-
+  removeScreenshot: ({ lang, platform }, id) => {
     const next = withScreenshots(
-      config,
-      selectedLang,
-      selectedPlatform,
+      get().config,
+      lang,
+      platform,
       (screenshots) =>
         screenshots.some((s) => s.id === id)
           ? screenshots.filter((s) => s.id !== id)
@@ -135,16 +135,13 @@ export const createScreenshotActions: StateCreator<
     if (!next) return;
 
     get().updateConfig(next);
-    if (selectedScreenshotId === id) get().setSelectedScreenshotId(null);
   },
 
-  updateScreenshot: (id, updates) => {
-    const { config, selectedLang, selectedPlatform } = get();
-
+  updateScreenshot: ({ lang, platform }, id, updates) => {
     const next = withScreenshots(
-      config,
-      selectedLang,
-      selectedPlatform,
+      get().config,
+      lang,
+      platform,
       (screenshots) => {
         const index = screenshots.findIndex((s) => s.id === id);
         if (index === -1) return null;
@@ -158,13 +155,11 @@ export const createScreenshotActions: StateCreator<
     get().updateConfig(next);
   },
 
-  reorderScreenshots: (orderedIds) => {
-    const { config, selectedLang, selectedPlatform } = get();
-
+  reorderScreenshots: ({ lang, platform }, orderedIds) => {
     const next = withScreenshots(
-      config,
-      selectedLang,
-      selectedPlatform,
+      get().config,
+      lang,
+      platform,
       (screenshots) => {
         const byId = new Map(screenshots.map((s) => [s.id, s]));
         // Keep feature graphics in place, reorder only screenshots
@@ -182,31 +177,18 @@ export const createScreenshotActions: StateCreator<
     get().updateConfig(next);
   },
 
-  removeFeatureGraphic: () => {
-    const { config, selectedLang, selectedPlatform, selectedScreenshotId } =
-      get();
-
-    // A holder, not a `let`: TypeScript keeps the narrowing from the
-    // initialiser for a `let` assigned only inside a callback.
-    const removed: { id?: string } = {};
+  removeFeatureGraphic: ({ lang, platform }) => {
     const next = withScreenshots(
-      config,
-      selectedLang,
-      selectedPlatform,
-      (screenshots) => {
-        const featureGraphic = screenshots.find(
-          (s) => s.role === "feature-graphic",
-        );
-        if (!featureGraphic) return null;
-        removed.id = featureGraphic.id;
-        return screenshots.filter((s) => s.role !== "feature-graphic");
-      },
+      get().config,
+      lang,
+      platform,
+      (screenshots) =>
+        screenshots.some((s) => s.role === "feature-graphic")
+          ? screenshots.filter((s) => s.role !== "feature-graphic")
+          : null,
     );
     if (!next) return;
 
     get().updateConfig(next);
-    if (removed.id && selectedScreenshotId === removed.id) {
-      get().setSelectedScreenshotId(null);
-    }
   },
 });

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { getDefaultDevicePresetId } from "@device-presets";
 import { DEFAULT_DIMENSIONS } from "@lib";
+import type { Platform } from "@app-types";
 import type { Config, Screenshot } from "@ui/types.ts";
 import type { AppState, ToastItem } from "./types.ts";
 import { createScreenshotActions } from "./screenshots.ts";
@@ -33,42 +34,13 @@ export const useAppStore = create<AppState>()(
 
       updateConfig: (config) => set({ config, _configDirty: true }),
 
-      // ── Selection ──────────────────────────────────────────────────
-      selectedLang: "en",
-      selectedPlatform: "android",
-      selectedScreenshotId: null,
-
-      // Screenshot ids are scoped to one language/platform, so a switch
-      // always invalidates the selection. Clearing it here rather than in an
-      // effect in App keeps it to a single store update — and a single
-      // `replace` navigation instead of two (#64).
-      setSelectedLang: (selectedLang) =>
-        set((s) =>
-          s.selectedLang === selectedLang
-            ? s
-            : { selectedLang, selectedScreenshotId: null }
-        ),
-
-      setSelectedPlatform: (selectedPlatform) =>
-        set((s) =>
-          s.selectedPlatform === selectedPlatform
-            ? s
-            : { selectedPlatform, selectedScreenshotId: null }
-        ),
-
-      setSelectedScreenshotId: (selectedScreenshotId) =>
-        set({ selectedScreenshotId }),
-
       // ── Screenshots ────────────────────────────────────────────────
       ...createScreenshotActions(set, get, store),
 
       // ── Device presets ─────────────────────────────────────────────
-      getDefaultDevicePreset: (platform) => {
-        const { config, selectedPlatform } = get();
-        const p = platform ?? selectedPlatform;
-        return config.platformDefaults?.[p]?.defaultDevicePresetId ??
-          getDefaultDevicePresetId(p);
-      },
+      getDefaultDevicePreset: (platform) =>
+        get().config.platformDefaults?.[platform]?.defaultDevicePresetId ??
+          getDefaultDevicePresetId(platform),
 
       updateDefaultDevicePreset: (platform, presetId) => {
         const { config, updateConfig } = get();
@@ -138,22 +110,25 @@ export const useAppStore = create<AppState>()(
 
 const EMPTY_SCREENSHOTS: Screenshot[] = [];
 
-export const selectScreenshots = (state: AppState): Screenshot[] => {
-  const langConfig = state.config.languages?.find(
-    (l) => l.language === state.selectedLang,
-  );
-  return langConfig?.platforms?.[state.selectedPlatform]?.screenshots ??
-    EMPTY_SCREENSHOTS;
-};
+/**
+ * The language and platform are arguments rather than state: they come from
+ * the URL, which a store selector cannot see.
+ */
+export const selectScreenshots = (
+  state: AppState,
+  lang: string,
+  platform: Platform,
+): Screenshot[] =>
+  state.config.languages?.find((l) => l.language === lang)
+    ?.platforms?.[platform]?.screenshots ?? EMPTY_SCREENSHOTS;
 
-export const selectDimensions = (state: AppState) => {
-  const langConfig = state.config.languages?.find(
-    (l) => l.language === state.selectedLang,
-  );
-  const platformConfig = langConfig?.platforms?.[state.selectedPlatform];
-  return platformConfig?.dimensions ||
-    DEFAULT_DIMENSIONS[state.selectedPlatform];
-};
+export const selectDimensions = (
+  state: AppState,
+  lang: string,
+  platform: Platform,
+) =>
+  state.config.languages?.find((l) => l.language === lang)
+    ?.platforms?.[platform]?.dimensions ?? DEFAULT_DIMENSIONS[platform];
 
 /**
  * Nothing is layered over the editor — no modal, picker or menu: the editor
@@ -162,4 +137,9 @@ export const selectDimensions = (state: AppState) => {
 export const selectNoOverlayOpen = (state: AppState): boolean =>
   state.openOverlays === 0;
 
-export type { AppState, ModalId, ToastItem } from "./types.ts";
+export type {
+  AppState,
+  ModalId,
+  ScreenshotTarget,
+  ToastItem,
+} from "./types.ts";

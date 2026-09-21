@@ -1,125 +1,120 @@
 /**
- * URL routing — two-way sync between React Router params and the store.
+ * Routing — the URL is the source of truth for project, language, platform
+ * and the selected screenshot.
+ *
+ * Nothing writes those into the store. Each render resolves the path against
+ * the loaded config (`@ui/utils/route-selection.ts` owns the rules), and the
+ * only writes back to the URL are corrections: one that spells out what a
+ * path resolved to, and the one `useSwitchProject` makes once a project the
+ * URL asked for is loaded.
  */
 
-import { useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useAppStore } from "@ui/store/index.ts";
+import { useCallback, useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useShallow } from "zustand/react/shallow";
+import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
+import {
+  buildPath,
+  createActivateLatch,
+  nextSelection,
+  parseSegments,
+  type ResolvedRoute,
+  resolveSelection,
+  resolveTarget,
+  type Selection,
+  type SelectionPatch,
+} from "@ui/utils/route-selection.ts";
 import { useSwitchProject } from "./projects.ts";
 
 /**
- * Build a URL path from store state segments.
+ * Resolve the current path. Every store read is narrow or shallow-compared:
+ * subscribing to `config` would re-render every consumer of the selection on
+ * each keystroke (#64).
  */
-export function buildPath(
-  project: string,
-  lang: string | null,
-  platform: string | null,
-  screenshotId: string | null,
-): string {
-  let url = "/" + project;
-  if (lang) url += "/" + lang;
-  if (platform) url += "/" + platform;
-  if (screenshotId) url += "/" + screenshotId;
-  return url;
+function useRoute(): ResolvedRoute {
+  const { pathname } = useLocation();
+  const loadedProject = useAppStore((s) => s.currentProject);
+  const projectIds = useAppStore(
+    useShallow((s) => s.projects.map((p) => p.id)),
+  );
+  const languages = useAppStore(
+    useShallow((s) => s.config.languages?.map((l) => l.language) ?? []),
+  );
+
+  const target = useMemo(
+    () =>
+      resolveTarget(parseSegments(pathname), {
+        loadedProject,
+        projectIds,
+        languages,
+      }),
+    [pathname, loadedProject, projectIds, languages],
+  );
+
+  // The id is validated against the screenshots of the language and platform
+  // the path resolved to, so this subscription has to follow that resolution.
+  const screenshotIds = useAppStore(
+    useShallow((s) =>
+      selectScreenshots(s, target.lang, target.platform).map((x) => x.id)
+    ),
+  );
+
+  return useMemo(
+    () => resolveSelection(target, screenshotIds),
+    [target, screenshotIds],
+  );
+}
+
+/** The project, language, platform and screenshot the URL names. */
+export function useSelection(): Selection {
+  return useRoute().selection;
 }
 
 /**
- * Hook that keeps React Router params and the Zustand store in sync.
+ * Navigate by patching the current selection.
  *
- * - On mount / URL change → writes route params into the store.
- * - On store change → navigates to the matching URL.
+ * A language or platform change pushes, so Back returns to the tab it came
+ * from; selecting and deselecting a screenshot replaces, so Back does not
+ * walk through every click.
  */
-export function useStoreRouteSync() {
-  const params = useParams<{
-    project?: string;
-    lang?: string;
-    platform?: string;
-    screenshotId?: string;
-  }>();
+export function useNavigateSelection() {
+  const selection = useSelection();
   const navigate = useNavigate();
-  const isRouteChange = useRef(false);
-  const switchProject = useSwitchProject();
 
-  // ── Route → Store (URL changed, push into Zustand) ───────────────
-  useEffect(() => {
-    const state = useAppStore.getState();
+  return useCallback((patch: SelectionPatch) => {
+    const scoped = patch.lang !== undefined || patch.platform !== undefined;
+    navigate(buildPath(nextSelection(selection, patch)), { replace: !scoped });
+  }, [selection, navigate]);
+}
 
-    // Validate project
-    if (params.project && params.project !== state.currentProject) {
-      const valid = state.projects.find((p) => p.id === params.project);
-      if (valid) {
-        isRouteChange.current = true;
-        switchProject.mutate(params.project);
-        return; // switchProject sets lang/item/etc
-      }
-    }
+const activateLatch = createActivateLatch();
 
-    // Lang
-    if (params.lang && params.lang !== state.selectedLang) {
-      const validLang = state.config.languages?.find(
-        (l) => l.language === params.lang,
-      );
-      if (validLang) {
-        isRouteChange.current = true;
-        state.setSelectedLang(params.lang);
-      }
-    }
-
-    // Platform
-    if (
-      params.platform &&
-      ["android", "ios"].includes(params.platform) &&
-      params.platform !== state.selectedPlatform
-    ) {
-      isRouteChange.current = true;
-      state.setSelectedPlatform(params.platform as "android" | "ios");
-    }
-
-    // Screenshot (regular or feature-graphic — both use their id).
-    // Re-read: `state` is the snapshot from before the setters above ran,
-    // and setSelectedLang/Platform clear the selection.
-    const currentSelectionId = useAppStore.getState().selectedScreenshotId;
-    if (params.screenshotId) {
-      if (currentSelectionId !== params.screenshotId) {
-        isRouteChange.current = true;
-        state.setSelectedScreenshotId(params.screenshotId);
-      }
-    } else if (currentSelectionId !== null) {
-      isRouteChange.current = true;
-      state.setSelectedScreenshotId(null);
-    }
-  }, [params.project, params.lang, params.platform, params.screenshotId]);
-
-  // ── Store → Route (state changed, update URL) ────────────────────
-  const currentProject = useAppStore((s) => s.currentProject);
-  const selectedLang = useAppStore((s) => s.selectedLang);
-  const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
+/**
+ * Keep the URL and the loaded project in step — App mounts this once.
+ *
+ * Neither effect is a sync: the first rewrites a path that does not spell
+ * out what it resolved to (`/` on first load, a language that was just
+ * deleted, a screenshot id that no longer exists), the second asks the server
+ * to activate the project the URL names.
+ */
+export function useRouteReconciler() {
+  const { pathname } = useLocation();
+  const { canonicalPath, switchTo } = useRoute();
+  const navigate = useNavigate();
+  const { mutate: switchProject } = useSwitchProject();
 
   useEffect(() => {
-    // Skip if this render was triggered by route → store sync
-    if (isRouteChange.current) {
-      isRouteChange.current = false;
-      return;
-    }
+    if (pathname !== canonicalPath) navigate(canonicalPath, { replace: true });
+  }, [pathname, canonicalPath, navigate]);
 
-    if (!currentProject) return;
-
-    const target = buildPath(
-      currentProject,
-      selectedLang,
-      selectedPlatform,
-      selectedScreenshotId,
-    );
-
-    if (location.pathname !== target) {
-      navigate(target, { replace: true });
-    }
-  }, [
-    currentProject,
-    selectedLang,
-    selectedPlatform,
-    selectedScreenshotId,
-    navigate,
-  ]);
+  // One attempt per URL, hence the path as the only dependency: an activate
+  // answers the URL, so a store change must never start one. React Router
+  // commits a navigation in a transition and the store does not, so the
+  // render right after `useSwitchProject` hydrates sees the new project's
+  // config under the path it is leaving — which reads as a request to go
+  // straight back, and two projects then activate each other forever.
+  useEffect(() => {
+    if (!switchTo || !activateLatch.claim(switchTo.projectId)) return;
+    switchProject(switchTo, { onSettled: () => activateLatch.settle() });
+  }, [pathname]);
 }
