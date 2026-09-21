@@ -76,7 +76,7 @@ export function ProjectSwitcher() {
                   type="button"
                   key={p.id}
                   onClick={() => {
-                    switchProject.mutate(p.id);
+                    switchProject.mutate({ projectId: p.id });
                     setOpen(false);
                   }}
                   className={cn(

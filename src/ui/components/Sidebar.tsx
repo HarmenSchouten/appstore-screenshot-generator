@@ -13,43 +13,39 @@ import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
+import { useScreenshotActions, useSelection } from "@hooks";
 import { SortableList, SortableRow } from "@ui/components/primitives/index.ts";
 import { Select } from "@ui/components/inputs/index.ts";
 
 function SidebarInner() {
-  const selectedPlatform = useAppStore((s) => s.selectedPlatform);
-  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
+  const selection = useSelection();
+  const screenshotActions = useScreenshotActions();
 
   // Ids only, shallow-compared: the sidebar renders positional titles and
   // selection state, so editing a layer must not re-render it (#64).
   const screenshotIds = useAppStore(
     useShallow((s) =>
-      selectScreenshots(s)
+      selectScreenshots(s, selection.lang, selection.platform)
         .filter((x) => x.role === "screenshot")
         .map((x) => x.id)
     ),
   );
   const featureGraphicId = useAppStore((s) =>
-    selectScreenshots(s).find((x) => x.role === "feature-graphic")?.id ?? null
+    selectScreenshots(s, selection.lang, selection.platform)
+      .find((x) => x.role === "feature-graphic")?.id ?? null
   );
 
   // A subscription, not getState(): this reads config, and the sidebar no
   // longer re-renders on every config change to pick the new value up.
   const platformDefaultDevicePresetId = useAppStore((s) =>
-    s.getDefaultDevicePreset()
+    s.getDefaultDevicePreset(selection.platform)
   );
 
-  const setSelectedScreenshotId = useAppStore((s) => s.setSelectedScreenshotId);
-  const addScreenshot = useAppStore((s) => s.addScreenshot);
-  const addFeatureGraphic = useAppStore((s) => s.addFeatureGraphic);
-  const removeScreenshot = useAppStore((s) => s.removeScreenshot);
-  const removeFeatureGraphic = useAppStore((s) => s.removeFeatureGraphic);
-  const reorderScreenshots = useAppStore((s) => s.reorderScreenshots);
   const updateDefaultDevicePreset = useAppStore((s) =>
     s.updateDefaultDevicePreset
   );
 
-  const platformPresets = getDevicePresetsForPlatform(selectedPlatform);
+  const platformPresets = getDevicePresetsForPlatform(selection.platform);
 
   return (
     <aside className="w-[268px] bg-zinc-900 border-r border-zinc-800 flex flex-col">
@@ -71,16 +67,16 @@ function SidebarInner() {
         <SortableList
           ids={screenshotIds}
           onMove={(from, to) =>
-            reorderScreenshots(arrayMove(screenshotIds, from, to))}
+            screenshotActions.reorder(arrayMove(screenshotIds, from, to))}
         >
           {screenshotIds.map((id, index) => (
             <SortableRow key={id} id={id}>
               {(sortable) => (
                 <SidebarItemCard
                   title={`Screenshot ${index + 1}`}
-                  isSelected={selectedScreenshotId === id}
-                  onSelect={() => setSelectedScreenshotId(id)}
-                  onDelete={() => removeScreenshot(id)}
+                  isSelected={selection.screenshotId === id}
+                  onSelect={() => screenshotActions.select(id)}
+                  onDelete={() => screenshotActions.remove(id)}
                   sortable={sortable}
                 />
               )}
@@ -90,14 +86,14 @@ function SidebarInner() {
 
         <button
           type="button"
-          onClick={addScreenshot}
+          onClick={screenshotActions.add}
           className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 transition-colors"
         >
           <i className="fa-solid fa-plus mr-1" /> Add Screenshot
         </button>
 
         {/* Feature Graphic (Android only) */}
-        {selectedPlatform === "android" && (
+        {selection.platform === "android" && (
           <>
             <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-1.5 font-medium">
               Feature Graphic
@@ -106,15 +102,15 @@ function SidebarInner() {
               ? (
                 <SidebarItemCard
                   title="Feature Graphic"
-                  isSelected={selectedScreenshotId === featureGraphicId}
-                  onSelect={() => setSelectedScreenshotId(featureGraphicId)}
-                  onDelete={removeFeatureGraphic}
+                  isSelected={selection.screenshotId === featureGraphicId}
+                  onSelect={() => screenshotActions.select(featureGraphicId)}
+                  onDelete={screenshotActions.removeFeatureGraphic}
                 />
               )
               : (
                 <button
                   type="button"
-                  onClick={addFeatureGraphic}
+                  onClick={screenshotActions.addFeatureGraphic}
                   className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 transition-colors"
                 >
                   <i className="fa-solid fa-plus mr-1" /> Add Feature Graphic
@@ -131,7 +127,7 @@ function SidebarInner() {
         </div>
         <Select<DevicePresetId>
           value={platformDefaultDevicePresetId}
-          onChange={(id) => updateDefaultDevicePreset(selectedPlatform, id)}
+          onChange={(id) => updateDefaultDevicePreset(selection.platform, id)}
           options={platformPresets.map((p) => ({
             value: p.id,
             label: p.label,

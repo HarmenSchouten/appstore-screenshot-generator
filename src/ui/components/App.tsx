@@ -1,15 +1,15 @@
 /**
  * App Component
  *
- * Slim shell — all state lives in the Zustand store,
- * URL is managed by React Router via useStoreRouteSync.
+ * Slim shell — the document lives in the Zustand store, the selection in the
+ * URL; `useRouteReconciler` is the one place either is corrected.
  *
  * App subscribes to the narrowest slices it actually renders. Selecting the
  * whole `config` here made every keystroke re-render the entire tree, which
  * no amount of selectors in the children could undo (#64).
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { TopBar } from "./TopBar/TopBar.tsx";
 import { Sidebar } from "./Sidebar.tsx";
 import { Preview } from "./Preview.tsx";
@@ -27,23 +27,36 @@ import {
 } from "@ui/store/index.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import type { Screenshot } from "@ui/types.ts";
-import { useAppHotkeys, useConfigAutoSave, useStoreRouteSync } from "@hooks";
+import {
+  useAppHotkeys,
+  useConfigAutoSave,
+  useRouteReconciler,
+  useScreenshotActions,
+  useSelection,
+} from "@hooks";
 
 export function App() {
-  useStoreRouteSync();
+  useRouteReconciler();
   useConfigAutoSave();
   useAppHotkeys();
 
+  const selection = useSelection();
+  const { update } = useScreenshotActions();
+
   const theme = useAppStore((s) => s.config.theme);
   const app = useAppStore((s) => s.config.app);
-  const selectedScreenshotId = useAppStore((s) => s.selectedScreenshotId);
-  const selectedPlatform = useAppStore((s) => s.selectedPlatform);
   const currentProject = useAppStore((s) => s.currentProject);
-  const screenshots = useAppStore(selectScreenshots);
-  const dimensions = useAppStore(selectDimensions);
+  const screenshots = useAppStore((s) =>
+    selectScreenshots(s, selection.lang, selection.platform)
+  );
+  const dimensions = useAppStore((s) =>
+    selectDimensions(s, selection.lang, selection.platform)
+  );
 
   // Reads config, so it must be a subscription rather than a getState() call
-  const defaultDevicePresetId = useAppStore((s) => s.getDefaultDevicePreset());
+  const defaultDevicePresetId = useAppStore((s) =>
+    s.getDefaultDevicePreset(selection.platform)
+  );
   const androidDevicePresetId = useAppStore((s) =>
     s.getDefaultDevicePreset("android")
   );
@@ -54,27 +67,17 @@ export function App() {
   const activeModal = useAppStore((s) => s.activeModal);
   const closeModal = useAppStore((s) => s.closeModal);
 
-  const selectedScreenshot = selectedScreenshotId
-    ? screenshots.find((s) => s.id === selectedScreenshotId)
+  const selectedScreenshot = selection.screenshotId
+    ? screenshots.find((s) => s.id === selection.screenshotId)
     : undefined;
 
   const isFeatureGraphic = selectedScreenshot?.role === "feature-graphic";
 
-  // Safety net for a selection whose screenshot disappeared some other way;
-  // lang/platform switches clear it in the store, not here.
-  useEffect(() => {
-    if (selectedScreenshotId && !selectedScreenshot) {
-      useAppStore.getState().setSelectedScreenshotId(null);
-    }
-  }, [selectedScreenshotId, selectedScreenshot]);
-
   const handleScreenshotUpdate = useCallback(
     (updates: Partial<Screenshot>) => {
-      const { selectedScreenshotId: id, updateScreenshot } = useAppStore
-        .getState();
-      if (id) updateScreenshot(id, updates);
+      if (selection.screenshotId) update(selection.screenshotId, updates);
     },
-    [],
+    [selection.screenshotId, update],
   );
 
   return (
@@ -92,7 +95,7 @@ export function App() {
                   screenshot={selectedScreenshot}
                   theme={theme}
                   app={app}
-                  platform={isFeatureGraphic ? "android" : selectedPlatform}
+                  platform={isFeatureGraphic ? "android" : selection.platform}
                   defaultDevicePresetId={isFeatureGraphic
                     ? androidDevicePresetId
                     : defaultDevicePresetId}

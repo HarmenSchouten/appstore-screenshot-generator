@@ -11,6 +11,12 @@ import type {
 /** The modals App renders; at most one is open at a time. */
 export type ModalId = "projects" | "generate" | "theme" | "media" | "shortcuts";
 
+/** The language and platform a screenshot action works in. */
+export interface ScreenshotTarget {
+  lang: string;
+  platform: Platform;
+}
+
 export interface ToastItem {
   id: string;
   type: "error" | "success" | "info";
@@ -26,6 +32,10 @@ export interface ToastItem {
  * anything a render depends on (state and actions alike — actions are stable
  * references, so selecting one never re-renders), and `useAppStore.getState()`
  * inside handlers, effects and mutation callbacks.
+ *
+ * What is *not* here: the project, language, platform and selected
+ * screenshot. Those live in the URL — `useSelection()` resolves them — so
+ * the actions below take the language and platform they act on.
  */
 export interface AppState {
   // ── Project & config ─────────────────────────────────────────────
@@ -33,6 +43,7 @@ export interface AppState {
   /** A local edit not yet on the server; the auto-saver only writes dirty. */
   _configDirty: boolean;
   projects: ProjectInfo[];
+  /** The project the loaded `config` belongs to — the server's active one. */
   currentProject: string;
   /**
    * Load a project from the server — on init and on project switch. Marks
@@ -45,25 +56,22 @@ export interface AppState {
   /** Apply a local edit — triggers auto-save via the subscriber. */
   updateConfig: (config: Config) => void;
 
-  // ── Selection ────────────────────────────────────────────────────
-  selectedLang: string;
-  selectedPlatform: Platform;
-  /** Id of the selected screenshot or feature graphic; null = nothing selected */
-  selectedScreenshotId: string | null;
-  setSelectedLang: (lang: string) => void;
-  setSelectedPlatform: (platform: Platform) => void;
-  setSelectedScreenshotId: (id: string | null) => void;
-
   // ── Screenshots (implemented in screenshots.ts) ──────────────────
-  addScreenshot: () => void;
-  addFeatureGraphic: () => void;
-  removeScreenshot: (id: string) => void;
-  updateScreenshot: (id: string, updates: Partial<Screenshot>) => void;
-  reorderScreenshots: (orderedIds: string[]) => void;
-  removeFeatureGraphic: () => void;
+  /** Appends a screenshot and returns its id; null when nothing changed. */
+  addScreenshot: (target: ScreenshotTarget) => string | null;
+  /** Appends the feature graphic; null when the platform already has one. */
+  addFeatureGraphic: (target: ScreenshotTarget) => string | null;
+  removeScreenshot: (target: ScreenshotTarget, id: string) => void;
+  updateScreenshot: (
+    target: ScreenshotTarget,
+    id: string,
+    updates: Partial<Screenshot>,
+  ) => void;
+  reorderScreenshots: (target: ScreenshotTarget, orderedIds: string[]) => void;
+  removeFeatureGraphic: (target: ScreenshotTarget) => void;
 
   // ── Device presets ───────────────────────────────────────────────
-  getDefaultDevicePreset: (platform?: Platform) => DevicePresetId;
+  getDefaultDevicePreset: (platform: Platform) => DevicePresetId;
   updateDefaultDevicePreset: (
     platform: Platform,
     presetId: DevicePresetId,

@@ -10,6 +10,7 @@
 
 import { assert, assertEquals, assertStrictEquals } from "@std/assert";
 import { useAppStore } from "./index.ts";
+import type { ScreenshotTarget } from "./types.ts";
 import { getDefaultConfig } from "@/projects.ts";
 import { makeDefaultScreenshot, makeFeatureGraphic } from "@/test-helpers.ts";
 import type { Config } from "@ui/types.ts";
@@ -31,15 +32,12 @@ function makeConfig(): Config {
 
 function seedStore(): Config {
   const config = makeConfig();
-  useAppStore.setState({
-    config,
-    _configDirty: false,
-    selectedLang: "en",
-    selectedPlatform: "android",
-    selectedScreenshotId: null,
-  });
+  useAppStore.setState({ config, _configDirty: false });
   return config;
 }
+
+/** The language and platform every action here is aimed at. */
+const EN_ANDROID: ScreenshotTarget = { lang: "en", platform: "android" };
 
 const androidOf = (config: Config, lang = "en") =>
   config.languages.find((l) => l.language === lang)!.platforms.android;
@@ -47,7 +45,9 @@ const androidOf = (config: Config, lang = "en") =>
 Deno.test("updateScreenshot rebuilds only the path to the edited screenshot", () => {
   const before = seedStore();
 
-  useAppStore.getState().updateScreenshot("shot-1", { name: "Renamed" });
+  useAppStore.getState().updateScreenshot(EN_ANDROID, "shot-1", {
+    name: "Renamed",
+  });
 
   const after = useAppStore.getState().config;
   assert(after !== before, "config identity changes so the auto-saver fires");
@@ -84,7 +84,7 @@ Deno.test("updateScreenshot leaves the previous config untouched", () => {
   const before = seedStore();
   const layerCountBefore = androidOf(before).screenshots[0].layers.length;
 
-  useAppStore.getState().updateScreenshot("shot-1", {
+  useAppStore.getState().updateScreenshot(EN_ANDROID, "shot-1", {
     name: "Renamed",
     layers: [{ id: "bg", type: "background", opacity: 0.5 }],
   });
@@ -99,82 +99,89 @@ Deno.test("updateScreenshot leaves the previous config untouched", () => {
 Deno.test("an update that changes nothing does not touch the store", () => {
   const before = seedStore();
 
-  useAppStore.getState().updateScreenshot("does-not-exist", { name: "x" });
+  useAppStore.getState().updateScreenshot(EN_ANDROID, "does-not-exist", {
+    name: "x",
+  });
   assertStrictEquals(useAppStore.getState().config, before);
   assertEquals(useAppStore.getState()._configDirty, false);
 
-  useAppStore.getState().removeScreenshot("does-not-exist");
+  useAppStore.getState().removeScreenshot(EN_ANDROID, "does-not-exist");
   assertStrictEquals(useAppStore.getState().config, before);
   assertEquals(useAppStore.getState()._configDirty, false);
 
   // Only one feature graphic per platform
-  useAppStore.getState().addFeatureGraphic();
+  assertEquals(useAppStore.getState().addFeatureGraphic(EN_ANDROID), null);
   assertStrictEquals(useAppStore.getState().config, before);
   assertEquals(useAppStore.getState()._configDirty, false);
+
+  // A language the config does not carry
+  assertEquals(
+    useAppStore.getState().addScreenshot({ lang: "fr", platform: "android" }),
+    null,
+  );
+  assertStrictEquals(useAppStore.getState().config, before);
 });
 
 Deno.test("add, remove and reorder keep working", () => {
   seedStore();
   const store = useAppStore.getState();
 
-  store.addScreenshot();
-  const added = useAppStore.getState().selectedScreenshotId!;
+  const added = store.addScreenshot(EN_ANDROID);
+  assert(added !== null, "a new screenshot hands back its id to select it");
   const withAdded = androidOf(useAppStore.getState().config).screenshots;
   assertEquals(withAdded.length, 4);
   assertEquals(withAdded[3].id, added);
   assertEquals(withAdded[3].name, "Screenshot 3");
 
-  store.reorderScreenshots([added, "shot-2", "shot-1"]);
+  store.reorderScreenshots(EN_ANDROID, [added, "shot-2", "shot-1"]);
   assertEquals(
     androidOf(useAppStore.getState().config).screenshots.map((s) => s.id),
     [added, "shot-2", "shot-1", "fg-1"],
   );
 
-  store.removeScreenshot(added);
+  store.removeScreenshot(EN_ANDROID, added);
   assertEquals(
     androidOf(useAppStore.getState().config).screenshots.map((s) => s.id),
     ["shot-2", "shot-1", "fg-1"],
   );
-  // The removed screenshot was selected, so the selection is cleared
-  assertEquals(useAppStore.getState().selectedScreenshotId, null);
 
-  store.setSelectedScreenshotId("fg-1");
-  store.removeFeatureGraphic();
+  store.removeFeatureGraphic(EN_ANDROID);
   assertEquals(
     androidOf(useAppStore.getState().config).screenshots.map((s) => s.id),
     ["shot-2", "shot-1"],
   );
-  assertEquals(useAppStore.getState().selectedScreenshotId, null);
 });
 
-Deno.test("switching language or platform clears the selection in one update", () => {
-  seedStore();
+Deno.test("an action edits the language and platform it is handed", () => {
+  const before = seedStore();
   const store = useAppStore.getState();
 
-  let notifications = 0;
-  const unsubscribe = useAppStore.subscribe(() => notifications++);
-  try {
-    store.setSelectedScreenshotId("shot-1");
-    notifications = 0;
+  const added = store.addScreenshot({ lang: "de", platform: "android" });
+  assert(added !== null);
+  const after = useAppStore.getState().config;
 
-    // Screenshot ids are scoped to a language/platform: the selection cannot
-    // survive the switch, and clearing it here saves a second navigation.
-    store.setSelectedPlatform("ios");
-    assertEquals(useAppStore.getState().selectedScreenshotId, null);
-    assertEquals(notifications, 1);
+  assertEquals(androidOf(after, "de").screenshots.length, 4);
+  assertEquals(androidOf(after, "de").screenshots[3].id, added);
+  // The language the URL happens not to be on is untouched, identity included
+  assertEquals(androidOf(after, "en").screenshots.length, 3);
+  assertStrictEquals(
+    after.languages.find((l) => l.language === "en"),
+    before.languages.find((l) => l.language === "en"),
+  );
 
-    store.setSelectedScreenshotId("shot-1");
-    notifications = 0;
-    store.setSelectedLang("de");
-    assertEquals(useAppStore.getState().selectedScreenshotId, null);
-    assertEquals(notifications, 1);
+  // Counting is per target too: de had two screenshots of its own
+  assertEquals(androidOf(after, "de").screenshots[3].name, "Screenshot 3");
 
-    // Re-selecting the same value is not a change
-    notifications = 0;
-    store.setSelectedLang("de");
-    store.setSelectedPlatform("ios");
-    assertEquals(notifications, 0);
-  } finally {
-    unsubscribe();
-  }
+  store.removeFeatureGraphic({ lang: "de", platform: "android" });
+  assertEquals(
+    androidOf(useAppStore.getState().config, "de").screenshots.map((s) =>
+      s.role
+    ),
+    ["screenshot", "screenshot", "screenshot"],
+  );
+  assertEquals(
+    androidOf(useAppStore.getState().config, "en").screenshots[2]
+      .role,
+    "feature-graphic",
+  );
 });

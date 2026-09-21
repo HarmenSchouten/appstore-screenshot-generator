@@ -12,16 +12,18 @@ See `docs/` for detailed architecture docs.
 | `src/ui/utils/api.ts` | Pure fetch functions (no state logic) | Yes (raw HTTP only) |
 | React Query hooks (`src/ui/hooks/`) | Orchestrate API calls, track status, hydrate store | Yes (via `useMutation` / `useQuery`) |
 | Zustand store (`src/ui/store/`) | Client-only state + synchronous setters | **No** |
+| URL (`/project/lang/platform/screenshotId`) | Project, language, platform and selection | No |
 | Components (`src/ui/components/`) | Render UI, call hooks | No |
 
 ### Rules
 
-1. **Zustand store must never make API calls.** Store slices hold client-only state (selections, UI flags, config cache) and synchronous setters. No `fetch`, no `async` actions that call the server.
+1. **Zustand store must never make API calls.** Store slices hold client-only state (UI flags, config cache) and synchronous setters. No `fetch`, no `async` actions that call the server.
 2. **All server communication goes through React Query hooks.** Use `useMutation` for writes and `useQuery` for reads. The hook's `mutationFn`/`queryFn` calls functions from `utils/api.ts`.
 3. **Hooks hydrate the store in `onSuccess`.** After a successful mutation, update Zustand via `useAppStore.setState()` in the `onSuccess` callback.
 4. **Compose hooks, don't duplicate logic.** If one mutation needs to trigger another (e.g. create project → switch to it), call the other hook's `.mutateAsync()` — don't rewrite the logic.
-5. **Separate concerns in callbacks** (per TkDodo's guidance): put logic (store updates, invalidation) in `useMutation` callbacks; put UI actions (close modals, redirects) at the `mutate()` call site in components.
+5. **Separate concerns in callbacks** (per TkDodo's guidance): put logic (store updates, invalidation) in `useMutation` callbacks; put UI actions (close modals, redirects) at the `mutate()` call site in components. The exception is navigation that *is* the state change — adding a language selects it, switching a project moves into it — which belongs in the hook beside the store write it has to stay consistent with.
 6. **Prefer `mutate` over `mutateAsync`** unless composing promises between hooks.
+7. **The URL owns the navigational state.** Project, language, platform and selected screenshot are never mirrored in the store: read them with `useSelection()`, change them with `useNavigateSelection()`, and validate segments only in `src/ui/utils/route-selection.ts`.
 
 ### File Structure
 

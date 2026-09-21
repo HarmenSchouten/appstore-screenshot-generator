@@ -12,4 +12,5 @@ export * from "./layers.ts";
 export * from "./languages.ts";
 export * from "./projects.ts";
 export * from "./routing.ts";
+export * from "./screenshots.ts";
 export * from "./shortcut-definitions.ts";

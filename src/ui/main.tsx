@@ -44,10 +44,8 @@ function AppShell() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/:project?/:lang?/:platform?/:screenshotId?"
-          element={<App />}
-        />
+        {/* Positional segments, parsed in `utils/route-selection.ts` */}
+        <Route path="*" element={<App />} />
       </Routes>
     </BrowserRouter>
   );

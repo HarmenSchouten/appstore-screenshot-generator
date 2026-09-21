@@ -9,9 +9,12 @@ import { useMutation } from "@tanstack/react-query";
 import { addLanguage, deleteLanguage } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { flushPersist } from "@ui/utils/config-persistence.ts";
+import { useNavigateSelection } from "./routing.ts";
 
-/** Adds a language, optionally copying from an existing one. */
+/** Adds a language, optionally copying from an existing one, and selects it. */
 export function useAddLanguage() {
+  const navigateSelection = useNavigateSelection();
+
   return useMutation({
     mutationFn: async (
       { language, copyFrom }: { language: string; copyFrom: string | null },
@@ -20,17 +23,22 @@ export function useAddLanguage() {
       return addLanguage(language, copyFrom);
     },
     onSuccess: (newLang, { language }) => {
+      // Into the config before the URL: the route drops a language it cannot
+      // find in the config it is resolved against.
       useAppStore.setState((s) => {
         const newConfig = { ...s.config };
-        if (!newConfig.languages) newConfig.languages = [];
-        newConfig.languages = [...newConfig.languages, newLang];
-        return { config: newConfig, selectedLang: language };
+        newConfig.languages = [...(newConfig.languages ?? []), newLang];
+        return { config: newConfig };
       });
+      navigateSelection({ lang: language });
     },
   });
 }
 
-/** Deletes a language and switches to the first remaining one. */
+/**
+ * Deletes a language. Nothing navigates: the route falls back to the first
+ * remaining language on its own once this one is out of the config.
+ */
 export function useDeleteLanguage() {
   return useMutation({
     mutationFn: async (language: string) => {
@@ -38,17 +46,14 @@ export function useDeleteLanguage() {
       return deleteLanguage(language);
     },
     onSuccess: (_data, language) => {
-      useAppStore.setState((s) => {
-        const newConfig = { ...s.config };
-        newConfig.languages = newConfig.languages?.filter(
-          (l) => l.language !== language,
-        ) ?? [];
-        const nextLang = newConfig.languages[0]?.language ?? "";
-        return {
-          config: newConfig,
-          selectedLang: s.selectedLang === language ? nextLang : s.selectedLang,
-        };
-      });
+      useAppStore.setState((s) => ({
+        config: {
+          ...s.config,
+          languages: s.config.languages?.filter(
+            (l) => l.language !== language,
+          ) ?? [],
+        },
+      }));
     },
   });
 }
