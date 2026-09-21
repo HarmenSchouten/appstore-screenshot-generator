@@ -12,7 +12,7 @@
 import { assert, assertEquals } from "@std/assert";
 import {
   buildPath,
-  createActivateLatch,
+  createSwitchGuard,
   nextSelection,
   parseSegments,
   requestSegments,
@@ -231,9 +231,16 @@ Deno.test("changing language or platform drops the screenshot", () => {
   assertEquals(nextSelection(current, { lang: "de" }).screenshotId, null);
   assertEquals(nextSelection(current, { platform: "ios" }).screenshotId, null);
 
-  // Re-picking the same value changes nothing, so the selection survives
-  assertEquals(nextSelection(current, { lang: "en" }), current);
-  assertEquals(nextSelection(current, { platform: "android" }), current);
+  // Re-picking the value it already has is not a scope change, so the
+  // screenshot stays selected and the path does not lose it
+  assertEquals(
+    buildPath(nextSelection(current, { lang: "en" })),
+    buildPath(current),
+  );
+  assertEquals(
+    buildPath(nextSelection(current, { platform: "android" })),
+    "/alpha/en/android/shot-1",
+  );
 
   // Selecting and deselecting within one language and platform
   assertEquals(
@@ -254,15 +261,31 @@ Deno.test("changing language or platform drops the screenshot", () => {
   });
 });
 
-Deno.test("the activate latch sends one request per project", () => {
-  const latch = createActivateLatch();
+Deno.test("the switch guard sends one activate per project", () => {
+  const guard = createSwitchGuard();
 
-  assert(latch.claim("beta"), "the first effect run sends the request");
-  assert(!latch.claim("beta"), "StrictMode's second run does not");
+  assert(guard.claim("beta"), "the first effect run sends the request");
+  assert(!guard.claim("beta"), "StrictMode's second run does not");
 
-  // Another project in flight is another request
-  assert(latch.claim("gamma"));
+  // Settling another project leaves the claim on beta alone
+  guard.settle("gamma");
+  assert(!guard.claim("beta"));
 
-  latch.settle();
-  assert(latch.claim("beta"), "a later link to beta asks again");
+  guard.settle("beta");
+  assert(guard.claim("beta"), "a later link to beta asks again");
+});
+
+Deno.test("only the newest switch may land", () => {
+  const guard = createSwitchGuard();
+
+  const toBeta = guard.start();
+  assert(guard.isLatest(toBeta));
+
+  // The user picks another project before beta answers
+  const toGamma = guard.start();
+  assert(!guard.isLatest(toBeta), "beta is superseded and must not hydrate");
+  assert(guard.isLatest(toGamma));
+
+  // Tokens are per switch, so a repeat of the same project supersedes too
+  assert(!guard.isLatest(guard.start() - 1));
 });

@@ -10,8 +10,7 @@
 
 The UI uses a single Zustand store that mixes two distinct concerns:
 
-1. **Client state** (selected language, selected platform, selected item, modal
-   open/close flags, device preset defaults)
+1. **Client state** (modal open/close flags, device preset defaults, toasts)
 2. **Server state** (project config fetched from the API, asset list, project
    list, generated results)
 
@@ -64,12 +63,13 @@ config document and all client state.
 | `utils/api.ts` | Pure fetch functions (no state logic) | Yes (raw HTTP only) |
 | React Query hooks (`hooks/`) | Orchestrate API calls, track status, hydrate store | Yes (via `useMutation` / `useQuery`) |
 | Zustand store (`store/`) | Client-only state + synchronous setters | **No** |
+| URL (`/project/lang/platform/screenshotId`) | Project, language, platform and selection | No |
 | Components (`components/`) | Render UI, call hooks | No |
 
 ### Key principles
 
 1. **Zustand store must never make API calls.** Store slices hold client-only
-   state (config, selections, UI flags) and synchronous setters.
+   state (config, UI flags) and synchronous setters.
 
 2. **All server communication goes through React Query hooks.** Use
    `useMutation` for writes and `useQuery` for reads. Hook `queryFn`/`mutationFn`

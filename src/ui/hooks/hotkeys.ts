@@ -102,14 +102,14 @@ export function useShortcut(
 export function useAppHotkeys() {
   const selection = useSelection();
   const navigateSelection = useNavigateSelection();
-  const screenshots = useScreenshotActions();
+  const screenshotActions = useScreenshotActions();
   const enabled = useAppStore(selectNoOverlayOpen);
   const openOutputFolder = useOpenOutputFolder();
   const generateAll = useGenerateAll();
 
   // ── Tier 1 — EmptyState shortcuts ──────────────────────────────────
 
-  useShortcut("addScreenshot", screenshots.add, enabled);
+  useShortcut("addScreenshot", screenshotActions.add, enabled);
 
   useShortcut("generateAll", () => {
     if (!useAppStore.getState().generating) generateAll.mutate();
@@ -173,9 +173,9 @@ export function useAppHotkeys() {
       selection.platform,
     ).find((s) => s.id === id);
     if (screenshot?.role === "feature-graphic") {
-      screenshots.removeFeatureGraphic();
+      screenshotActions.removeFeatureGraphic();
     } else {
-      screenshots.remove(id);
+      screenshotActions.remove(id);
     }
   }, enabled && selection.screenshotId !== null);
 
@@ -199,8 +199,8 @@ export function useAppHotkeys() {
     const nextIndex = currentIndex === -1
       ? (direction === 1 ? 0 : items.length - 1)
       : (currentIndex + direction + items.length) % items.length;
-    screenshots.select(items[nextIndex].id);
-  }, [selection, screenshots]);
+    screenshotActions.select(items[nextIndex].id);
+  }, [selection, screenshotActions]);
 
   useShortcut("nextScreenshot", () => stepScreenshot(1), enabled);
   useShortcut("prevScreenshot", () => stepScreenshot(-1), enabled);
@@ -212,7 +212,7 @@ export function useAppHotkeys() {
       selection.lang,
       selection.platform,
     ).find((s) => s.role === "feature-graphic");
-    if (fg) screenshots.select(fg.id);
+    if (fg) screenshotActions.select(fg.id);
   }, enabled);
 
   // ── Cheat sheet ────────────────────────────────────────────────────
@@ -227,6 +227,6 @@ export function useAppHotkeys() {
     if (closeTopOverlay()) return;
     // Escape in the text layer's field must not unmount the editor under it
     if (isInputFocused()) return;
-    if (selection.screenshotId) screenshots.select(null);
+    if (selection.screenshotId) screenshotActions.select(null);
   });
 }

@@ -34,9 +34,8 @@ export interface ToastItem {
  * inside handlers, effects and mutation callbacks.
  *
  * What is *not* here: the project, language, platform and selected
- * screenshot. Those live in the URL — `useSelection()` resolves them — and
- * the actions below take the language and platform they act on as an
- * argument rather than reading a selection back out of the store.
+ * screenshot. Those live in the URL — `useSelection()` resolves them — so
+ * the actions below take the language and platform they act on.
  */
 export interface AppState {
   // ── Project & config ─────────────────────────────────────────────

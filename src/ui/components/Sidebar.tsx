@@ -19,7 +19,7 @@ import { Select } from "@ui/components/inputs/index.ts";
 
 function SidebarInner() {
   const selection = useSelection();
-  const screenshots = useScreenshotActions();
+  const screenshotActions = useScreenshotActions();
 
   // Ids only, shallow-compared: the sidebar renders positional titles and
   // selection state, so editing a layer must not re-render it (#64).
@@ -67,7 +67,7 @@ function SidebarInner() {
         <SortableList
           ids={screenshotIds}
           onMove={(from, to) =>
-            screenshots.reorder(arrayMove(screenshotIds, from, to))}
+            screenshotActions.reorder(arrayMove(screenshotIds, from, to))}
         >
           {screenshotIds.map((id, index) => (
             <SortableRow key={id} id={id}>
@@ -75,8 +75,8 @@ function SidebarInner() {
                 <SidebarItemCard
                   title={`Screenshot ${index + 1}`}
                   isSelected={selection.screenshotId === id}
-                  onSelect={() => screenshots.select(id)}
-                  onDelete={() => screenshots.remove(id)}
+                  onSelect={() => screenshotActions.select(id)}
+                  onDelete={() => screenshotActions.remove(id)}
                   sortable={sortable}
                 />
               )}
@@ -86,7 +86,7 @@ function SidebarInner() {
 
         <button
           type="button"
-          onClick={screenshots.add}
+          onClick={screenshotActions.add}
           className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 transition-colors"
         >
           <i className="fa-solid fa-plus mr-1" /> Add Screenshot
@@ -103,14 +103,14 @@ function SidebarInner() {
                 <SidebarItemCard
                   title="Feature Graphic"
                   isSelected={selection.screenshotId === featureGraphicId}
-                  onSelect={() => screenshots.select(featureGraphicId)}
-                  onDelete={screenshots.removeFeatureGraphic}
+                  onSelect={() => screenshotActions.select(featureGraphicId)}
+                  onDelete={screenshotActions.removeFeatureGraphic}
                 />
               )
               : (
                 <button
                   type="button"
-                  onClick={screenshots.addFeatureGraphic}
+                  onClick={screenshotActions.addFeatureGraphic}
                   className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 transition-colors"
                 >
                   <i className="fa-solid fa-plus mr-1" /> Add Feature Graphic

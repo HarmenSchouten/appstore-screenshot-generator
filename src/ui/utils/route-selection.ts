@@ -119,15 +119,24 @@ export function requestSegments(request: ProjectRequest): RouteSegments {
   return { project: request.projectId, ...(request.tail ?? NO_TAIL) };
 }
 
+/** Everything a path says about one project's own config. */
+export function tailOf(segments: RouteSegments): RouteTail {
+  return {
+    lang: segments.lang,
+    platform: segments.platform,
+    screenshotId: segments.screenshotId,
+  };
+}
+
 /**
  * Resolve the navigational segments against the loaded config.
  *
  * Precedence, in order:
  * - An unknown project, or none, means the loaded one. A known project that
- *   is not the loaded one is a `switchTo` request and takes the tail with it
- *   untouched — those segments belong to that project's config, not this one.
- *   The panels keep rendering the loaded project until it is activated, so
- *   the tail is also resolved here, for as long as that takes.
+ *   is not the loaded one becomes a `switchTo` request, which carries the
+ *   tail away untouched — only that project's config can validate it. The
+ *   same segments are still resolved below, because the panels go on
+ *   rendering the loaded project until the switch lands.
  * - Slot 2 is a language when it names one, otherwise a platform when it
  *   names one — so `/project/ios` reads as the platform it obviously is, and
  *   the rest of the path shifts along with it. A language wins the tie: the
@@ -142,14 +151,7 @@ export function resolveTarget(
   const requested = segments.project;
   const switchTo = requested !== null && requested !== loadedProject &&
       projectIds.includes(requested)
-    ? {
-      projectId: requested,
-      tail: {
-        lang: segments.lang,
-        platform: segments.platform,
-        screenshotId: segments.screenshotId,
-      },
-    }
+    ? { projectId: requested, tail: tailOf(segments) }
     : null;
 
   const promoted = segments.lang !== null &&
@@ -160,6 +162,8 @@ export function resolveTarget(
 
   return {
     project: loadedProject,
+    // The empty code is for a project with no languages at all: `buildPath`
+    // stops at the first empty slot, so its path is just the project.
     lang: lang !== null && languages.includes(lang) ? lang : languages[0] ?? "",
     platform: isPlatform(platform) ? platform : DEFAULT_PLATFORM,
     requestedScreenshotId: screenshotId,
@@ -214,11 +218,18 @@ export function nextSelection(
 }
 
 /**
- * One activate request in flight per project. React StrictMode runs a mount
- * effect twice; the second run must not send a second `activate`.
+ * Guards the one project switch the app may be in the middle of.
+ *
+ * `claim` holds it to a single `activate` request per project — React
+ * StrictMode runs a mount effect twice. `start`/`isLatest` keep a superseded
+ * switch from landing: every call site is its own mutation observer, so a
+ * switch the user has already replaced still runs its success callback, and
+ * hydrating it would leave the store on a project the server no longer has
+ * active — which the next auto-save would write over.
  */
-export function createActivateLatch() {
+export function createSwitchGuard() {
   let pending: string | null = null;
+  let issued = 0;
   return {
     /** False when that project is already being activated. */
     claim(projectId: string): boolean {
@@ -226,8 +237,16 @@ export function createActivateLatch() {
       pending = projectId;
       return true;
     },
-    settle(): void {
-      pending = null;
+    /** Release a claim once its request has settled, however it ended. */
+    settle(projectId: string): void {
+      if (pending === projectId) pending = null;
+    },
+    /** Take a token for a switch that is starting. */
+    start(): number {
+      return ++issued;
+    },
+    isLatest(token: number): boolean {
+      return token === issued;
     },
   };
 }

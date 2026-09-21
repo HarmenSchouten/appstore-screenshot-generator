@@ -3,6 +3,12 @@ import { devtools } from "zustand/middleware";
 import { getDefaultDevicePresetId } from "@device-presets";
 import { DEFAULT_DIMENSIONS } from "@lib";
 import type { Platform } from "@app-types";
+import {
+  type ResolvedRoute,
+  resolveSelection,
+  resolveTarget,
+  type RouteSegments,
+} from "@ui/utils/route-selection.ts";
 import type { Config, Screenshot } from "@ui/types.ts";
 import type { AppState, ToastItem } from "./types.ts";
 import { createScreenshotActions } from "./screenshots.ts";
@@ -130,6 +136,32 @@ export const selectDimensions = (
   state.config.languages?.find((l) => l.language === lang)
     ?.platforms?.[platform]?.dimensions ?? DEFAULT_DIMENSIONS[platform];
 
+export const selectScreenshotIds = (
+  state: AppState,
+  lang: string,
+  platform: Platform,
+): string[] => selectScreenshots(state, lang, platform).map((s) => s.id);
+
+/**
+ * Resolve a path against the loaded config — the one composition of
+ * `resolveTarget` and `resolveSelection`, so the routing hooks and the
+ * project mutations cannot drift on what a path means.
+ */
+export const selectRoute = (
+  state: AppState,
+  segments: RouteSegments,
+): ResolvedRoute => {
+  const target = resolveTarget(segments, {
+    loadedProject: state.currentProject,
+    projectIds: state.projects.map((p) => p.id),
+    languages: state.config.languages?.map((l) => l.language) ?? [],
+  });
+  return resolveSelection(
+    target,
+    selectScreenshotIds(state, target.lang, target.platform),
+  );
+};
+
 /**
  * Nothing is layered over the editor — no modal, picker or menu: the editor
  * shortcuts are live and Escape falls through to the selection.
@@ -137,9 +169,4 @@ export const selectDimensions = (
 export const selectNoOverlayOpen = (state: AppState): boolean =>
   state.openOverlays === 0;
 
-export type {
-  AppState,
-  ModalId,
-  ScreenshotTarget,
-  ToastItem,
-} from "./types.ts";
+export type { AppState, ModalId, ToastItem } from "./types.ts";

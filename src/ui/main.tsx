@@ -44,10 +44,7 @@ function AppShell() {
   return (
     <BrowserRouter>
       <Routes>
-        {
-          /* One splat route: the segments are positional and are parsed and
-            validated in `utils/route-selection.ts`, not by the router */
-        }
+        {/* Positional segments, parsed in `utils/route-selection.ts` */}
         <Route path="*" element={<App />} />
       </Routes>
     </BrowserRouter>

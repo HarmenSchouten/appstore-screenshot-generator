@@ -6,63 +6,57 @@
  * the loaded config (`@ui/utils/route-selection.ts` owns the rules), and the
  * only writes back to the URL are corrections: one that spells out what a
  * path resolved to, and the one `useSwitchProject` makes once a project the
- * URL asked for is loaded.
+ * URL asked for has loaded — or failed to.
  */
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useShallow } from "zustand/react/shallow";
-import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
+import { selectRoute, useAppStore } from "@ui/store/index.ts";
 import {
   buildPath,
-  createActivateLatch,
   nextSelection,
   parseSegments,
-  type ResolvedRoute,
-  resolveSelection,
-  resolveTarget,
   type Selection,
   type SelectionPatch,
+  tailOf,
 } from "@ui/utils/route-selection.ts";
-import { useSwitchProject } from "./projects.ts";
+import { switchGuard, useSwitchProject } from "./projects.ts";
 
 /**
- * Resolve the current path. Every store read is narrow or shallow-compared:
- * subscribing to `config` would re-render every consumer of the selection on
- * each keystroke (#64).
+ * Resolve the current path against the loaded config.
+ *
+ * The subscription yields flat values so that shallow comparison holds an
+ * identity for them: consumers re-render when the route changes, not on
+ * every keystroke into the config it is resolved against (#64).
  */
-function useRoute(): ResolvedRoute {
+function useRoute(): {
+  selection: Selection;
+  canonicalPath: string;
+  /** Project the path asks for that is not the loaded one, if any. */
+  switchTo: string | null;
+} {
   const { pathname } = useLocation();
-  const loadedProject = useAppStore((s) => s.currentProject);
-  const projectIds = useAppStore(
-    useShallow((s) => s.projects.map((p) => p.id)),
-  );
-  const languages = useAppStore(
-    useShallow((s) => s.config.languages?.map((l) => l.language) ?? []),
-  );
+  const segments = useMemo(() => parseSegments(pathname), [pathname]);
 
-  const target = useMemo(
-    () =>
-      resolveTarget(parseSegments(pathname), {
-        loadedProject,
-        projectIds,
-        languages,
+  const { project, lang, platform, canonicalPath, screenshotId, switchTo } =
+    useAppStore(
+      useShallow((s) => {
+        const route = selectRoute(s, segments);
+        return {
+          ...route.selection,
+          canonicalPath: route.canonicalPath,
+          switchTo: route.switchTo?.projectId ?? null,
+        };
       }),
-    [pathname, loadedProject, projectIds, languages],
+    );
+
+  const selection = useMemo(
+    () => ({ project, lang, platform, screenshotId }),
+    [project, lang, platform, screenshotId],
   );
 
-  // The id is validated against the screenshots of the language and platform
-  // the path resolved to, so this subscription has to follow that resolution.
-  const screenshotIds = useAppStore(
-    useShallow((s) =>
-      selectScreenshots(s, target.lang, target.platform).map((x) => x.id)
-    ),
-  );
-
-  return useMemo(
-    () => resolveSelection(target, screenshotIds),
-    [target, screenshotIds],
-  );
+  return { selection, canonicalPath, switchTo };
 }
 
 /** The project, language, platform and screenshot the URL names. */
@@ -78,16 +72,17 @@ export function useSelection(): Selection {
  * walk through every click.
  */
 export function useNavigateSelection() {
-  const selection = useSelection();
+  const { selection, switchTo } = useRoute();
   const navigate = useNavigate();
 
   return useCallback((patch: SelectionPatch) => {
+    // A switch in flight owns the path: it is about to write the project it
+    // is loading, over anything patched onto the one being left.
+    if (switchTo) return;
     const scoped = patch.lang !== undefined || patch.platform !== undefined;
     navigate(buildPath(nextSelection(selection, patch)), { replace: !scoped });
-  }, [selection, navigate]);
+  }, [selection, switchTo, navigate]);
 }
-
-const activateLatch = createActivateLatch();
 
 /**
  * Keep the URL and the loaded project in step — App mounts this once.
@@ -107,14 +102,14 @@ export function useRouteReconciler() {
     if (pathname !== canonicalPath) navigate(canonicalPath, { replace: true });
   }, [pathname, canonicalPath, navigate]);
 
-  // One attempt per URL, hence the path as the only dependency: an activate
-  // answers the URL, so a store change must never start one. React Router
-  // commits a navigation in a transition and the store does not, so the
-  // render right after `useSwitchProject` hydrates sees the new project's
-  // config under the path it is leaving — which reads as a request to go
-  // straight back, and two projects then activate each other forever.
+  // Keyed on the path alone: an activate answers the URL, and a reconciler
+  // that also reacted to the store would leave two projects activating each
+  // other forever — hydrating lands before the navigation that follows it.
   useEffect(() => {
-    if (!switchTo || !activateLatch.claim(switchTo.projectId)) return;
-    switchProject(switchTo, { onSettled: () => activateLatch.settle() });
+    if (!switchTo || !switchGuard.claim(switchTo)) return;
+    switchProject({
+      projectId: switchTo,
+      tail: tailOf(parseSegments(pathname)),
+    });
   }, [pathname]);
 }
