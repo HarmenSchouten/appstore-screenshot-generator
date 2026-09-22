@@ -5,6 +5,7 @@ import {
   DEFAULT_PALETTES,
   GRADIENT_TEMPLATES,
   type GradientParts,
+  matchGradientTemplate,
   parseGradientCSS,
 } from "@lib";
 
@@ -270,4 +271,85 @@ Deno.test("theme templates: which ones the visual editor can take over", () => {
       `${template.id}: ${css}`,
     );
   }
+});
+
+// ── Matching a gradient back to its template ─────────────────────────
+
+Deno.test("matchGradientTemplate: a template's CSS under the default palette", () => {
+  const palette = DEFAULT_PALETTES[0].palette;
+  const template = GRADIENT_TEMPLATES.find((t) => t.id === "primary-dark")!;
+  assertEquals(
+    matchGradientTemplate(
+      applyPaletteToGradient(template.template, palette),
+      palette,
+    ),
+    template,
+  );
+});
+
+Deno.test("matchGradientTemplate: every template round-trips under a palette", () => {
+  const palette = DEFAULT_PALETTES[2].palette;
+  for (const template of GRADIENT_TEMPLATES) {
+    assertEquals(
+      matchGradientTemplate(
+        applyPaletteToGradient(template.template, palette),
+        palette,
+      ),
+      template,
+      template.id,
+    );
+  }
+});
+
+Deno.test("matchGradientTemplate: no match under a different palette", () => {
+  const [a, b] = [DEFAULT_PALETTES[0].palette, DEFAULT_PALETTES[1].palette];
+  for (const template of GRADIENT_TEMPLATES) {
+    assertEquals(
+      matchGradientTemplate(
+        applyPaletteToGradient(template.template, a),
+        b,
+      ),
+      null,
+      template.id,
+    );
+  }
+});
+
+Deno.test("matchGradientTemplate: free-form and empty CSS never match", () => {
+  const palette = DEFAULT_PALETTES[0].palette;
+  assertEquals(
+    matchGradientTemplate(
+      "linear-gradient(45deg, #ff0000, #0000ff)",
+      palette,
+    ),
+    null,
+  );
+  assertEquals(matchGradientTemplate("", palette), null);
+});
+
+Deno.test("matchGradientTemplate: colliding templates resolve to the first", () => {
+  // A palette whose primary and secondary are the same colour makes several
+  // templates render identically; the earliest in GRADIENT_TEMPLATES wins.
+  const palette = {
+    primary: "#a855f7",
+    secondary: "#a855f7",
+    accent: "#ec4899",
+  };
+  assertEquals(
+    matchGradientTemplate(
+      applyPaletteToGradient("{secondary}", palette),
+      palette,
+    )?.id,
+    "solid-primary",
+  );
+  assertEquals(
+    matchGradientTemplate(
+      applyPaletteToGradient(
+        "linear-gradient(135deg, {secondary} 0%, {primary} 100%)",
+        palette,
+      ),
+      palette,
+    )?.id,
+    "primary-secondary",
+  );
 });
