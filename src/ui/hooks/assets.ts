@@ -67,7 +67,7 @@ export function useUploadAssets() {
         // error toast comes from the global mutation cache; keep uploading
       }
     }
-  }, [uploadAsset]);
+  }, [uploadAsset.mutateAsync]);
 
   return { upload, uploading: uploadAsset.isPending };
 }

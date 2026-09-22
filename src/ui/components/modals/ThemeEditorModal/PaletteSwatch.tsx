@@ -5,7 +5,7 @@
 
 import type { ColorPalette } from "@app-types";
 import { cn } from "@ui/utils/cn.ts";
-import { PALETTE_KEYS } from "./PaletteSection.tsx";
+import { PALETTE_KEYS } from "@lib";
 
 /** Only the ends of the strip are rounded. */
 const SWATCH_ROUNDING: Record<keyof ColorPalette, string> = {

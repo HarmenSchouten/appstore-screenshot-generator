@@ -5,11 +5,8 @@
 
 import type { ColorPalette } from "@app-types";
 import { ColorInput } from "@ui/components/inputs/ColorInput.tsx";
-import { DEFAULT_PALETTES } from "@lib";
+import { DEFAULT_PALETTES, PALETTE_KEYS } from "@lib";
 import { PaletteSwatch } from "./PaletteSwatch.tsx";
-
-/** The palette's colours, in the order they are shown everywhere. */
-export const PALETTE_KEYS = ["primary", "secondary", "accent"] as const;
 
 const PALETTE_LABELS: Record<keyof ColorPalette, string> = {
   primary: "Primary",
@@ -51,7 +48,8 @@ export function PaletteSection({ palette, onChange }: PaletteSectionProps) {
               key={preset.name}
               name={preset.name}
               palette={preset.palette}
-              onSelect={() => onChange(preset.palette)}
+              // Copy: the draft is edited in place by key, DEFAULT_PALETTES must stay pristine
+              onSelect={() => onChange({ ...preset.palette })}
             />
           ))}
         </div>

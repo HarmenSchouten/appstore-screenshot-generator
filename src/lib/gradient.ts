@@ -285,6 +285,13 @@ export const GRADIENT_TEMPLATES: GradientTemplate[] = [
   },
 ];
 
+/** The palette's colours in display order — the one place that order is spelled out. */
+export const PALETTE_KEYS = [
+  "primary",
+  "secondary",
+  "accent",
+] as const satisfies readonly (keyof ColorPalette)[];
+
 /**
  * Default color palettes for quick setup
  */

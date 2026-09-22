@@ -68,7 +68,6 @@ export function ThemeEditorModal({ onClose, onSave }: ThemeEditorModalProps) {
   const patch = (updates: Partial<ThemeDraft>) =>
     setDraft((d) => ({ ...d, ...updates }));
 
-  // Generate gradients from palette
   const gradients = GRADIENT_TEMPLATES.map((t) => ({
     id: t.id,
     name: t.name,
