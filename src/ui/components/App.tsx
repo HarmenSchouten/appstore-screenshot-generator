@@ -17,7 +17,7 @@ import { ScreenshotEditor } from "./editors/ScreenshotEditor.tsx";
 import { ProjectModal } from "./modals/ProjectModal.tsx";
 import { GenerateModal } from "./modals/GenerateModal/GenerateModal.tsx";
 import { ThemeEditorModal } from "./modals/ThemeEditorModal/ThemeEditorModal.tsx";
-import { MediaManagerModal } from "./modals/MediaManagerModal.tsx";
+import { MediaManagerModal } from "./modals/MediaManagerModal/MediaManagerModal.tsx";
 import { ShortcutCheatSheetModal } from "./modals/ShortcutCheatSheetModal.tsx";
 import { ToastContainer } from "./ToastContainer.tsx";
 import {
