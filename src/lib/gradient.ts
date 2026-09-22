@@ -10,9 +10,17 @@
  * reproduce with the same rendering, and returns null for everything else so
  * the editor keeps the raw CSS rather than silently rendering something
  * different (#65).
+ *
+ * The theme side lives here too: the gradient templates and preset palettes
+ * the theme editor offers, and `matchGradientTemplate`, which recognises a
+ * gradient the theme editor itself produced.
  */
 
-import type { BackgroundLayerProps } from "@app-types";
+import type {
+  BackgroundLayerProps,
+  ColorPalette,
+  GradientTemplate,
+} from "@app-types";
 
 export type GradientType = NonNullable<BackgroundLayerProps["gradientType"]>;
 
@@ -222,4 +230,128 @@ export function parseGradientCSS(css: string): GradientParts | null {
       direction: DEFAULT_GRADIENT_DIRECTION,
     }
     : null;
+}
+
+// ── Theme templates and palettes ─────────────────────────────────────
+
+/**
+ * Predefined gradient templates - use {primary}, {secondary}, {accent} as placeholders
+ */
+export const GRADIENT_TEMPLATES: GradientTemplate[] = [
+  { id: "solid-primary", name: "Solid Primary", template: "{primary}" },
+  { id: "solid-secondary", name: "Solid Secondary", template: "{secondary}" },
+  {
+    id: "primary-dark",
+    name: "Primary to Dark",
+    template: "linear-gradient(135deg, {primary} 0%, #0a0a0a 100%)",
+  },
+  {
+    id: "primary-secondary",
+    name: "Primary to Secondary",
+    template: "linear-gradient(135deg, {primary} 0%, {secondary} 100%)",
+  },
+  {
+    id: "secondary-primary",
+    name: "Secondary to Primary",
+    template: "linear-gradient(135deg, {secondary} 0%, {primary} 100%)",
+  },
+  {
+    id: "radial-primary",
+    name: "Radial Primary",
+    template: "radial-gradient(circle at 30% 30%, {primary} 0%, #0a0a0a 70%)",
+  },
+  {
+    id: "radial-secondary",
+    name: "Radial Secondary",
+    template: "radial-gradient(circle at 30% 30%, {secondary} 0%, #0a0a0a 70%)",
+  },
+  {
+    id: "mesh-primary",
+    name: "Mesh Primary",
+    template:
+      "linear-gradient(135deg, {primary}22 0%, transparent 50%), linear-gradient(225deg, {secondary}22 0%, transparent 50%), #0a0a0a",
+  },
+  {
+    id: "diagonal-split",
+    name: "Diagonal Split",
+    template:
+      "linear-gradient(135deg, {primary} 0%, {primary} 50%, {secondary} 50%, {secondary} 100%)",
+  },
+  {
+    id: "triple-gradient",
+    name: "Triple Gradient",
+    template:
+      "linear-gradient(135deg, {primary} 0%, {secondary} 50%, {accent} 100%)",
+  },
+];
+
+/** The palette's colours in display order — the one place that order is spelled out. */
+export const PALETTE_KEYS = [
+  "primary",
+  "secondary",
+  "accent",
+] as const satisfies readonly (keyof ColorPalette)[];
+
+/**
+ * Default color palettes for quick setup
+ */
+export const DEFAULT_PALETTES: { name: string; palette: ColorPalette }[] = [
+  {
+    name: "Purple Night",
+    palette: { primary: "#a855f7", secondary: "#6366f1", accent: "#ec4899" },
+  },
+  {
+    name: "Ocean Blue",
+    palette: { primary: "#3b82f6", secondary: "#06b6d4", accent: "#22c55e" },
+  },
+  {
+    name: "Sunset",
+    palette: { primary: "#f97316", secondary: "#ef4444", accent: "#f59e0b" },
+  },
+  {
+    name: "Forest",
+    palette: { primary: "#22c55e", secondary: "#14b8a6", accent: "#84cc16" },
+  },
+  {
+    name: "Rose",
+    palette: { primary: "#ec4899", secondary: "#f43f5e", accent: "#a855f7" },
+  },
+  {
+    name: "Midnight",
+    palette: { primary: "#6366f1", secondary: "#8b5cf6", accent: "#3b82f6" },
+  },
+  {
+    name: "Ember",
+    palette: { primary: "#ef4444", secondary: "#f97316", accent: "#fbbf24" },
+  },
+  {
+    name: "Teal",
+    palette: { primary: "#14b8a6", secondary: "#06b6d4", accent: "#22c55e" },
+  },
+];
+
+/**
+ * Apply palette colors to a gradient template
+ */
+export function applyPaletteToGradient(
+  template: string,
+  palette: ColorPalette,
+): string {
+  return template
+    .replace(/\{primary\}/g, palette.primary)
+    .replace(/\{secondary\}/g, palette.secondary)
+    .replace(/\{accent\}/g, palette.accent);
+}
+
+/** The template whose palette-substituted CSS equals `css` exactly, or null. First match wins. */
+export function matchGradientTemplate(
+  css: string,
+  palette: ColorPalette,
+): GradientTemplate | null {
+  for (const template of GRADIENT_TEMPLATES) {
+    if (applyPaletteToGradient(template.template, palette) === css) {
+      return template;
+    }
+  }
+  return null;
 }
