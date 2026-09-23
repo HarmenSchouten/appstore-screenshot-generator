@@ -17,18 +17,44 @@ export, the server renders every screenshot in the config to an HTML document
 with the **same React components** the editor previews with, screenshots each
 document in headless Chrome at 2× and downsamples the result to a PNG.
 
-```text
- browser                              Deno server (Hono)
-┌──────────────────────────┐         ┌───────────────────────────────┐
-│ src/ui                   │  /api   │ src/server.ts, src/routes     │
-│  store, hooks, editors ──┼────────►│  ServerContext (one project)  │
-│  Preview                 │         │  src/projects.ts ─► projects/ │
-│    │                     │         │  src/generation.ts            │
-│    ▼                     │         │    │                          │
-│ src/renderer-components ◄┼─ same ──┼────┘ renderToStaticMarkup     │
-│  (ScreenshotContent)     │  code   │  src/png-export.ts            │
-└──────────────────────────┘         │    Chrome 2× ─► sharp ─► PNG  │
-                                     └───────────────────────────────┘
+```mermaid
+flowchart TB
+  subgraph ui["Editor in the browser · src/ui"]
+    editors["Editors, top bar, modals"]
+    store[("Zustand store<br/>the config being edited")]
+    hooks["TanStack Query hooks<br/>+ config-persistence"]
+    api["utils/api.ts"]
+    preview["Preview"]
+  end
+
+  subgraph shared["Shared by both sides"]
+    renderer["renderer-components<br/>one component per layer type"]
+    base["types · lib · device-presets"]
+  end
+
+  subgraph server["Deno server · src/server.ts, src/routes"]
+    routes["Route factories"]
+    ctx["ServerContext<br/>the one active project"]
+    generation["generation.ts"]
+    png["png-export.ts<br/>Chrome at 2× → sharp"]
+  end
+
+  disk[("projects/&lt;id&gt;/<br/>config.json · assets/ · output/")]
+
+  editors -- "edits" --> store
+  editors -- "server actions" --> hooks
+  store -- "auto-save" --> hooks
+  hooks --> api
+  store --> preview
+  preview -- "ScreenshotContent" --> renderer
+  renderer --> base
+  api -- "HTTP /api" --> routes
+  routes --> ctx
+  routes -- "export" --> generation
+  generation -- "renderToStaticMarkup" --> renderer
+  generation --> png
+  ctx -- "projects.ts" --> disk
+  png -- "PNGs" --> disk
 ```
 
 ## Codemap
