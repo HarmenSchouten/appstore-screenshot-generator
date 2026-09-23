@@ -84,8 +84,8 @@ size, and downsamples the capture with sharp for crisp text and edges. One
 renderer means the preview and the PNG cannot drift apart.
 
 The editor auto-saves to a small [Hono](https://hono.dev/) API, which owns the
-project files and runs the export. Design notes and decision records live in
-[`docs/`](docs/README.md).
+project files and runs the export. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+maps the code and the rules it relies on.
 
 ## Projects and output
 
