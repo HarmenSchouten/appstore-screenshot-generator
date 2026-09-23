@@ -321,15 +321,3 @@ the assets folder's `file://` URL.
 **The generator owns `output/`.** Each run deletes whatever it will not
 produce and records what it did produce in `manifest.json`. Don't keep other
 files there.
-
-## What used to be here
-
-Earlier versions of `docs/` held seven decision records (001–007) and a
-project history. They were removed for issue #76 because they described proposals
-and past states rather than `main`; the reasoning that still applies is in
-the invariants above. To read them:
-
-```sh
-git log --diff-filter=D --name-only -- docs/
-git show <commit>^:docs/<file>
-```
