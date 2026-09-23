@@ -1,538 +1,203 @@
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  xmlns:xlink="http://www.w3.org/1999/xlink"
-  viewBox="0 0 960 400"
-  width="960"
-  height="400"
-  role="img"
-  aria-labelledby="title desc"
->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 960 400" width="960" height="400" role="img" aria-labelledby="title desc">
   <title id="title">App Store Screenshot Generator</title>
-  <desc id="desc"
-  >Five layers (background, glow, shape, phone frame, text) collapse into one composed screenshot, which is rendered to PNG files for iOS, Android and the Play feature graphic in three languages.</desc>
+  <desc id="desc">Five layers (background, glow, shape, phone frame, text) collapse into one composed screenshot, which is rendered to PNG files for iOS, Android and the Play feature graphic in three languages.</desc>
 
   <style>
-  /* One 10 s loop. The static (non-animated) styles are the end state, so
-     prefers-reduced-motion simply drops the animations. */
-  .plane {
-    transform-box: view-box;
-    transform-origin: 215px 200px;
-    animation: 10s cubic-bezier(0.65, 0, 0.35, 1) infinite both;
-  }
-  .p-bg {
-    animation-name: p-bg;
-  }
-  .p-glow {
-    animation-name: p-glow;
-  }
-  .p-shape {
-    animation-name: p-shape;
-  }
-  .p-phone {
-    animation-name: p-phone;
-  }
-  .p-text {
-    animation-name: p-text;
-  }
-  @keyframes p-bg {
-    0%, 14%, 96%, 100% {
-      transform: translateY(90px) scaleY(0.58) rotate(45deg);
+    /* One 10 s loop. The static (non-animated) styles are the end state, so
+       prefers-reduced-motion simply drops the animations. */
+    .plane {
+      transform-box: view-box;
+      transform-origin: 215px 200px;
+      animation: 10s cubic-bezier(.65, 0, .35, 1) infinite both;
     }
-    26%, 84% {
-      transform: translateY(0) scaleY(1) rotate(0deg);
-    }
-  }
-  @keyframes p-glow {
-    0%, 14%, 96%, 100% {
-      transform: translateY(45px) scaleY(0.58) rotate(45deg);
-    }
-    26%, 84% {
-      transform: translateY(0) scaleY(1) rotate(0deg);
-    }
-  }
-  @keyframes p-shape {
-    0%, 14%, 96%, 100% {
-      transform: translateY(0) scaleY(0.58) rotate(45deg);
-    }
-    26%, 84% {
-      transform: translateY(0) scaleY(1) rotate(0deg);
-    }
-  }
-  @keyframes p-phone {
-    0%, 14%, 96%, 100% {
-      transform: translateY(-45px) scaleY(0.58) rotate(45deg);
-    }
-    26%, 84% {
-      transform: translateY(0) scaleY(1) rotate(0deg);
-    }
-  }
-  @keyframes p-text {
-    0%, 14%, 96%, 100% {
-      transform: translateY(-90px) scaleY(0.58) rotate(45deg);
-    }
-    26%, 84% {
-      transform: translateY(0) scaleY(1) rotate(0deg);
-    }
-  }
+    .p-bg    { animation-name: p-bg; }
+    .p-glow  { animation-name: p-glow; }
+    .p-shape { animation-name: p-shape; }
+    .p-phone { animation-name: p-phone; }
+    .p-text  { animation-name: p-text; }
+    @keyframes p-bg    { 0%, 14%, 96%, 100% { transform: translateY(90px)  scaleY(.58) rotate(45deg); } 26%, 84% { transform: translateY(0) scaleY(1) rotate(0deg); } }
+    @keyframes p-glow  { 0%, 14%, 96%, 100% { transform: translateY(45px)  scaleY(.58) rotate(45deg); } 26%, 84% { transform: translateY(0) scaleY(1) rotate(0deg); } }
+    @keyframes p-shape { 0%, 14%, 96%, 100% { transform: translateY(0)     scaleY(.58) rotate(45deg); } 26%, 84% { transform: translateY(0) scaleY(1) rotate(0deg); } }
+    @keyframes p-phone { 0%, 14%, 96%, 100% { transform: translateY(-45px) scaleY(.58) rotate(45deg); } 26%, 84% { transform: translateY(0) scaleY(1) rotate(0deg); } }
+    @keyframes p-text  { 0%, 14%, 96%, 100% { transform: translateY(-90px) scaleY(.58) rotate(45deg); } 26%, 84% { transform: translateY(0) scaleY(1) rotate(0deg); } }
 
-  /* Plane outlines and labels: only while the stack is exploded */
-  .xp {
-    opacity: 0;
-    animation: xp 10s ease-in-out infinite both;
-  }
-  @keyframes xp {
-    0%, 12% {
-      opacity: 1;
-    }
-    20%, 86% {
-      opacity: 0;
-    }
-    94%, 100% {
-      opacity: 1;
-    }
-  }
+    /* Plane outlines and labels: only while the stack is exploded */
+    .xp { opacity: 0; animation: xp 10s ease-in-out infinite both; }
+    @keyframes xp { 0%, 12% { opacity: 1; } 20%, 86% { opacity: 0; } 94%, 100% { opacity: 1; } }
 
-  .flow {
-    animation: flow 10s ease-in-out infinite both;
-  }
-  @keyframes flow {
-    0%, 26% {
-      opacity: 0;
-    }
-    31%, 82% {
-      opacity: 1;
-    }
-    87%, 100% {
-      opacity: 0;
-    }
-  }
-  .dash {
-    stroke-dasharray: 5 7;
-    animation: dash 0.9s linear infinite;
-  }
-  @keyframes dash {
-    to {
-      stroke-dashoffset: -12;
-    }
-  }
+    .flow { animation: flow 10s ease-in-out infinite both; }
+    @keyframes flow { 0%, 26% { opacity: 0; } 31%, 82% { opacity: 1; } 87%, 100% { opacity: 0; } }
+    .dash { stroke-dasharray: 5 7; animation: dash .9s linear infinite; }
+    @keyframes dash { to { stroke-dashoffset: -12; } }
 
-  .tile {
-    animation: tile 10s cubic-bezier(0.2, 0.8, 0.2, 1) infinite both;
-  }
-  @keyframes tile {
-    0%, 30% {
-      opacity: 0;
-      transform: translateX(-14px);
+    .tile { animation: tile 10s cubic-bezier(.2, .8, .2, 1) infinite both; }
+    @keyframes tile {
+      0%, 30% { opacity: 0; transform: translateX(-14px); }
+      35%, 80% { opacity: 1; transform: translateX(0); }
+      84%, 100% { opacity: 0; transform: translateX(0); }
     }
-    35%, 80% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-    84%, 100% {
-      opacity: 0;
-      transform: translateX(0);
-    }
-  }
-  .d1 {
-    animation-delay: 0.1s;
-  }
-  .d2 {
-    animation-delay: 0.2s;
-  }
-  .d3 {
-    animation-delay: 0.3s;
-  }
-  .d4 {
-    animation-delay: 0.4s;
-  }
-  .d5 {
-    animation-delay: 0.5s;
-  }
-  .d6 {
-    animation-delay: 0.6s;
-  }
-  .d7 {
-    animation-delay: 0.7s;
-  }
-  .d8 {
-    animation-delay: 0.8s;
-  }
+    .d1 { animation-delay: .1s; } .d2 { animation-delay: .2s; }
+    .d3 { animation-delay: .3s; } .d4 { animation-delay: .4s; }
+    .d5 { animation-delay: .5s; } .d6 { animation-delay: .6s; }
+    .d7 { animation-delay: .7s; } .d8 { animation-delay: .8s; }
 
-  @media (prefers-reduced-motion: reduce) {
-    .plane, .xp, .flow, .dash, .tile {
-      animation: none;
+    @media (prefers-reduced-motion: reduce) {
+      .plane, .xp, .flow, .dash, .tile { animation: none; }
     }
-  }
 
-  .label {
-    font: 500 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    fill: #c7d2fe;
-  }
-  .caption {
-    font: 600 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    fill: #e2e8f0;
-  }
-  .size {
-    font: 500 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    fill: #94a3b8;
-  }
-  .lang {
-    font: 700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    fill: #e0e7ff;
-  }
-  .muted {
-    font: 500 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    fill: #94a3b8;
-  }
-  .headline {
-    font: 800 17px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    fill: #fff;
-  }
+    .label { font: 500 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #c7d2fe; }
+    .caption { font: 600 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #e2e8f0; }
+    .size { font: 500 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #94a3b8; }
+    .lang { font: 700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; fill: #e0e7ff; }
+    .muted { font: 500 12px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #94a3b8; }
+    .headline { font: 800 17px -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; fill: #fff; }
   </style>
 
   <defs>
     <linearGradient id="frame-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b1020" />
-      <stop offset="1" stop-color="#171437" />
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#171437"/>
     </linearGradient>
     <radialGradient id="frame-glow" cx=".25" cy=".5" r=".5">
-      <stop offset="0" stop-color="#6366f1" stop-opacity=".22" />
-      <stop offset="1" stop-color="#6366f1" stop-opacity="0" />
+      <stop offset="0" stop-color="#6366f1" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#6366f1" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="theme" x1="0" y1="0" x2=".45" y2="1">
-      <stop offset="0" stop-color="#818cf8" />
-      <stop offset=".5" stop-color="#6366f1" />
-      <stop offset="1" stop-color="#3730a3" />
+      <stop offset="0" stop-color="#818cf8"/>
+      <stop offset=".5" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#3730a3"/>
     </linearGradient>
     <filter id="blur" x="-100%" y="-100%" width="300%" height="300%">
-      <feGaussianBlur stdDeviation="14" />
+      <feGaussianBlur stdDeviation="14"/>
     </filter>
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow
-        dx="0"
-        dy="10"
-        stdDeviation="12"
-        flood-color="#000"
-        flood-opacity=".45"
-      />
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".45"/>
     </filter>
-    <clipPath id="card-clip"><rect
-        width="130"
-        height="280"
-        rx="14"
-      /></clipPath>
-    <clipPath id="android-clip"><rect
-        width="130"
-        height="231"
-        rx="14"
-      /></clipPath>
-    <clipPath id="fg-clip"><rect width="205" height="100" rx="9" /></clipPath>
+    <clipPath id="card-clip"><rect width="130" height="280" rx="14"/></clipPath>
+    <clipPath id="android-clip"><rect width="130" height="231" rx="14"/></clipPath>
+    <clipPath id="fg-clip"><rect width="205" height="100" rx="9"/></clipPath>
 
     <!-- The app inside every phone: a small habit list -->
     <symbol id="app" viewBox="0 0 78 168">
-      <rect width="78" height="168" fill="#f8fafc" />
-      <rect x="8" y="18" width="34" height="5" rx="2.5" fill="#0f172a" />
-      <rect x="8" y="27" width="22" height="3" rx="1.5" fill="#94a3b8" />
+      <rect width="78" height="168" fill="#f8fafc"/>
+      <rect x="8" y="18" width="34" height="5" rx="2.5" fill="#0f172a"/>
+      <rect x="8" y="27" width="22" height="3" rx="1.5" fill="#94a3b8"/>
       <g fill="#fff" stroke="#e2e8f0">
-        <rect x="6" y="38" width="66" height="16" rx="4" />
-        <rect x="6" y="59" width="66" height="16" rx="4" />
-        <rect x="6" y="80" width="66" height="16" rx="4" />
-        <rect x="6" y="101" width="66" height="16" rx="4" />
-        <rect x="6" y="122" width="66" height="16" rx="4" />
+        <rect x="6" y="38" width="66" height="16" rx="4"/>
+        <rect x="6" y="59" width="66" height="16" rx="4"/>
+        <rect x="6" y="80" width="66" height="16" rx="4"/>
+        <rect x="6" y="101" width="66" height="16" rx="4"/>
+        <rect x="6" y="122" width="66" height="16" rx="4"/>
       </g>
-      <circle cx="15" cy="46" r="4" fill="#22c55e" />
-      <circle cx="15" cy="67" r="4" fill="#22c55e" />
-      <circle
-        cx="15"
-        cy="88"
-        r="3.4"
-        fill="none"
-        stroke="#cbd5e1"
-        stroke-width="1.2"
-      />
-      <circle cx="15" cy="109" r="4" fill="#6366f1" />
-      <circle
-        cx="15"
-        cy="130"
-        r="3.4"
-        fill="none"
-        stroke="#cbd5e1"
-        stroke-width="1.2"
-      />
+      <circle cx="15" cy="46" r="4" fill="#22c55e"/>
+      <circle cx="15" cy="67" r="4" fill="#22c55e"/>
+      <circle cx="15" cy="88" r="3.4" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
+      <circle cx="15" cy="109" r="4" fill="#6366f1"/>
+      <circle cx="15" cy="130" r="3.4" fill="none" stroke="#cbd5e1" stroke-width="1.2"/>
       <g fill="#334155">
-        <rect x="23" y="44.5" width="30" height="3" rx="1.5" />
-        <rect x="23" y="65.5" width="24" height="3" rx="1.5" />
-        <rect x="23" y="86.5" width="33" height="3" rx="1.5" />
-        <rect x="23" y="107.5" width="27" height="3" rx="1.5" />
-        <rect x="23" y="128.5" width="21" height="3" rx="1.5" />
+        <rect x="23" y="44.5" width="30" height="3" rx="1.5"/>
+        <rect x="23" y="65.5" width="24" height="3" rx="1.5"/>
+        <rect x="23" y="86.5" width="33" height="3" rx="1.5"/>
+        <rect x="23" y="107.5" width="27" height="3" rx="1.5"/>
+        <rect x="23" y="128.5" width="21" height="3" rx="1.5"/>
       </g>
       <g fill="#c7d2fe">
-        <rect x="58" y="44.5" width="9" height="3" rx="1.5" />
-        <rect x="58" y="65.5" width="9" height="3" rx="1.5" />
-        <rect x="58" y="107.5" width="9" height="3" rx="1.5" />
+        <rect x="58" y="44.5" width="9" height="3" rx="1.5"/>
+        <rect x="58" y="65.5" width="9" height="3" rx="1.5"/>
+        <rect x="58" y="107.5" width="9" height="3" rx="1.5"/>
       </g>
-      <rect
-        x="27"
-        y="155"
-        width="24"
-        height="3"
-        rx="1.5"
-        fill="#0f172a"
-        opacity=".8"
-      />
+      <rect x="27" y="155" width="24" height="3" rx="1.5" fill="#0f172a" opacity=".8"/>
     </symbol>
 
     <!-- The four image layers of the composed screenshot, in card space (130 × 280) -->
-    <g id="l-bg"><rect
-        width="130"
-        height="280"
-        rx="14"
-        fill="url(#theme)"
-      /></g>
-    <g id="l-glow" clip-path="url(#card-clip)"><circle
-        cx="96"
-        cy="112"
-        r="34"
-        fill="#f472b6"
-        opacity=".75"
-        filter="url(#blur)"
-      /></g>
+    <g id="l-bg"><rect width="130" height="280" rx="14" fill="url(#theme)"/></g>
+    <g id="l-glow" clip-path="url(#card-clip)"><circle cx="96" cy="112" r="34" fill="#f472b6" opacity=".75" filter="url(#blur)"/></g>
     <g id="l-shape" clip-path="url(#card-clip)">
-      <path
-        d="M116 4 L118.3 11.7 L126 14 L118.3 16.3 L116 24 L113.7 16.3 L106 14 L113.7 11.7 Z"
-        fill="#fde68a"
-      />
+      <path d="M116 4 L118.3 11.7 L126 14 L118.3 16.3 L116 24 L113.7 16.3 L106 14 L113.7 11.7 Z" fill="#fde68a"/>
       <g fill="#e0e7ff" opacity=".55">
-        <circle cx="12" cy="150" r="2" /><circle
-          cx="20"
-          cy="150"
-          r="2"
-        /><circle cx="28" cy="150" r="2" />
-        <circle cx="12" cy="158" r="2" /><circle
-          cx="20"
-          cy="158"
-          r="2"
-        /><circle cx="28" cy="158" r="2" />
-        <circle cx="12" cy="166" r="2" /><circle
-          cx="20"
-          cy="166"
-          r="2"
-        /><circle cx="28" cy="166" r="2" />
+        <circle cx="12" cy="150" r="2"/><circle cx="20" cy="150" r="2"/><circle cx="28" cy="150" r="2"/>
+        <circle cx="12" cy="158" r="2"/><circle cx="20" cy="158" r="2"/><circle cx="28" cy="158" r="2"/>
+        <circle cx="12" cy="166" r="2"/><circle cx="20" cy="166" r="2"/><circle cx="28" cy="166" r="2"/>
       </g>
-      <circle
-        cx="116"
-        cy="206"
-        r="9"
-        fill="none"
-        stroke="#fbcfe8"
-        stroke-width="2.5"
-        opacity=".8"
-      />
+      <circle cx="116" cy="206" r="9" fill="none" stroke="#fbcfe8" stroke-width="2.5" opacity=".8"/>
     </g>
     <g id="l-phone" clip-path="url(#card-clip)">
-      <rect
-        x="22"
-        y="88"
-        width="86"
-        height="176"
-        rx="15"
-        fill="#0f172a"
-        stroke="#475569"
-        stroke-width="1.2"
-      />
-      <svg x="26" y="92" width="78" height="168">
-        <use href="#app" xlink:href="#app" />
-      </svg>
-      <rect x="54" y="97" width="22" height="6" rx="3" fill="#0f172a" />
+      <rect x="22" y="88" width="86" height="176" rx="15" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+      <svg x="26" y="92" width="78" height="168"><use href="#app" xlink:href="#app"/></svg>
+      <rect x="54" y="97" width="22" height="6" rx="3" fill="#0f172a"/>
     </g>
 
     <!-- Output thumbnails: one per store format -->
     <symbol id="shot-ios" viewBox="0 0 130 280">
-      <use href="#l-bg" xlink:href="#l-bg" />
-      <use href="#l-glow" xlink:href="#l-glow" />
-      <use href="#l-shape" xlink:href="#l-shape" />
-      <use href="#l-phone" xlink:href="#l-phone" />
-      <rect x="25" y="30" width="80" height="13" rx="6.5" fill="#fff" />
-      <rect
-        x="37"
-        y="52"
-        width="56"
-        height="13"
-        rx="6.5"
-        fill="#fff"
-        opacity=".85"
-      />
+      <use href="#l-bg" xlink:href="#l-bg"/>
+      <use href="#l-glow" xlink:href="#l-glow"/>
+      <use href="#l-shape" xlink:href="#l-shape"/>
+      <use href="#l-phone" xlink:href="#l-phone"/>
+      <rect x="25" y="30" width="80" height="13" rx="6.5" fill="#fff"/>
+      <rect x="37" y="52" width="56" height="13" rx="6.5" fill="#fff" opacity=".85"/>
     </symbol>
     <symbol id="shot-android" viewBox="0 0 130 231">
       <g clip-path="url(#android-clip)">
-        <rect width="130" height="231" fill="url(#theme)" />
-        <circle
-          cx="30"
-          cy="120"
-          r="30"
-          fill="#f472b6"
-          opacity=".6"
-          filter="url(#blur)"
-        />
-        <path
-          d="M18 16 L21 25 L30 28 L21 31 L18 40 L15 31 L6 28 L15 25 Z"
-          fill="#fde68a"
-        />
-        <rect
-          x="23"
-          y="80"
-          width="84"
-          height="170"
-          rx="12"
-          fill="#0f172a"
-          stroke="#475569"
-          stroke-width="1.2"
-        />
-        <svg x="27" y="84" width="76" height="164">
-          <use href="#app" xlink:href="#app" />
-        </svg>
-        <circle cx="65" cy="92" r="3.2" fill="#0f172a" />
+        <rect width="130" height="231" fill="url(#theme)"/>
+        <circle cx="30" cy="120" r="30" fill="#f472b6" opacity=".6" filter="url(#blur)"/>
+        <path d="M18 16 L21 25 L30 28 L21 31 L18 40 L15 31 L6 28 L15 25 Z" fill="#fde68a"/>
+        <rect x="23" y="80" width="84" height="170" rx="12" fill="#0f172a" stroke="#475569" stroke-width="1.2"/>
+        <svg x="27" y="84" width="76" height="164"><use href="#app" xlink:href="#app"/></svg>
+        <circle cx="65" cy="92" r="3.2" fill="#0f172a"/>
       </g>
-      <rect x="25" y="28" width="80" height="13" rx="6.5" fill="#fff" />
-      <rect
-        x="37"
-        y="49"
-        width="56"
-        height="13"
-        rx="6.5"
-        fill="#fff"
-        opacity=".85"
-      />
+      <rect x="25" y="28" width="80" height="13" rx="6.5" fill="#fff"/>
+      <rect x="37" y="49" width="56" height="13" rx="6.5" fill="#fff" opacity=".85"/>
     </symbol>
     <symbol id="shot-fg" viewBox="0 0 205 100">
       <g clip-path="url(#fg-clip)">
-        <rect width="205" height="100" fill="url(#theme)" />
-        <circle
-          cx="160"
-          cy="46"
-          r="30"
-          fill="#f472b6"
-          opacity=".7"
-          filter="url(#blur)"
-        />
-        <path
-          d="M112 14 L114.5 21.5 L122 24 L114.5 26.5 L112 34 L109.5 26.5 L102 24 L109.5 21.5 Z"
-          fill="#fde68a"
-        />
+        <rect width="205" height="100" fill="url(#theme)"/>
+        <circle cx="160" cy="46" r="30" fill="#f472b6" opacity=".7" filter="url(#blur)"/>
+        <path d="M112 14 L114.5 21.5 L122 24 L114.5 26.5 L112 34 L109.5 26.5 L102 24 L109.5 21.5 Z" fill="#fde68a"/>
         <g transform="rotate(7 160 60)">
-          <rect
-            x="136"
-            y="14"
-            width="50"
-            height="104"
-            rx="9"
-            fill="#0f172a"
-            stroke="#475569"
-            stroke-width="1"
-          />
-          <svg x="138.5" y="16.5" width="45" height="99">
-            <use href="#app" xlink:href="#app" />
-          </svg>
-          <rect x="154" y="19" width="14" height="4" rx="2" fill="#0f172a" />
+          <rect x="136" y="14" width="50" height="104" rx="9" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+          <svg x="138.5" y="16.5" width="45" height="99"><use href="#app" xlink:href="#app"/></svg>
+          <rect x="154" y="19" width="14" height="4" rx="2" fill="#0f172a"/>
         </g>
       </g>
-      <rect x="16" y="32" width="78" height="11" rx="5.5" fill="#fff" />
-      <rect
-        x="16"
-        y="49"
-        width="58"
-        height="11"
-        rx="5.5"
-        fill="#fff"
-        opacity=".85"
-      />
-      <rect x="16" y="68" width="34" height="9" rx="4.5" fill="#fde68a" />
+      <rect x="16" y="32" width="78" height="11" rx="5.5" fill="#fff"/>
+      <rect x="16" y="49" width="58" height="11" rx="5.5" fill="#fff" opacity=".85"/>
+      <rect x="16" y="68" width="34" height="9" rx="4.5" fill="#fde68a"/>
     </symbol>
   </defs>
 
   <!-- Frame -->
-  <rect width="960" height="400" rx="20" fill="url(#frame-bg)" />
-  <rect width="960" height="400" rx="20" fill="url(#frame-glow)" />
-  <rect
-    x=".5"
-    y=".5"
-    width="959"
-    height="399"
-    rx="19.5"
-    fill="none"
-    stroke="#fff"
-    stroke-opacity=".08"
-  />
+  <rect width="960" height="400" rx="20" fill="url(#frame-bg)"/>
+  <rect width="960" height="400" rx="20" fill="url(#frame-glow)"/>
+  <rect x=".5" y=".5" width="959" height="399" rx="19.5" fill="none" stroke="#fff" stroke-opacity=".08"/>
 
   <!-- Layer stack: exploded planes that collapse into one screenshot -->
   <g class="plane p-bg">
     <g transform="translate(150 60)">
-      <use href="#l-bg" xlink:href="#l-bg" filter="url(#shadow)" />
+      <use href="#l-bg" xlink:href="#l-bg" filter="url(#shadow)"/>
     </g>
   </g>
   <g class="plane p-glow">
     <g transform="translate(150 60)">
-      <rect
-        class="xp"
-        width="130"
-        height="280"
-        rx="14"
-        fill="#fff"
-        fill-opacity=".04"
-        stroke="#c7d2fe"
-        stroke-opacity=".45"
-        stroke-dasharray="4 4"
-      />
-      <use href="#l-glow" xlink:href="#l-glow" />
+      <rect class="xp" width="130" height="280" rx="14" fill="#fff" fill-opacity=".04" stroke="#c7d2fe" stroke-opacity=".45" stroke-dasharray="4 4"/>
+      <use href="#l-glow" xlink:href="#l-glow"/>
     </g>
   </g>
   <g class="plane p-shape">
     <g transform="translate(150 60)">
-      <rect
-        class="xp"
-        width="130"
-        height="280"
-        rx="14"
-        fill="#fff"
-        fill-opacity=".04"
-        stroke="#c7d2fe"
-        stroke-opacity=".45"
-        stroke-dasharray="4 4"
-      />
-      <use href="#l-shape" xlink:href="#l-shape" />
+      <rect class="xp" width="130" height="280" rx="14" fill="#fff" fill-opacity=".04" stroke="#c7d2fe" stroke-opacity=".45" stroke-dasharray="4 4"/>
+      <use href="#l-shape" xlink:href="#l-shape"/>
     </g>
   </g>
   <g class="plane p-phone">
     <g transform="translate(150 60)">
-      <rect
-        class="xp"
-        width="130"
-        height="280"
-        rx="14"
-        fill="#fff"
-        fill-opacity=".04"
-        stroke="#c7d2fe"
-        stroke-opacity=".45"
-        stroke-dasharray="4 4"
-      />
-      <use href="#l-phone" xlink:href="#l-phone" />
+      <rect class="xp" width="130" height="280" rx="14" fill="#fff" fill-opacity=".04" stroke="#c7d2fe" stroke-opacity=".45" stroke-dasharray="4 4"/>
+      <use href="#l-phone" xlink:href="#l-phone"/>
     </g>
   </g>
   <g class="plane p-text">
     <g transform="translate(150 60)">
-      <rect
-        class="xp"
-        width="130"
-        height="280"
-        rx="14"
-        fill="#fff"
-        fill-opacity=".04"
-        stroke="#c7d2fe"
-        stroke-opacity=".45"
-        stroke-dasharray="4 4"
-      />
-      <text class="headline" x="65" y="44" text-anchor="middle"
-      >Plan less.</text>
+      <rect class="xp" width="130" height="280" rx="14" fill="#fff" fill-opacity=".04" stroke="#c7d2fe" stroke-opacity=".45" stroke-dasharray="4 4"/>
+      <text class="headline" x="65" y="44" text-anchor="middle">Plan less.</text>
       <text class="headline" x="65" y="66" text-anchor="middle">Do more.</text>
     </g>
   </g>
@@ -540,11 +205,11 @@
   <!-- Layer names, at each plane's right-hand corner -->
   <g class="xp">
     <g fill="#818cf8">
-      <circle cx="362" cy="79" r="2.5" />
-      <circle cx="362" cy="124" r="2.5" />
-      <circle cx="362" cy="169" r="2.5" />
-      <circle cx="362" cy="214" r="2.5" />
-      <circle cx="362" cy="259" r="2.5" />
+      <circle cx="362" cy="79" r="2.5"/>
+      <circle cx="362" cy="124" r="2.5"/>
+      <circle cx="362" cy="169" r="2.5"/>
+      <circle cx="362" cy="214" r="2.5"/>
+      <circle cx="362" cy="259" r="2.5"/>
     </g>
     <text class="label" x="374" y="83">text</text>
     <text class="label" x="374" y="128">phone-frame</text>
@@ -555,18 +220,10 @@
 
   <!-- Render step -->
   <g class="flow">
-    <path
-      class="dash"
-      d="M298 200 H500"
-      fill="none"
-      stroke="#818cf8"
-      stroke-width="2"
-      stroke-linecap="round"
-    />
-    <path d="M498 193 L510 200 L498 207 Z" fill="#818cf8" />
+    <path class="dash" d="M298 200 H500" fill="none" stroke="#818cf8" stroke-width="2" stroke-linecap="round"/>
+    <path d="M498 193 L510 200 L498 207 Z" fill="#818cf8"/>
     <text class="muted" x="404" y="186" text-anchor="middle">React → HTML</text>
-    <text class="muted" x="404" y="222" text-anchor="middle"
-    >headless Chrome → PNG</text>
+    <text class="muted" x="404" y="222" text-anchor="middle">headless Chrome → PNG</text>
   </g>
 
   <!-- Outputs: every language × store format -->
@@ -575,101 +232,28 @@
     <text class="size" x="611.5" y="38" text-anchor="middle">1242×2688</text>
     <text class="caption" x="688" y="24" text-anchor="middle">Android</text>
     <text class="size" x="688" y="38" text-anchor="middle">1080×1920</text>
-    <text class="caption" x="816" y="24" text-anchor="middle"
-    >Play feature graphic</text>
+    <text class="caption" x="816" y="24" text-anchor="middle">Play feature graphic</text>
     <text class="size" x="816" y="38" text-anchor="middle">1024×500</text>
   </g>
 
   <g>
-    <rect x="547" y="86" width="30" height="18" rx="9" fill="#312e81" />
+    <rect x="547" y="86" width="30" height="18" rx="9" fill="#312e81"/>
     <text class="lang" x="562" y="99" text-anchor="middle">EN</text>
-    <rect x="547" y="200" width="30" height="18" rx="9" fill="#312e81" />
+    <rect x="547" y="200" width="30" height="18" rx="9" fill="#312e81"/>
     <text class="lang" x="562" y="213" text-anchor="middle">DE</text>
-    <rect x="547" y="314" width="30" height="18" rx="9" fill="#312e81" />
+    <rect x="547" y="314" width="30" height="18" rx="9" fill="#312e81"/>
     <text class="lang" x="562" y="327" text-anchor="middle">JA</text>
   </g>
 
-  <use
-    class="tile"
-    href="#shot-ios"
-    xlink:href="#shot-ios"
-    x="590"
-    y="49"
-    width="43"
-    height="92"
-  />
-  <use
-    class="tile d1"
-    href="#shot-android"
-    xlink:href="#shot-android"
-    x="662"
-    y="49"
-    width="52"
-    height="92"
-  />
-  <use
-    class="tile d2"
-    href="#shot-fg"
-    xlink:href="#shot-fg"
-    x="734"
-    y="55"
-    width="164"
-    height="80"
-  />
+  <use class="tile" href="#shot-ios" xlink:href="#shot-ios" x="590" y="49" width="43" height="92"/>
+  <use class="tile d1" href="#shot-android" xlink:href="#shot-android" x="662" y="49" width="52" height="92"/>
+  <use class="tile d2" href="#shot-fg" xlink:href="#shot-fg" x="734" y="55" width="164" height="80"/>
 
-  <use
-    class="tile d3"
-    href="#shot-ios"
-    xlink:href="#shot-ios"
-    x="590"
-    y="163"
-    width="43"
-    height="92"
-  />
-  <use
-    class="tile d4"
-    href="#shot-android"
-    xlink:href="#shot-android"
-    x="662"
-    y="163"
-    width="52"
-    height="92"
-  />
-  <use
-    class="tile d5"
-    href="#shot-fg"
-    xlink:href="#shot-fg"
-    x="734"
-    y="169"
-    width="164"
-    height="80"
-  />
+  <use class="tile d3" href="#shot-ios" xlink:href="#shot-ios" x="590" y="163" width="43" height="92"/>
+  <use class="tile d4" href="#shot-android" xlink:href="#shot-android" x="662" y="163" width="52" height="92"/>
+  <use class="tile d5" href="#shot-fg" xlink:href="#shot-fg" x="734" y="169" width="164" height="80"/>
 
-  <use
-    class="tile d6"
-    href="#shot-ios"
-    xlink:href="#shot-ios"
-    x="590"
-    y="277"
-    width="43"
-    height="92"
-  />
-  <use
-    class="tile d7"
-    href="#shot-android"
-    xlink:href="#shot-android"
-    x="662"
-    y="277"
-    width="52"
-    height="92"
-  />
-  <use
-    class="tile d8"
-    href="#shot-fg"
-    xlink:href="#shot-fg"
-    x="734"
-    y="283"
-    width="164"
-    height="80"
-  />
+  <use class="tile d6" href="#shot-ios" xlink:href="#shot-ios" x="590" y="277" width="43" height="92"/>
+  <use class="tile d7" href="#shot-android" xlink:href="#shot-android" x="662" y="277" width="52" height="92"/>
+  <use class="tile d8" href="#shot-fg" xlink:href="#shot-fg" x="734" y="283" width="164" height="80"/>
 </svg>
