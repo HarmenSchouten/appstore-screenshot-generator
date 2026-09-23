@@ -20,7 +20,13 @@
     "exclude": ["dist/", "node_modules/"]
   },
   "fmt": {
-    "exclude": ["dist/", "node_modules/", "**/*.md", ".github/**/*.md"]
+    "exclude": [
+      "dist/",
+      "node_modules/",
+      "**/*.md",
+      ".github/**/*.md",
+      "**/*.svg"
+    ]
   },
   "exclude": ["dist/", "node_modules/"],
   "imports": {
