@@ -17,26 +17,27 @@ and images you can back up or put in git.
 
 ## Features
 
-- **Layers** — background, text, phone frame, image, glow and 20 decorative
-  shapes (lines, arrows, stars, blobs, dot patterns, …). Position, rotate,
-  fade and drag to reorder.
-- **Device frames** — iPhone 15 Pro / Pro Max, iPhone 17 Pro / Pro Max,
+- **Layers.** Background, text, phone frame, image, glow and 20 decorative
+  shapes (lines, arrows, stars, blobs, dot patterns and more). Position,
+  rotate, fade and drag to reorder.
+- **Device frames.** iPhone 15 Pro / Pro Max, iPhone 17 Pro / Pro Max,
   Pixel 9 Pro, Galaxy S24 Ultra, OnePlus 13, and a generic frame per
   platform. Each platform has a default device that frames inherit.
-- **Store formats** — iOS screenshots, Android screenshots and the Google
+- **Store formats.** iOS screenshots, Android screenshots and the Google
   Play feature graphic, each at a size the store accepts
   ([below](#store-sizes)).
-- **Languages** — 34 store languages. A new language can start as a copy of
+- **Languages.** 34 store languages. A new language can start as a copy of
   the current one, and a platform's screenshots can be copied to the other,
   so localizing is editing text rather than rebuilding layouts.
-- **Theme** — gradient templates, a colour palette and any Google Font,
+- **Theme.** Gradient templates, a colour palette and any Google Font,
   shared by every screenshot in the project.
-- **Export** — one run renders every language × platform, streams progress,
+- **Export.** One run renders every language × platform, streams progress,
   can be cancelled, and reports failures per screenshot with the reason.
-- **Projects** — several projects side by side; rename, duplicate, delete.
-  Every screenshot has its own URL
+- **Projects.** Keep several side by side, and rename, duplicate or delete
+  them. Every screenshot has its own URL
   (`/<project>/<lang>/<platform>/<screenshot-id>`).
-- **Keyboard** — shortcuts for most actions; press <kbd>?</kbd> for the list.
+- **Keyboard.** Most actions have a shortcut; press <kbd>?</kbd> for the
+  list.
 
 ## Quick start
 
@@ -119,8 +120,8 @@ projects/
 
 | Format | Exported at | What the store asks for |
 | --- | --- | --- |
-| iOS screenshot | 1242 × 2688 | Apple's 6.5" size. Apple lists 6.9" (1260 × 2736, 1290 × 2796 or 1320 × 2868) first; without 6.9" uploads, App Store Connect scales the 6.5" set. 1–10 per listing. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
-| Android screenshot | 1080 × 1920 | 9:16, each side 320–3840 px. At least 2 to publish; at least 4 at ≥ 1080 px to be eligible for larger placements. [Google Play specs](https://support.google.com/googleplay/android-developer/answer/9866151) |
+| iOS screenshot | 1242 × 2688 | Apple's 6.5" size. Apple lists 6.9" (1260 × 2736, 1290 × 2796 or 1320 × 2868) first; without 6.9" uploads, App Store Connect scales the 6.5" set. 1 to 10 per listing. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
+| Android screenshot | 1080 × 1920 | 9:16, each side 320 to 3840 px. At least 2 to publish; at least 4 at ≥ 1080 px to be eligible for larger placements. [Google Play specs](https://support.google.com/googleplay/android-developer/answer/9866151) |
 | Play feature graphic | 1024 × 500 | Fixed size, required to publish. |
 
 Both stores reject images with an alpha channel; exports are opaque PNGs.
@@ -136,7 +137,7 @@ feature graphic is always 1024 × 500.
 | `deno task dev` | API on :3000 plus the Vite dev server with hot reload on <http://localhost:5173> |
 | `deno task start` | Build the UI once and serve it together with the API on :3000 |
 | `deno task test` | Unit and route tests |
-| `deno task verify` | Format check, lint, type-check, tests and UI build — what CI runs |
+| `deno task verify` | Format check, lint, type-check, tests and UI build, the same steps CI runs |
 
 Set `PORT` to move the API (and, in `start` mode, the UI) off 3000; in dev
 mode Vite proxies to the same port.
@@ -146,7 +147,7 @@ mode Vite proxies to the same port.
 | `src/server.ts`, `src/routes/` | Hono API: projects, config, assets, generation |
 | `src/generation.ts`, `src/png-export.ts` | Export pipeline and the Chrome → PNG step |
 | `src/renderer-components/` | Layer components shared by preview and export |
-| `src/device-presets/` | Device frames — one object literal per device |
+| `src/device-presets/` | Device frames, one object literal per device |
 | `src/types/`, `src/lib/` | Shared types, store sizes, gradient and layer helpers |
 | `src/ui/` | The editor: React, Zustand, TanStack Query, Tailwind |
 
