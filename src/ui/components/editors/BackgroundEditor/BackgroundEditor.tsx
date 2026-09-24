@@ -18,7 +18,7 @@ import {
 } from "@lib";
 import { useAppStore } from "@ui/store/index.ts";
 import { SegmentedControl } from "@ui/components/inputs/index.ts";
-import { OpacitySlider } from "../PositionControls.tsx";
+import { OpacitySlider } from "@ui/components/editors/PositionControls.tsx";
 import { ColorStopList } from "./ColorStopList.tsx";
 import { DirectionPicker } from "./DirectionPicker.tsx";
 import { GradientCSSField } from "./GradientCSSField.tsx";
