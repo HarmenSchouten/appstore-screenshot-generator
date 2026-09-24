@@ -219,7 +219,10 @@ Deno owns the dependencies: `package.json` is the npm manifest, `deno.lock`
 the only lockfile, and tasks call tools from `node_modules/` through Deno.
 Node is not needed. Import aliases are declared once, in `deno.json`
 `imports`; `vite.config.ts` derives the UI build's aliases from it. There is
-no `tsconfig.json`.
+no `tsconfig.json`. An import that leaves its own directory uses an alias,
+never `../`. Tests sit next to the code they cover as `*_test.ts` and run
+under `deno test`. There is no browser or React test harness, so editor logic
+worth testing goes in a plain `.ts` module rather than a component.
 
 ## Invariants
 

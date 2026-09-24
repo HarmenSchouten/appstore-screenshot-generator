@@ -6,7 +6,7 @@ body:
     id: summary
     attributes:
       label: Summary
-      description: What happened and what did you expect?
+      description: What happened, and what did you expect to happen?
     validations:
       required: true
 
@@ -14,11 +14,22 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce
-      description: Provide exact steps
+      description: The exact steps, starting from a running app
       placeholder: |
-        1. Run ...
-        2. Open ...
-        3. Click ...
+        1. Open ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How do you run the app?
+      options:
+        - deno task start
+        - deno task dev
+        - Something else (say which in the summary)
     validations:
       required: true
 
@@ -26,11 +37,23 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: OS, Node version, Deno version
-      placeholder: Windows 11, Node 20, Deno 2.x
+      description: >-
+        Your OS, the output of `deno --version` (the first line is enough), the
+        browser you edit in, and the Chrome used for export if it isn't the
+        default one
+      placeholder: Windows 11, deno 2.7.7, Firefox 142, Chrome 141
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The release you downloaded, or the output of `git rev-parse --short HEAD`
+      placeholder: v2.4.0 or 96473fe
 
   - type: textarea
     id: logs
     attributes:
-      label: Relevant logs or screenshots
-      description: Paste error output or screenshots
+      label: Logs or screenshots
+      description: Terminal output from the server, errors from the browser console, or screenshots

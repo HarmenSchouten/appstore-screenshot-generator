@@ -1,61 +1,119 @@
 # Contributing
 
-Thanks for contributing.
+Thanks for helping out. This is a small project, so small, focused pull
+requests are the easiest to review and merge.
 
 ## Setup
 
-1. Install Deno 2.x (Node.js is not required).
-2. Install dependencies:
-   - deno install
-3. Start development:
-   - deno task dev
-4. Open http://localhost:5173.
+You need [Deno 2](https://docs.deno.com/runtime/getting_started/installation/)
+and Google Chrome or Chromium (export drives Chrome to take the PNGs). Node.js
+is not required.
 
-## Verify before opening a PR
+```sh
+deno install
+deno task dev
+```
 
-Run:
+`deno task dev` runs the API on port 3000 and the Vite dev server with hot
+reload on <http://localhost:5173>. Open the second one.
 
-- deno task verify
+On a fresh clone the very first `deno task dev` can leave the editor blank
+with a `TsconfigCache` error in the log
+([#138](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/138)).
+Stop it and start it again; it works from the second run on. The
+[README](README.md#troubleshooting) covers the other common problems, such as
+Chrome not being found or port 3000 being taken.
 
-This runs:
+## How the code is organised
 
-- deno fmt --check
-- deno lint
-- deno check src/server.ts src/ui/main.tsx (server + UI graphs — the only type-check step; `tsc` is not used)
-- vite build (`deno task build`)
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) describes the layout of the
+code, the boundaries between the server and the editor, and the rules the
+code keeps (import aliases, where state lives, one renderer for preview and
+export, and so on). Please read it before a larger change. If your change
+breaks one of those rules on purpose, update the document in the same pull
+request and say why in the description.
+
+## Checks
+
+Run this before you open a pull request:
+
+```sh
+deno task verify
+```
+
+It runs the same steps as CI, in order:
+
+1. `deno fmt --check` for formatting (run `deno fmt` to fix it)
+2. `deno lint`
+3. `deno task check`, which type-checks the server, the editor and
+   `vite.config.ts`
+4. `deno task test`, the unit and route tests
+5. `deno task build`, the production build of the editor
+
+CI installs the latest Deno 2 release. If formatting passes on your machine
+but fails in CI, run `deno upgrade` and try again.
+
+## Tests
+
+Tests sit next to the code they cover as `*_test.ts` files, use `@std/assert`,
+and run with `deno task test`. `src/test-helpers.ts` has what most tests need:
+a temporary projects directory (`withTempProjectsDir`), an app with the real
+error handlers for route tests (`makeRouteApp`), and sample screenshots.
+
+Where it's practical, a bug fix should come with a test that fails without
+it. There is no
+browser test setup, so if you want to test editor logic, put it in a plain
+`.ts` module instead of inside a component.
 
 ## Dependencies
 
-Deno owns dependencies: `package.json` is the single manifest for npm packages, `deno.json` `imports` holds jsr packages and path aliases, and `deno.lock` is the only lockfile (there is no `package-lock.json`; never run `npm install`).
+`package.json` lists the npm packages, `deno.json` holds the JSR packages and
+the import aliases, and `deno.lock` is the only lockfile. Don't run
+`npm install`.
 
-- Add or bump a dependency in `package.json`, run `deno install`, commit `deno.lock` with it. CI runs `deno install --frozen` and fails if the lock is stale.
-- Dependabot PRs bump `package.json` only (it cannot write `deno.lock`). Before merging one: check out the branch, run `deno install`, commit and push `deno.lock`.
-- Tasks invoke Vite and concurrently via `node_modules/<pkg>/…/bin` paths rather than `npm:` specifiers, so running a task never writes `npm:pkg@*` entries into `deno.lock`.
-- Path aliases (`@ui/`, `@app-types`, `@hooks`, …) are declared once in `deno.json` `imports`; `vite.config.ts` derives its aliases from there. There is no `tsconfig.json`. Imports that leave the current directory use an alias, never `../`.
+- To add or update a package, edit `package.json`, run `deno install`, and
+  commit the updated `deno.lock` along with it. CI installs with `--frozen`
+  and fails if the lockfile is out of date.
+- Dependabot pull requests only change `package.json`, because Dependabot
+  can't update `deno.lock`. Before merging one, check out its branch, run
+  `deno install`, and push the updated lockfile.
+- Tasks run tools through their `node_modules/<pkg>/…/bin` path rather than an
+  `npm:` specifier. An `npm:` specifier would add a new entry to `deno.lock`
+  every time the task runs.
 
-## Scope guidance for this repo
+## Pull requests and commit messages
 
-This project is intentionally small. Prefer focused PRs with one clear goal.
+Pull requests are squash-merged, and the PR title becomes the commit message
+on `main`. The changelog and version number are generated from those titles
+by [release-please](https://github.com/googleapis/release-please), so the
+title follows [Conventional Commits](https://www.conventionalcommits.org/):
+`type: short description in the imperative`, for example
+`fix: keep the layer selected after undo`.
 
-Good first contributions:
+Pick the type by what a user of the app would notice:
 
-- Docs clarity
-- UI polish
-- Preset and renderer improvements
-- Bug fixes in routes and generation flow
+| Type       | Use it when                                                     | Changelog section      |
+| ---------- | --------------------------------------------------------------- | ---------------------- |
+| `feat`     | Users can do something they couldn't before                     | Features               |
+| `fix`      | Something users could see was broken, and now it works          | Bug Fixes              |
+| `perf`     | The same behaviour, measurably faster or lighter                | Performance            |
+| `refactor` | The code changes but the behaviour doesn't                      | Refactoring            |
+| `build`    | Dependencies, the lockfile, or build configuration              | Build System           |
+| `ci`       | GitHub Actions workflows                                        | Continuous Integration |
+| `docs`     | Documentation and comments only                                 | not listed             |
+| `test`     | Tests only                                                      | not listed             |
+| `chore`    | Anything else that doesn't touch the app, such as repo settings | not listed             |
 
-## Pull request expectations
+`feat` bumps the minor version and `fix` the patch version. For a breaking
+change, add `!` after the type (`feat!: …`) and explain the break in the
+description.
 
-- Describe what changed and why.
-- Keep unrelated refactors out of the same PR.
-- Update docs when behavior or workflow changes.
+When in doubt between `fix` and `refactor`, ask whether a user could have run
+into the old behaviour. Restructuring code, renaming things or updating
+comments is not a fix, even if the old code bothered you. A title like
+`fix: refactor the store` puts a line under Bug Fixes that describes no bug.
 
-## Conventional Commits
-
-Please use conventional commit messages when making contributions:
-
-- `fix:` for patch releases
-- `feat:` for minor releases
-- `feat!:` or `BREAKING CHANGE:` for major releases
-
-Commit format before merging.
+In the description, say what changed and why, and keep unrelated changes for
+a separate pull request. If the change affects how the app behaves or how
+someone works on it, update the README, this file or `docs/ARCHITECTURE.md`
+as part of it.
