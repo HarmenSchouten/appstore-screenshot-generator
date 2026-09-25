@@ -23,3 +23,8 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Claude Code: personal instructions and settings, and agent worktrees
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/worktrees/

@@ -25,6 +25,7 @@
       "node_modules/",
       "**/*.md",
       ".github/**/*.md",
+      ".claude/**/*.md",
       "**/*.svg"
     ]
   },
