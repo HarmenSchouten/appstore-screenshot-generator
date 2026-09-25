@@ -31,7 +31,9 @@ code, the boundaries between the server and the editor, and the rules the
 code keeps (import aliases, where state lives, one renderer for preview and
 export, and so on). Please read it before a larger change. If your change
 breaks one of those rules on purpose, update the document in the same pull
-request and say why in the description.
+request and say why in the description. The instructions for coding agents,
+[`CLAUDE.md`](CLAUDE.md) and the area rules in `.claude/rules/`, restate some
+of those rules as short directives, so update the matching line there too.
 
 ## Checks
 
