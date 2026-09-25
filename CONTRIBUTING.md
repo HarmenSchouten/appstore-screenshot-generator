@@ -90,7 +90,8 @@ on `main`. The changelog and version number are generated from those titles
 by [release-please](https://github.com/googleapis/release-please), so the
 title follows [Conventional Commits](https://www.conventionalcommits.org/):
 `type: short description in the imperative`, for example
-`fix: keep the layer selected after undo`.
+`fix: keep the layer selected after undo`. Leave `@` out of the title:
+release-please turns `@lib` into a link to the GitHub user `lib`.
 
 Pick the type by what a user of the app would notice:
 
