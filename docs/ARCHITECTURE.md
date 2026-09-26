@@ -200,9 +200,10 @@ sequenceDiagram
     Note over S,P: not dirty, so nothing is saved back
 ```
 
-A project switch loads the new project and hydrates the store without
-flushing first. An edit still waiting belongs to the project it was made in,
-and that project's saver still saves it there.
+A project switch doesn't flush the project it leaves: an edit still waiting
+belongs to that project, and its saver still saves it there. It does flush
+the project it opens, so an edit left waiting from an earlier visit reaches
+the server before that project's config is read back.
 
 The per-screenshot routes under `/api/projects/<id>/config/screenshot/…`
 exist on the server but the editor does not use them.
@@ -307,8 +308,8 @@ it. *Why:* store actions need the config synchronously, and Zustand's
 **Local edits and server loads are different operations.** `updateConfig`
 marks the config dirty and gets saved; `hydrate` marks it clean and does not.
 A mutation that has the server read or rewrite the open project's config calls
-`flushPersist()` first, so the server never works from a stale copy: add or
-delete language, copy platform, and export do. Project rename,
+`flushPersist()` first, so the server never works from a stale copy: opening
+a project, add or delete language, copy platform, and export do. Project rename,
 duplicate and delete do not yet, and renaming the open project doesn't
 update the store's `config.app.name`, so the next auto-save writes the old
 name back (#141).
@@ -316,8 +317,10 @@ name back (#141).
 **Everything inside a project is addressed by its id.** Config, asset and
 export routes live under `/api/projects/:projectId/`, and files are served
 from `/assets/:projectId/` and `/output/:projectId/`. The editor sends the
-id of the project whose config it holds, and ignores a server-side edit that
-answers after it has moved to another project. The server has no active
+id of the project whose config it holds, read once when an action starts, and
+ignores a server-side edit that answers after it has moved to another
+project. An export records its project, so its results keep pointing at that
+project's output. The server has no active
 project; `ServerContext` only remembers the last one opened, for
 `/api/init`. A request for a project that no longer exists is a 404 and
 creates nothing, and the auto-saver does not retry it. *Why:* with one active

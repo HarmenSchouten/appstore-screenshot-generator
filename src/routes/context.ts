@@ -10,7 +10,12 @@
  */
 
 import type { ProjectConfig } from "@app-types";
-import { initializeProjects, loadProject } from "@/projects.ts";
+import { exists } from "@std/fs";
+import {
+  getProjectConfigPath,
+  initializeProjects,
+  loadProject,
+} from "@/projects.ts";
 import { NotFoundError } from "@/errors.ts";
 
 export interface ServerContext {
@@ -22,7 +27,10 @@ export interface ServerContext {
    * from disk, the default project (recreated if needed) takes its place.
    */
   getLastProject(): Promise<{ projectId: string; config: ProjectConfig }>;
-  /** A project's config, loaded on first use. 404s on an unknown id. */
+  /**
+   * A project's config, loaded on first use. 404s on an unknown id, and on a
+   * cached one whose folder has since been deleted outside the app.
+   */
   getConfig(id: string): Promise<ProjectConfig>;
   /**
    * Replace a cached config after a save, or drop it with `null` so the
@@ -37,7 +45,15 @@ export function createServerContext(initialProjectId: string): ServerContext {
   // must share one load, or they would edit two different copies
   const configs = new Map<string, Promise<ProjectConfig>>();
 
-  function getConfig(id: string): Promise<ProjectConfig> {
+  async function getConfig(id: string): Promise<ProjectConfig> {
+    // The cache must not outlive the folder: a project deleted outside the
+    // app would still open, and getLastProject would never fall back
+    if (
+      configs.has(id) &&
+      !(await exists(getProjectConfigPath(id), { isFile: true }))
+    ) {
+      configs.delete(id);
+    }
     let config = configs.get(id);
     if (!config) {
       const loading = loadProject(id);

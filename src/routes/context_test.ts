@@ -115,3 +115,19 @@ Deno.test("a last project deleted behind the context heals to a recreated defaul
     assertEquals(last.config, await loadProject("default"));
   });
 });
+
+Deno.test("a cached project deleted outside the app is a 404, and the last project falls back to default", async () => {
+  await withTempProjectsDir(async (dir) => {
+    await initializeProjects();
+    const other = await createProject("Other");
+    const ctx = createServerContext(other.id);
+    await ctx.getLastProject(); // cached
+
+    // Deleted behind the server's back, not through the API
+    await Deno.remove(`${dir}/${other.id}`, { recursive: true });
+
+    await assertRejects(() => ctx.getConfig(other.id), NotFoundError);
+    const last = await ctx.getLastProject();
+    assertEquals(last.projectId, "default");
+  });
+});

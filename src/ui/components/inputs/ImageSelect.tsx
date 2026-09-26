@@ -6,6 +6,7 @@
 
 import { useRef } from "react";
 import { useUploadAsset } from "@hooks";
+import { useAppStore } from "@ui/store/index.ts";
 import { Select } from "./Select.tsx";
 
 interface ImageSelectProps {
@@ -34,9 +35,13 @@ export function ImageSelect({
     formData.append("file", file);
     formData.append("category", "images");
 
-    upload.mutate(formData, {
+    const projectId = useAppStore.getState().currentProject;
+    upload.mutate({ projectId, formData }, {
       onSuccess: (data) => {
-        onChange(data.path);
+        // The path is only valid inside the project it was uploaded to
+        if (useAppStore.getState().currentProject === projectId) {
+          onChange(data.path);
+        }
       },
     });
 

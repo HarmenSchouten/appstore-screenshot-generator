@@ -18,7 +18,7 @@ import {
   requestSegments,
 } from "@ui/utils/route-selection.ts";
 import { switchGuard } from "@ui/utils/switch-guard.ts";
-import { discardPersist } from "@ui/utils/config-persistence.ts";
+import { discardPersist, flushPersist } from "@ui/utils/config-persistence.ts";
 
 /**
  * Whether the editor still has this project open. A server-side edit that
@@ -40,8 +40,11 @@ interface SwitchProjectRequest extends ProjectRequest {
  * switch that fails puts the path back on the loaded project; the toast
  * comes from the shared `MutationCache` handler.
  *
- * Nothing is flushed first: an edit still waiting to be saved belongs to the
- * project it was made in, and its saver still saves it there (#136).
+ * The project being left is not flushed: an edit still waiting belongs to
+ * that project, and its saver still saves it there. The project being opened
+ * is: an edit to it still waiting from an earlier visit has to reach the
+ * server before its config is read back, or the editor would show the config
+ * without it and the next save would write over it (#136).
  *
  * `switchGuard` decides what a settled switch may still do when others have
  * been started since: only one of them writes the URL.
@@ -52,6 +55,7 @@ export function useSwitchProject() {
 
   return useMutation({
     mutationFn: async ({ projectId }: SwitchProjectRequest) => {
+      await flushPersist(projectId);
       const data = await openProject(projectId);
       return { projectId, data };
     },
@@ -131,10 +135,11 @@ export function useDeleteProject() {
   const switchProject = useSwitchProject();
 
   return useMutation({
-    mutationFn: (projectId: string) => {
-      // An edit still waiting would only be saved into a project that is gone
+    mutationFn: async (projectId: string) => {
+      await deleteProject(projectId);
+      // An edit still waiting would only be saved into a project that is
+      // gone. Dropped after the delete: if it failed, the edit is still wanted
       discardPersist(projectId);
-      return deleteProject(projectId);
     },
     onSuccess: async (_data, projectId) => {
       const { currentProject, projects } = useAppStore.getState();

@@ -4,6 +4,12 @@
  * React Query owns the list: mutations invalidate (or, for rename, patch)
  * the cache, and every reader mounts `useAssets`. Nothing mirrors it into
  * the store (#68).
+ *
+ * Every mutation takes its project in its variables, read once when the
+ * action starts. React Query hands a running mutation the options of the
+ * latest render, so a project read at render time would follow a switch
+ * made mid-request and send the rest of an upload batch, or a rename's
+ * rollback, to the next project (#136).
  */
 
 import { useCallback } from "react";
@@ -32,11 +38,13 @@ export function useAssets(): Assets {
 
 export function useUploadAsset() {
   const queryClient = useQueryClient();
-  const projectId = useAppStore((s) => s.currentProject);
 
   return useMutation({
-    mutationFn: (formData: FormData) => uploadAsset(projectId, formData),
-    onSuccess: () => {
+    mutationFn: ({ projectId, formData }: {
+      projectId: string;
+      formData: FormData;
+    }) => uploadAsset(projectId, formData),
+    onSuccess: (_data, { projectId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.assets.list(projectId),
       });
@@ -45,7 +53,8 @@ export function useUploadAsset() {
 }
 
 /**
- * Upload several files, one request each.
+ * Upload several files, one request each, all into the project that was
+ * open when the batch started.
  *
  * Deliberately not a second `useMutation` wrapping the batch: the global
  * MutationCache `onError` would fire once for the whole batch, so a failed
@@ -56,13 +65,14 @@ export function useUploadAssets() {
   const uploadAsset = useUploadAsset();
 
   const upload = useCallback(async (files: File[]) => {
+    const projectId = useAppStore.getState().currentProject;
     for (const file of files) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("category", "images");
 
       try {
-        await uploadAsset.mutateAsync(formData);
+        await uploadAsset.mutateAsync({ projectId, formData });
         useAppStore.getState().addToast({
           type: "success",
           message: `Uploaded ${file.name}`,
@@ -78,13 +88,15 @@ export function useUploadAssets() {
 
 export function useRenameAsset() {
   const queryClient = useQueryClient();
-  const projectId = useAppStore((s) => s.currentProject);
-  const queryKey = queryKeys.assets.list(projectId);
 
   return useMutation({
-    mutationFn: ({ oldPath, newName }: { oldPath: string; newName: string }) =>
-      renameAsset(projectId, oldPath, newName),
-    onMutate: async ({ oldPath, newName }) => {
+    mutationFn: ({ projectId, oldPath, newName }: {
+      projectId: string;
+      oldPath: string;
+      newName: string;
+    }) => renameAsset(projectId, oldPath, newName),
+    onMutate: async ({ projectId, oldPath, newName }) => {
+      const queryKey = queryKeys.assets.list(projectId);
       await queryClient.cancelQueries({ queryKey });
 
       const previous = queryClient.getQueryData<Assets>(queryKey);
@@ -107,24 +119,29 @@ export function useRenameAsset() {
 
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onError: (_err, { projectId }, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKey, context.previous);
+        queryClient.setQueryData(
+          queryKeys.assets.list(projectId),
+          context.previous,
+        );
       }
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
+    onSettled: (_data, _err, { projectId }) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assets.list(projectId),
+      });
     },
   });
 }
 
 export function useDeleteAsset() {
   const queryClient = useQueryClient();
-  const projectId = useAppStore((s) => s.currentProject);
 
   return useMutation({
-    mutationFn: (path: string) => deleteAsset(projectId, path),
-    onSuccess: () => {
+    mutationFn: ({ projectId, path }: { projectId: string; path: string }) =>
+      deleteAsset(projectId, path),
+    onSuccess: (_data, { projectId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.assets.list(projectId),
       });

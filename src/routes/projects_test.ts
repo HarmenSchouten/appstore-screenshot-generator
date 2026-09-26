@@ -258,3 +258,20 @@ Deno.test("POST /:id/duplicate copies a project; unknown source is a 404", async
     assertFalse(await exists(join(dir, "whatever")));
   });
 });
+
+Deno.test("PUT /:id/open for a cached project deleted outside the app is a 404", async () => {
+  await withTempProjectsDir(async (dir) => {
+    const { app } = await makeTestApp();
+    await createProject("Gone");
+    assertEquals(
+      (await app.request("/api/projects/gone/open", { method: "PUT" })).status,
+      200,
+    );
+
+    await Deno.remove(join(dir, "gone"), { recursive: true });
+
+    const res = await app.request("/api/projects/gone/open", { method: "PUT" });
+    assertEquals(res.status, 404);
+    assertFalse(await exists(join(dir, "gone")));
+  });
+});

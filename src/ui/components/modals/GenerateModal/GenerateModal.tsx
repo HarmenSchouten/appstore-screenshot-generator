@@ -3,8 +3,9 @@
  * with their reasons and the files, grouped by language and platform.
  */
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { GenerateProgress } from "@ui/types.ts";
+import { outputUrl } from "@ui/utils/api.ts";
 import { cancelGeneration, useOpenOutputFolder } from "@hooks";
 import {
   Modal,
@@ -25,7 +26,7 @@ interface GenerateModalProps {
 export function GenerateModal(
   { progress, generating, onClose }: GenerateModalProps,
 ) {
-  const { current, total, item, results, error } = progress;
+  const { projectId, current, total, item, results, error } = progress;
   const percent = total > 0 ? Math.round((current / total) * 100) : 0;
   const isDone = !generating && (results !== null || error !== null);
 
@@ -42,6 +43,11 @@ export function GenerateModal(
   // — collapsing a language, toggling grid/list (#64). A new run brings a
   // new `results` array, which is exactly when the files may have changed.
   const cacheBuster = useMemo(() => Date.now(), [results]);
+  const resultUrl = useCallback(
+    (relativePath: string) =>
+      `${outputUrl(projectId, relativePath)}?t=${cacheBuster}`,
+    [projectId, cacheBuster],
+  );
 
   const openFolder = useOpenOutputFolder();
   const [collapsedLangs, setCollapsedLangs] = useState<Set<string>>(new Set());
@@ -177,7 +183,7 @@ export function GenerateModal(
                 collapsed={collapsedLangs.has(lang)}
                 onToggle={() => toggleLang(lang)}
                 showPreviews={showPreviews}
-                cacheBuster={cacheBuster}
+                resultUrl={resultUrl}
               />
             ))}
           </ModalBody>
@@ -185,7 +191,7 @@ export function GenerateModal(
           <ModalFooter>
             <button
               type="button"
-              onClick={() => openFolder.mutate()}
+              onClick={() => openFolder.mutate(projectId)}
               className="flex-1 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm flex items-center justify-center gap-2 transition-colors"
             >
               <i className="fa-solid fa-folder-open text-xs" /> Open in Explorer

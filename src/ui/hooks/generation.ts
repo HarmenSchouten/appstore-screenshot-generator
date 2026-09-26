@@ -41,7 +41,9 @@ export function useGenerateAll() {
     // onError below reports with context; the global toast would duplicate it
     meta: { suppressErrorToast: true },
     mutationFn: async () => {
-      const { currentProject: projectId } = useAppStore.getState();
+      // Recorded by onMutate, which runs first: the whole run, its progress
+      // and its results belong to the project that was open when it started
+      const { projectId } = useAppStore.getState().generateProgress;
       await flushPersist(projectId);
 
       const controller = new AbortController();
@@ -80,6 +82,7 @@ export function useGenerateAll() {
         activeModal: "generate",
         generating: true,
         generateProgress: {
+          projectId: useAppStore.getState().currentProject,
           current: 0,
           total: 0,
           item: "Starting...",
@@ -128,10 +131,10 @@ export function useGenerateAll() {
   });
 }
 
-/** Opens the output folder in the system file explorer. */
+/** Opens a project's output folder in the system file explorer. */
 export function useOpenOutputFolder() {
   return useMutation({
-    mutationFn: () => openOutputFolder(useAppStore.getState().currentProject),
+    mutationFn: (projectId: string) => openOutputFolder(projectId),
   });
 }
 

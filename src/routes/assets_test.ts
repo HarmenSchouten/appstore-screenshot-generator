@@ -49,7 +49,7 @@ const TRAVERSAL_PATHS = [
   "C:%5CWindows%5Cwin.ini",
 ];
 
-Deno.test("GET /api/assets lists images under assets/", async () => {
+Deno.test("GET assets lists images under assets/", async () => {
   await withTempProjectsDir(async () => {
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
@@ -233,7 +233,7 @@ Deno.test("PATCH /rename confines both the source and the new name", async () =>
   });
 });
 
-Deno.test("DELETE /api/assets removes the file; unknown path is a 404", async () => {
+Deno.test("DELETE assets removes the file; unknown path is a 404", async () => {
   await withTempProjectsDir(async () => {
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
@@ -254,7 +254,7 @@ Deno.test("DELETE /api/assets removes the file; unknown path is a 404", async ()
   });
 });
 
-Deno.test("DELETE /api/assets refuses to reach outside the assets dir", async () => {
+Deno.test("DELETE assets refuses to reach outside the assets dir", async () => {
   await withTempProjectsDir(async () => {
     const { app, projectDir } = await makeTestApp();
 

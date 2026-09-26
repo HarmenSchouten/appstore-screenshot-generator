@@ -70,45 +70,76 @@ export function createConfigAutoSaver(
   }, { isRetryable });
 }
 
-const savers = new Map<string, AutoSaver<Config>>();
-
-function saverFor(projectId: string): AutoSaver<Config> {
-  let saver = savers.get(projectId);
-  if (!saver) {
-    saver = createConfigAutoSaver(projectId);
-    savers.set(projectId, saver);
-  }
-  return saver;
+/** The per-project savers, and the three things the app does with them. */
+export interface ConfigPersistence {
+  /**
+   * Save any pending edit to a project (by default the one being edited)
+   * now. Resolves immediately when nothing is pending; rejects if the save
+   * fails, leaving the retry schedule in place.
+   */
+  flush(projectId?: string): Promise<void>;
+  /** Drop a deleted project's saver, and with it any edit still waiting. */
+  discard(projectId: string): void;
+  /**
+   * Schedule a save for every dirty config change, on the saver of the
+   * project the change was made in. Returns the unsubscribe; a save already
+   * scheduled still runs after it.
+   */
+  start(): () => void;
 }
 
 /**
- * Save any pending edit to a project — by default the one being edited —
- * now. Resolves immediately when nothing is pending; rejects if the save
- * fails, leaving the retry schedule in place.
+ * The saver registry, with an injectable save function so the store
+ * integration is testable without the network. The app uses the one
+ * instance below.
  */
-export function flushPersist(
-  projectId = useAppStore.getState().currentProject,
-): Promise<void> {
-  return savers.get(projectId)?.flush() ?? Promise.resolve();
-}
+export function createConfigPersistence(
+  save = saveConfig,
+): ConfigPersistence {
+  const savers = new Map<string, AutoSaver<Config>>();
 
-/** Drop a deleted project's saver, and with it any edit still waiting. */
-export function discardPersist(projectId: string): void {
-  savers.get(projectId)?.dispose();
-  savers.delete(projectId);
-}
-
-/**
- * Schedule a save for every dirty config change, on the saver of the
- * project the change was made in. Returns the unsubscribe; a save already
- * scheduled still runs after it.
- */
-export function startConfigAutoSave(
-  target: (projectId: string) => AutoSaver<Config> = saverFor,
-): () => void {
-  return useAppStore.subscribe((state, prev) => {
-    if (state.config !== prev.config && state._configDirty) {
-      target(state.currentProject).schedule(state.config);
+  function saverFor(projectId: string): AutoSaver<Config> {
+    let saver = savers.get(projectId);
+    if (!saver) {
+      saver = createConfigAutoSaver(projectId, save);
+      savers.set(projectId, saver);
     }
-  });
+    return saver;
+  }
+
+  return {
+    flush(projectId = useAppStore.getState().currentProject) {
+      return savers.get(projectId)?.flush() ?? Promise.resolve();
+    },
+
+    discard(projectId) {
+      savers.get(projectId)?.dispose();
+      savers.delete(projectId);
+    },
+
+    start() {
+      return useAppStore.subscribe((state, prev) => {
+        if (state.config !== prev.config && state._configDirty) {
+          saverFor(state.currentProject).schedule(state.config);
+        }
+      });
+    },
+  };
+}
+
+const persistence = createConfigPersistence();
+
+/** `ConfigPersistence.flush` on the app's savers. */
+export function flushPersist(projectId?: string): Promise<void> {
+  return persistence.flush(projectId);
+}
+
+/** `ConfigPersistence.discard` on the app's savers. */
+export function discardPersist(projectId: string): void {
+  persistence.discard(projectId);
+}
+
+/** `ConfigPersistence.start` on the app's savers. */
+export function startConfigAutoSave(): () => void {
+  return persistence.start();
 }

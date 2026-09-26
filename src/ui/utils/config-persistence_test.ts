@@ -10,15 +10,11 @@ import { assert, assertEquals, assertStrictEquals } from "@std/assert";
 import { FakeTime } from "@std/testing/time";
 import {
   createConfigAutoSaver,
-  startConfigAutoSave,
+  createConfigPersistence,
 } from "./config-persistence.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { ApiError } from "./api.ts";
-import {
-  type AutoSaver,
-  RETRY_DELAYS_MS,
-  SAVE_DEBOUNCE_MS,
-} from "./auto-saver.ts";
+import { RETRY_DELAYS_MS, SAVE_DEBOUNCE_MS } from "./auto-saver.ts";
 import { getDefaultConfig } from "@/projects.ts";
 import type { Config } from "@ui/types.ts";
 
@@ -120,14 +116,25 @@ Deno.test("a save for a project the editor has left leaves the dirty flag alone"
   }
 });
 
-Deno.test("the subscription saves local edits and ignores hydration", async () => {
-  using time = new FakeTime();
-  const saved: Config[] = [];
-  const saver = createConfigAutoSaver("a", (_projectId, config) => {
-    saved.push(config);
+/** A persistence instance whose saves are recorded instead of sent. */
+function recordingPersistence() {
+  const saved: { projectId: string; name: string; config: Config }[] = [];
+  const persistence = createConfigPersistence((projectId, config) => {
+    saved.push({ projectId, name: config.app.name, config });
     return Promise.resolve();
   });
-  const stop = startConfigAutoSave(() => saver);
+  return { persistence, saved };
+}
+
+const renamed = (config: Config, name: string): Config => ({
+  ...config,
+  app: { ...config.app, name },
+});
+
+Deno.test("the subscription saves local edits and ignores hydration", async () => {
+  using time = new FakeTime();
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
 
   try {
     // Server state comes in clean: nothing to write back
@@ -137,13 +144,14 @@ Deno.test("the subscription saves local edits and ignores hydration", async () =
     assertEquals(saved.length, 0);
 
     // A local edit is dirty: one debounced save with the latest config
-    const edit1 = { ...loaded, app: { ...loaded.app, name: "Edit 1" } };
-    const edit2 = { ...loaded, app: { ...loaded.app, name: "Edit 2" } };
+    const edit1 = renamed(loaded, "Edit 1");
+    const edit2 = renamed(loaded, "Edit 2");
     useAppStore.getState().updateConfig(edit1);
     useAppStore.getState().updateConfig(edit2);
     await time.tickAsync(SAVE_DEBOUNCE_MS);
     assertEquals(saved.length, 1);
-    assertStrictEquals(saved[0], edit2);
+    assertStrictEquals(saved[0].config, edit2);
+    assertEquals(saved[0].projectId, "a");
     assertEquals(useAppStore.getState()._configDirty, false);
 
     // Unsubscribed: further edits are nobody's business
@@ -153,50 +161,99 @@ Deno.test("the subscription saves local edits and ignores hydration", async () =
     assertEquals(saved.length, 1);
   } finally {
     stop();
-    saver.dispose();
   }
 });
 
 Deno.test("an edit still waiting when the editor switches is saved to its own project (#136)", async () => {
   using time = new FakeTime();
-  const saved: { projectId: string; name: string }[] = [];
-  const savers = new Map<string, AutoSaver<Config>>();
-  const saverFor = (projectId: string) => {
-    let saver = savers.get(projectId);
-    if (!saver) {
-      saver = createConfigAutoSaver(projectId, (id, config) => {
-        saved.push({ projectId: id, name: config.app.name });
-        return Promise.resolve();
-      });
-      savers.set(projectId, saver);
-    }
-    return saver;
-  };
-  const stop = startConfigAutoSave(saverFor);
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
 
   try {
     const alpha = getDefaultConfig("Alpha");
     const beta = getDefaultConfig("Beta");
     useAppStore.getState().hydrate({ projectId: "alpha", config: alpha });
-    useAppStore.getState().updateConfig({
-      ...alpha,
-      app: { ...alpha.app, name: "Alpha, edited" },
-    });
+    useAppStore.getState().updateConfig(renamed(alpha, "Alpha, edited"));
 
     // The switch lands inside the debounce window, and beta is edited too
     useAppStore.getState().hydrate({ projectId: "beta", config: beta });
-    useAppStore.getState().updateConfig({
-      ...beta,
-      app: { ...beta.app, name: "Beta, edited" },
-    });
+    useAppStore.getState().updateConfig(renamed(beta, "Beta, edited"));
     await time.tickAsync(SAVE_DEBOUNCE_MS);
 
-    assertEquals(saved, [
+    assertEquals(saved.map(({ projectId, name }) => ({ projectId, name })), [
       { projectId: "alpha", name: "Alpha, edited" },
       { projectId: "beta", name: "Beta, edited" },
     ]);
   } finally {
     stop();
-    for (const saver of savers.values()) saver.dispose();
+  }
+});
+
+Deno.test("flush(id) saves a waiting edit of a project the editor has left", async () => {
+  // What a switch back into that project relies on: the edit reaches the
+  // server before the project's config is read back
+  using _time = new FakeTime();
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
+
+  try {
+    const alpha = getDefaultConfig("Alpha");
+    useAppStore.getState().hydrate({ projectId: "alpha", config: alpha });
+    useAppStore.getState().updateConfig(renamed(alpha, "Alpha, edited"));
+    useAppStore.getState().hydrate({
+      projectId: "beta",
+      config: getDefaultConfig("Beta"),
+    });
+
+    // No time passes: the debounce hasn't fired, flush sends it now
+    await persistence.flush("alpha");
+    assertEquals(saved.map((s) => s.name), ["Alpha, edited"]);
+
+    // Nothing waiting for beta: resolves without a save
+    await persistence.flush("beta");
+    assertEquals(saved.length, 1);
+  } finally {
+    stop();
+  }
+});
+
+Deno.test("discard drops a deleted project's waiting edit", async () => {
+  using time = new FakeTime();
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
+
+  try {
+    const doomed = getDefaultConfig("Doomed");
+    useAppStore.getState().hydrate({ projectId: "doomed", config: doomed });
+    useAppStore.getState().updateConfig(renamed(doomed, "Doomed, edited"));
+    persistence.discard("doomed");
+    await time.tickAsync(SAVE_DEBOUNCE_MS * 4);
+    assertEquals(saved.length, 0);
+  } finally {
+    stop();
+  }
+});
+
+Deno.test("408 and 429 are retried like a server error", async () => {
+  for (const status of [408, 429]) {
+    using time = new FakeTime();
+    useAppStore.setState({ currentProject: "a", toasts: [] });
+    let saves = 0;
+    const saver = createConfigAutoSaver("a", () => {
+      saves++;
+      return Promise.reject(new ApiError(status, "try later"));
+    });
+    try {
+      saver.schedule(useAppStore.getState().config);
+      await time.tickAsync(SAVE_DEBOUNCE_MS);
+      await time.tickAsync(RETRY_DELAYS_MS[0]);
+      assertEquals(saves, 2, `${status}`);
+      assertEquals(
+        errorToasts()[0].message,
+        "Failed to save config — retrying",
+      );
+    } finally {
+      saver.dispose();
+    }
   }
 });

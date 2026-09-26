@@ -195,10 +195,12 @@ export async function fetchGenerated(
   projectId: string,
 ): Promise<LastGenerated | null> {
   try {
-    const data = await request<LastGenerated>(
+    const data = await request<Omit<LastGenerated, "projectId">>(
       `${projectApi(projectId)}/generate/generated`,
     );
-    return data.results && data.results.length > 0 ? data : null;
+    return data.results && data.results.length > 0
+      ? { ...data, projectId }
+      : null;
   } catch {
     // probe — no prior output (or an unreachable server) is not an error here
     return null;
