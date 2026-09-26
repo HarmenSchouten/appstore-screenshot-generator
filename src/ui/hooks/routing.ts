@@ -90,8 +90,8 @@ export function useNavigateSelection() {
  *
  * Neither effect is a sync: the first rewrites a path that does not spell
  * out what it resolved to (`/` on first load, a language that was just
- * deleted, a screenshot id that no longer exists), the second asks the server
- * to activate the project the URL names.
+ * deleted, a screenshot id that no longer exists), the second loads the
+ * project the URL names.
  */
 export function useRouteReconciler() {
   const { pathname } = useLocation();
@@ -103,9 +103,9 @@ export function useRouteReconciler() {
     if (pathname !== canonicalPath) navigate(canonicalPath, { replace: true });
   }, [pathname, canonicalPath, navigate]);
 
-  // Keyed on the path alone: an activate answers the URL, and a reconciler
-  // that also reacted to the store would leave two projects activating each
-  // other forever — hydrating lands before the navigation that follows it.
+  // Keyed on the path alone: a switch answers the URL, and a reconciler that
+  // also reacted to the store would leave two projects loading each other
+  // forever — hydrating lands before the navigation that follows it.
   useEffect(() => {
     if (!switchTo || !switchGuard.claim(switchTo)) return;
     switchProject({

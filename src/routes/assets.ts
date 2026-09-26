@@ -1,13 +1,13 @@
 /**
  * Asset Routes
  *
- * Handles asset management: listing, uploading, renaming, deleting, and serving.
- * Every client-supplied path is confined to the current project's assets
- * directory via `resolveInside`.
+ * One project's assets: listing, uploading, renaming and deleting under
+ * `/api/projects/:projectId/assets`, and serving the files under
+ * `/assets/:projectId/`. Every client-supplied path is confined to that
+ * project's assets directory via `resolveInside`.
  */
 
 import { Hono } from "hono";
-import { createMiddleware } from "hono/factory";
 import { dirname, extname, join, relative } from "@std/path";
 import { ensureDir, exists } from "@std/fs";
 import { getProjectAssetsDir } from "@/projects.ts";
@@ -18,11 +18,12 @@ import {
   UnsupportedMediaTypeError,
   ValidationError,
 } from "@/errors.ts";
-import type { ServerContext } from "./context.ts";
 import {
   fileResponse,
+  projectIdOf,
   readJsonBody,
   requireObject,
+  requireProject,
   requireString,
 } from "./http.ts";
 
@@ -56,11 +57,12 @@ function toAssetPath(assetsDir: string, filePath: string): string {
   return `assets/${relative(assetsDir, filePath).replaceAll("\\", "/")}`;
 }
 
-export function createAssetRoutes(ctx: ServerContext) {
+export function createAssetRoutes() {
   const routes = new Hono();
+  routes.use(requireProject);
 
   routes.get("/", async (c) => {
-    const assetsDir = getProjectAssetsDir(ctx.getCurrentProjectId());
+    const assetsDir = getProjectAssetsDir(projectIdOf(c));
     const images: string[] = [];
 
     async function scanDir(dir: string, prefix = "") {
@@ -103,7 +105,7 @@ export function createAssetRoutes(ctx: ServerContext) {
     }
 
     const targetDir = join(
-      getProjectAssetsDir(ctx.getCurrentProjectId()),
+      getProjectAssetsDir(projectIdOf(c)),
       UPLOAD_CATEGORY,
     );
     const filePath = resolveFileIn(targetDir, file.name, "File name");
@@ -118,7 +120,7 @@ export function createAssetRoutes(ctx: ServerContext) {
     const oldPath = requireString(body, "oldPath");
     const newName = requireString(body, "newName");
 
-    const assetsDir = getProjectAssetsDir(ctx.getCurrentProjectId());
+    const assetsDir = getProjectAssetsDir(projectIdOf(c));
     const oldFilePath = resolveAssetPath(assetsDir, oldPath);
     // Keep the directory, change the name; carry the extension over when the
     // new name has none
@@ -157,7 +159,7 @@ export function createAssetRoutes(ctx: ServerContext) {
       "path",
     );
     const filePath = resolveAssetPath(
-      getProjectAssetsDir(ctx.getCurrentProjectId()),
+      getProjectAssetsDir(projectIdOf(c)),
       assetPath,
     );
 
@@ -176,16 +178,20 @@ export function createAssetRoutes(ctx: ServerContext) {
 }
 
 /**
- * Static asset serving for the current project. Mounted on `/assets/*`.
+ * Serves a project's asset files. Mounted on `/assets/:projectId`; the
+ * editor's preview and media library load images from here.
  */
-export function createAssetMiddleware(ctx: ServerContext) {
-  return createMiddleware((c) => {
-    const requestPath = c.req.path.replace(/^\/assets\//, "");
+export function createAssetFileRoutes() {
+  const routes = new Hono();
+
+  routes.get("/:path{.+}", (c) => {
     const filePath = resolveInside(
-      getProjectAssetsDir(ctx.getCurrentProjectId()),
-      requestPath,
+      getProjectAssetsDir(projectIdOf(c)),
+      c.req.param("path"),
     );
     if (!filePath) throw new ValidationError("Invalid asset path");
     return fileResponse(filePath);
   });
+
+  return routes;
 }

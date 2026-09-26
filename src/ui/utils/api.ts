@@ -3,6 +3,9 @@
  *
  * Every server call goes through `request`/`requestRaw`, which reject with
  * an `ApiError` on non-2xx responses instead of resolving with an error body.
+ *
+ * Everything inside a project takes that project's id: the server has no
+ * "current project" for a call to land in by accident (#136).
  */
 
 import type { Assets, ProjectConfig, ProjectInfo } from "@ui/types.ts";
@@ -59,6 +62,21 @@ function json(method: string, body: unknown): RequestInit {
   };
 }
 
+/** Base path of the routes that act inside one project. */
+function projectApi(projectId: string): string {
+  return `/api/projects/${projectId}`;
+}
+
+/** The prefix a project's `images/…` asset paths resolve against. */
+export function assetUrlPrefix(projectId: string): string {
+  return `/assets/${projectId}/`;
+}
+
+/** URL of a file an export wrote, by its path inside the output folder. */
+export function outputUrl(projectId: string, relativePath: string): string {
+  return `/output/${projectId}/${relativePath}`;
+}
+
 /**
  * Fetch initial application data
  */
@@ -67,26 +85,29 @@ export function fetchInit(): Promise<AppData> {
 }
 
 /**
- * Save config to server
+ * Save a project's config
  */
-export async function saveConfig(config: ProjectConfig): Promise<void> {
-  await request("/api/config", json("PUT", config));
+export async function saveConfig(
+  projectId: string,
+  config: ProjectConfig,
+): Promise<void> {
+  await request(`${projectApi(projectId)}/config`, json("PUT", config));
 }
 
 /**
- * Fetch assets list
+ * Fetch a project's assets list
  */
-export function fetchAssets(): Promise<Assets> {
-  return request("/api/assets");
+export function fetchAssets(projectId: string): Promise<Assets> {
+  return request(`${projectApi(projectId)}/assets`);
 }
 
 /**
- * Switch to a project
+ * Load a project to edit; the server opens it first on the next load
  */
-export function activateProject(
+export function openProject(
   projectId: string,
 ): Promise<{ projectId: string; config: ProjectConfig }> {
-  return request(`/api/projects/${projectId}/activate`, { method: "PUT" });
+  return request(`${projectApi(projectId)}/open`, { method: "PUT" });
 }
 
 /**
@@ -100,7 +121,7 @@ export function createProject(name: string): Promise<ProjectInfo> {
  * Delete project
  */
 export async function deleteProject(projectId: string): Promise<void> {
-  await request(`/api/projects/${projectId}`, { method: "DELETE" });
+  await request(projectApi(projectId), { method: "DELETE" });
 }
 
 /**
@@ -110,7 +131,7 @@ export function renameProject(
   projectId: string,
   name: string,
 ): Promise<ProjectInfo> {
-  return request(`/api/projects/${projectId}`, json("PATCH", { name }));
+  return request(projectApi(projectId), json("PATCH", { name }));
 }
 
 /**
@@ -121,7 +142,7 @@ export function duplicateProject(
   name: string,
 ): Promise<ProjectInfo> {
   return request(
-    `/api/projects/${projectId}/duplicate`,
+    `${projectApi(projectId)}/duplicate`,
     json("POST", { name }),
   );
 }
@@ -130,29 +151,39 @@ export function duplicateProject(
  * Add language
  */
 export function addLanguage(
+  projectId: string,
   language: string,
   copyFrom: string | null,
 ): Promise<LanguageConfig> {
-  return request("/api/config/language", json("POST", { language, copyFrom }));
+  return request(
+    `${projectApi(projectId)}/config/language`,
+    json("POST", { language, copyFrom }),
+  );
 }
 
 /**
  * Delete language
  */
-export async function deleteLanguage(lang: string): Promise<void> {
-  await request(`/api/config/language/${lang}`, { method: "DELETE" });
+export async function deleteLanguage(
+  projectId: string,
+  lang: string,
+): Promise<void> {
+  await request(`${projectApi(projectId)}/config/language/${lang}`, {
+    method: "DELETE",
+  });
 }
 
 /**
  * Copy platform screenshots
  */
 export function copyPlatform(
+  projectId: string,
   language: string,
   sourcePlatform: string,
   targetPlatform: string,
 ): Promise<LanguageConfig> {
   return request(
-    "/api/config/copy-platform",
+    `${projectApi(projectId)}/config/copy-platform`,
     json("POST", { language, sourcePlatform, targetPlatform }),
   );
 }
@@ -160,9 +191,13 @@ export function copyPlatform(
 /**
  * Fetch previously generated images
  */
-export async function fetchGenerated(): Promise<LastGenerated | null> {
+export async function fetchGenerated(
+  projectId: string,
+): Promise<LastGenerated | null> {
   try {
-    const data = await request<LastGenerated>("/api/generate/generated");
+    const data = await request<LastGenerated>(
+      `${projectApi(projectId)}/generate/generated`,
+    );
     return data.results && data.results.length > 0 ? data : null;
   } catch {
     // probe — no prior output (or an unreachable server) is not an error here
@@ -179,13 +214,14 @@ export async function fetchGenerated(): Promise<LastGenerated | null> {
  * and stops after the screenshot in flight.
  */
 export async function generateStream(
+  projectId: string,
   onProgress: (event: GenerationProgressEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const response = await requestRaw("/api/generate/stream", {
-    ...json("POST", {}),
-    signal,
-  });
+  const response = await requestRaw(
+    `${projectApi(projectId)}/generate/stream`,
+    { ...json("POST", {}), signal },
+  );
 
   const reader = response.body?.getReader();
   if (!reader) throw new Error("No response body");
@@ -212,34 +248,48 @@ export async function generateStream(
 }
 
 /**
- * Open output folder in file explorer
+ * Open a project's output folder in the file explorer
  */
-export async function openOutputFolder(): Promise<void> {
-  await request("/api/generate/open-folder", json("POST", {}));
+export async function openOutputFolder(projectId: string): Promise<void> {
+  await request(
+    `${projectApi(projectId)}/generate/open-folder`,
+    json("POST", {}),
+  );
 }
 
 /**
  * Upload an asset file
  */
 export function uploadAsset(
+  projectId: string,
   formData: FormData,
 ): Promise<{ path: string }> {
-  return request("/api/assets/upload", { method: "POST", body: formData });
+  return request(`${projectApi(projectId)}/assets/upload`, {
+    method: "POST",
+    body: formData,
+  });
 }
 
 /**
  * Rename an asset
  */
 export function renameAsset(
+  projectId: string,
   oldPath: string,
   newName: string,
 ): Promise<{ newPath: string }> {
-  return request("/api/assets/rename", json("PATCH", { oldPath, newName }));
+  return request(
+    `${projectApi(projectId)}/assets/rename`,
+    json("PATCH", { oldPath, newName }),
+  );
 }
 
 /**
  * Delete an asset
  */
-export async function deleteAsset(path: string): Promise<void> {
-  await request("/api/assets", json("DELETE", { path }));
+export async function deleteAsset(
+  projectId: string,
+  path: string,
+): Promise<void> {
+  await request(`${projectApi(projectId)}/assets`, json("DELETE", { path }));
 }

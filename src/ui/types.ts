@@ -29,7 +29,7 @@ export interface AppData {
 }
 
 /**
- * A previous run's results, from GET /api/generate/generated
+ * A previous run's results, from GET /api/projects/<id>/generate/generated
  */
 export interface LastGenerated {
   results: import("@app-types").GenerationResult[];

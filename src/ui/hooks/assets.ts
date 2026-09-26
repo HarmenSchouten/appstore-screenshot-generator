@@ -20,22 +20,26 @@ import type { Assets } from "@ui/types.ts";
 
 const EMPTY_ASSETS: Assets = { images: [] };
 
-/** The asset list; empty until the first fetch lands. */
+/** The open project's asset list; empty until the first fetch lands. */
 export function useAssets(): Assets {
+  const projectId = useAppStore((s) => s.currentProject);
   const { data } = useQuery({
-    queryKey: queryKeys.assets.all,
-    queryFn: fetchAssets,
+    queryKey: queryKeys.assets.list(projectId),
+    queryFn: () => fetchAssets(projectId),
   });
   return data ?? EMPTY_ASSETS;
 }
 
 export function useUploadAsset() {
   const queryClient = useQueryClient();
+  const projectId = useAppStore((s) => s.currentProject);
 
   return useMutation({
-    mutationFn: uploadAsset,
+    mutationFn: (formData: FormData) => uploadAsset(projectId, formData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assets.list(projectId),
+      });
     },
   });
 }
@@ -74,14 +78,16 @@ export function useUploadAssets() {
 
 export function useRenameAsset() {
   const queryClient = useQueryClient();
+  const projectId = useAppStore((s) => s.currentProject);
+  const queryKey = queryKeys.assets.list(projectId);
 
   return useMutation({
     mutationFn: ({ oldPath, newName }: { oldPath: string; newName: string }) =>
-      renameAsset(oldPath, newName),
+      renameAsset(projectId, oldPath, newName),
     onMutate: async ({ oldPath, newName }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.assets.all });
+      await queryClient.cancelQueries({ queryKey });
 
-      const previous = queryClient.getQueryData<Assets>(queryKeys.assets.all);
+      const previous = queryClient.getQueryData<Assets>(queryKey);
 
       const ext = oldPath.substring(oldPath.lastIndexOf("."));
       const dir = oldPath.substring(0, oldPath.lastIndexOf("/"));
@@ -89,7 +95,7 @@ export function useRenameAsset() {
       const newPath = `${dir}/${newFileName}`;
 
       queryClient.setQueryData<Assets>(
-        queryKeys.assets.all,
+        queryKey,
         (old) =>
           old
             ? {
@@ -103,22 +109,25 @@ export function useRenameAsset() {
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(queryKeys.assets.all, context.previous);
+        queryClient.setQueryData(queryKey, context.previous);
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 }
 
 export function useDeleteAsset() {
   const queryClient = useQueryClient();
+  const projectId = useAppStore((s) => s.currentProject);
 
   return useMutation({
-    mutationFn: deleteAsset,
+    mutationFn: (path: string) => deleteAsset(projectId, path),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assets.list(projectId),
+      });
     },
   });
 }

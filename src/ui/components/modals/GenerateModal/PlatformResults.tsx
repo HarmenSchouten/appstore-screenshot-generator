@@ -9,6 +9,8 @@ import type { GenerateResult } from "@ui/types.ts";
 import { DEFAULT_DIMENSIONS, FEATURE_GRAPHIC_SIZE } from "@lib";
 import { PLATFORM_META } from "@ui/utils/platform-meta.ts";
 import { cn } from "@ui/utils/cn.ts";
+import { outputUrl } from "@ui/utils/api.ts";
+import { useAppStore } from "@ui/store/index.ts";
 import { type PlatformGroup, resultName } from "./results.ts";
 
 interface PlatformResultsProps {
@@ -78,10 +80,11 @@ function ResultCard({ result, size, cacheBuster, compact = false }: {
   compact?: boolean;
 }) {
   const name = resultName(result);
+  const projectId = useAppStore((s) => s.currentProject);
   return (
     <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden">
       <img
-        src={`/output/${result.relativePath}?t=${cacheBuster}`}
+        src={`${outputUrl(projectId, result.relativePath)}?t=${cacheBuster}`}
         alt={name}
         className="w-full object-contain bg-zinc-800"
         style={{ aspectRatio: `${size.width} / ${size.height}` }}

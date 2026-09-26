@@ -129,3 +129,36 @@ Deno.test("flush rejects on failure and leaves the retry scheduled", async () =>
   assertEquals(h.calls, ["a", "a"]);
   assertEquals(h.events.saved, 1);
 });
+
+Deno.test("a failure isRetryable rejects waits for the next schedule instead of a timer", async () => {
+  using time = new FakeTime();
+  const calls: string[] = [];
+  const errors: boolean[] = [];
+  const saver = createAutoSaver<string>(
+    (value) => {
+      calls.push(value);
+      return Promise.reject(new Error("refused"));
+    },
+    {
+      onSaved: () => {},
+      onSaveError: (_err, firstFailure) => errors.push(firstFailure),
+      onRecovered: () => {},
+    },
+    { isRetryable: () => false },
+  );
+
+  saver.schedule("a");
+  await time.tickAsync(SAVE_DEBOUNCE_MS);
+  await time.tickAsync(RETRY_DELAYS_MS.reduce((x, y) => x + y) * 2);
+  assertEquals(calls, ["a"]);
+
+  // Still parked: flush tries it once more and rejects
+  await assertRejects(() => saver.flush());
+  assertEquals(calls, ["a", "a"]);
+
+  saver.schedule("b");
+  await time.tickAsync(SAVE_DEBOUNCE_MS);
+  assertEquals(calls, ["a", "a", "b"]);
+  assertEquals(errors, [true, false, false]);
+  saver.dispose();
+});

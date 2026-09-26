@@ -25,7 +25,7 @@ Deno.test("non-2xx rejects with ApiError carrying the server message", async () 
     () => Promise.resolve(jsonResponse({ error: "disk full" }, 500)),
   );
   const err = await assertRejects(
-    () => saveConfig({} as ProjectConfig),
+    () => saveConfig("p1", {} as ProjectConfig),
     ApiError,
     "disk full",
   );
@@ -39,7 +39,7 @@ Deno.test("non-JSON error body falls back to a generic message", async () => {
     () => Promise.resolve(new Response("Bad Gateway", { status: 502 })),
   );
   const err = await assertRejects(
-    () => saveConfig({} as ProjectConfig),
+    () => saveConfig("p1", {} as ProjectConfig),
     ApiError,
   );
   assertEquals(err.status, 502);
@@ -64,7 +64,7 @@ Deno.test("void endpoints tolerate an empty response body", async () => {
     "fetch",
     () => Promise.resolve(new Response(null, { status: 204 })),
   );
-  await saveConfig({} as ProjectConfig);
+  await saveConfig("p1", {} as ProjectConfig);
 });
 
 Deno.test("generateStream forwards progress events and resolves at the end", async () => {
@@ -79,7 +79,7 @@ Deno.test("generateStream forwards progress events and resolves at the end", asy
       ])),
   );
   const seen: string[] = [];
-  await generateStream((event) => {
+  await generateStream("p1", (event) => {
     seen.push(event.type);
   });
   assertEquals(seen, ["start", "progress", "complete"]);
@@ -98,7 +98,7 @@ Deno.test("generateStream rejects with the server's message on an error event", 
   const seen: string[] = [];
   await assertRejects(
     () =>
-      generateStream((event) => {
+      generateStream("p1", (event) => {
         seen.push(event.type);
       }),
     Error,
@@ -114,6 +114,20 @@ Deno.test("generateStream hands the abort signal to fetch", async () => {
     receivedSignal = init?.signal;
     return Promise.resolve(sseResponse([]));
   });
-  await generateStream(() => {}, controller.signal);
+  await generateStream("p1", () => {}, controller.signal);
   assertEquals(receivedSignal, controller.signal);
+});
+
+Deno.test("project-scoped calls put the project id in the URL", async () => {
+  const urls: string[] = [];
+  using _fetch = stub(globalThis, "fetch", (input, init) => {
+    urls.push(`${init?.method ?? "GET"} ${String(input)}`);
+    return Promise.resolve(jsonResponse({}, 200));
+  });
+  await saveConfig("alpha", {} as ProjectConfig);
+  await generateStream("beta", () => {});
+  assertEquals(urls, [
+    "PUT /api/projects/alpha/config",
+    "POST /api/projects/beta/generate/stream",
+  ]);
 });

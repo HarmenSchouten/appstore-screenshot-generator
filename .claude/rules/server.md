@@ -11,9 +11,13 @@ paths:
 
 # Server rules
 
-- Each route area is a factory taking the `ServerContext` from
-  `routes/context.ts`. The context is the only holder of the active project;
-  don't keep project state anywhere else.
+- Each route area is a factory. Anything inside a project is mounted under
+  `:projectId` (`/api/projects/:projectId/…`, `/assets/:projectId`,
+  `/output/:projectId`) and reads the id with `projectIdOf`; the `/api`
+  ones sit behind `requireProject`. Both are in `routes/http.ts`. The
+  server has no current project; don't add one. Configs are read and cached
+  through the `ServerContext` in `routes/context.ts`, never kept anywhere
+  else.
 - Fail with the `HttpError` subclasses in `src/errors.ts` (`ValidationError`,
   `NotFoundError`, `ConflictError`, `UnsupportedMediaTypeError`); `onError`
   turns them into a JSON `{ error }` response. Parse bodies with
@@ -29,5 +33,6 @@ paths:
   to PNG converter is injected from `server.ts`, so tests run without Chrome
   or sharp.
 - Route tests: `withTempProjectsDir`, `createProject`, then mount the factory
-  on `makeRouteApp()` with `createServerContext(id)`, and send requests with
+  at its real path (with `:projectId`) on `makeRouteApp()`, passing
+  `createServerContext(id)` where it takes one, and send requests with
   `jsonRequest` (all in `src/test-helpers.ts`).

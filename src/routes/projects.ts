@@ -1,7 +1,8 @@
 /**
  * Project Routes
  *
- * List, create, switch, delete, rename and duplicate projects.
+ * List, create, open, delete, rename and duplicate projects. What a project
+ * contains is edited through the routes mounted under `/api/projects/:projectId`.
  */
 
 import { type Context, Hono } from "hono";
@@ -11,7 +12,6 @@ import {
   duplicateProject,
   initializeProjects,
   listProjects,
-  loadProject,
   renameProject,
 } from "@/projects.ts";
 import type { ServerContext } from "./context.ts";
@@ -27,12 +27,7 @@ export function createProjectRoutes(ctx: ServerContext) {
 
   routes.get("/", async (c) => {
     const projects = await listProjects();
-    return c.json({ projects, currentProjectId: ctx.getCurrentProjectId() });
-  });
-
-  routes.get("/current", async (c) => {
-    const config = await ctx.getConfig();
-    return c.json({ projectId: ctx.getCurrentProjectId(), config });
+    return c.json({ projects, lastProjectId: ctx.getLastProjectId() });
   });
 
   routes.post("/", async (c) => {
@@ -40,22 +35,27 @@ export function createProjectRoutes(ctx: ServerContext) {
     return c.json(project);
   });
 
-  routes.put("/:id/activate", async (c) => {
+  /**
+   * Load a project for the editor and remember it as the one `/api/init`
+   * opens next time. It moves nothing else: writes name their project.
+   */
+  routes.put("/:id/open", async (c) => {
     const { id } = c.req.param();
-    // Load before switching: an unknown id 404s and leaves the current project alone
-    const config = await loadProject(id);
-    ctx.setCurrentProject(id, config);
+    // Load before remembering: an unknown id 404s and leaves the last one alone
+    const config = await ctx.getConfig(id);
+    ctx.setLastProjectId(id);
     return c.json({ projectId: id, config });
   });
 
   routes.delete("/:id", async (c) => {
     const { id } = c.req.param();
     await deleteProject(id);
+    ctx.setConfig(id, null);
 
-    if (id === ctx.getCurrentProjectId()) {
+    if (id === ctx.getLastProjectId()) {
       // Land on another existing project; recreate the default if none are left
       const remaining = await listProjects();
-      ctx.setCurrentProject(remaining[0]?.id ?? await initializeProjects());
+      ctx.setLastProjectId(remaining[0]?.id ?? await initializeProjects());
     }
 
     return c.json({ success: true });
@@ -64,8 +64,8 @@ export function createProjectRoutes(ctx: ServerContext) {
   routes.patch("/:id", async (c) => {
     const { id } = c.req.param();
     const project = await renameProject(id, await readName(c));
-    // The rename went to disk; a cached copy of the current project is stale
-    if (id === ctx.getCurrentProjectId()) ctx.setConfig(null);
+    // The rename went to disk; a cached copy is stale
+    ctx.setConfig(id, null);
     return c.json(project);
   });
 

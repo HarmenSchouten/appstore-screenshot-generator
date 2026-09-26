@@ -11,10 +11,14 @@
  *   localhost without a preflight.
  * - `fileResponse` serves a file whose path has already passed
  *   `resolveInside`.
+ * - `requireProject` and `projectIdOf` scope a route to the project its
+ *   path names.
  */
 
 import type { Context, ErrorHandler, NotFoundHandler } from "hono";
+import { createMiddleware } from "hono/factory";
 import { extname } from "@std/path";
+import { exists } from "@std/fs";
 import { contentType } from "@std/media-types";
 import type { Platform } from "@app-types";
 import { isPlatform, PLATFORMS } from "@lib";
@@ -24,6 +28,7 @@ import {
   UnsupportedMediaTypeError,
   ValidationError,
 } from "@/errors.ts";
+import { getProjectConfigPath } from "@/projects.ts";
 
 export const onError: ErrorHandler = (err, c) => {
   if (err instanceof HttpError) {
@@ -126,3 +131,25 @@ export async function fileResponse(filePath: string): Promise<Response> {
     },
   });
 }
+
+/**
+ * The project a project-scoped route is mounted under
+ * (`/api/projects/:projectId/…`). Every such route reads its project from
+ * here and nowhere else, so a request can only touch the project it names.
+ */
+export function projectIdOf(c: Context): string {
+  const id = c.req.param("projectId");
+  if (!id) throw new Error("Route is not mounted under :projectId");
+  return id;
+}
+
+/**
+ * 404 unless the path names an existing project: a write addressed to a
+ * project that was deleted must fail, not recreate its folder.
+ */
+export const requireProject = createMiddleware(async (c, next) => {
+  if (!(await exists(getProjectConfigPath(projectIdOf(c)), { isFile: true }))) {
+    throw new NotFoundError("Project not found");
+  }
+  await next();
+});

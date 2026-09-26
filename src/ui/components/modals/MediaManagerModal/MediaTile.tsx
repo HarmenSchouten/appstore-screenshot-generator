@@ -7,6 +7,8 @@
 import { useState } from "react";
 import { ConfirmBar } from "@ui/components/primitives/index.ts";
 import { cn } from "@ui/utils/cn.ts";
+import { assetUrlPrefix } from "@ui/utils/api.ts";
+import { useAppStore } from "@ui/store/index.ts";
 
 export type MediaTileMode = "view" | "rename" | "confirm-delete";
 
@@ -28,6 +30,7 @@ export function MediaTile({
   onDelete,
   initialName,
 }: MediaTileProps) {
+  const projectId = useAppStore((s) => s.currentProject);
   const filename = path.split("/").pop() || "";
   const isConfirming = mode === "confirm-delete";
 
@@ -35,7 +38,7 @@ export function MediaTile({
     <div className="bg-zinc-800 rounded overflow-hidden group">
       <div className="aspect-square bg-zinc-700 relative">
         <img
-          src={"/assets/" + path.replace("assets/", "")}
+          src={assetUrlPrefix(projectId) + path.replace(/^assets\//, "")}
           alt={filename}
           className="w-full h-full object-contain"
           loading="lazy"

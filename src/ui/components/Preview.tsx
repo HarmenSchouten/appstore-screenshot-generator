@@ -15,6 +15,7 @@ import { selectNoOverlayOpen, useAppStore } from "@ui/store/index.ts";
 import { useShortcut } from "@hooks";
 import { ScreenshotContent } from "@renderer/Screenshot.tsx";
 import { getBaseStylesCSS } from "@renderer/BaseStyles.tsx";
+import { assetUrlPrefix } from "@ui/utils/api.ts";
 import { ZoomControls } from "./ZoomControls.tsx";
 import { getScreenshotDimensions } from "@lib";
 import type {
@@ -49,6 +50,7 @@ function PreviewInner(
   { screenshot, theme, app, platform, defaultDevicePresetId, dimensions }:
     PreviewProps,
 ) {
+  const projectId = useAppStore((s) => s.currentProject);
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({
     width: 800,
@@ -172,7 +174,7 @@ function PreviewInner(
                       platform,
                       defaultDevicePresetId,
                       dimensions: effectiveDimensions,
-                      assetUrlPrefix: "/assets/",
+                      assetUrlPrefix: assetUrlPrefix(projectId),
                     }}
                   />
                 </div>

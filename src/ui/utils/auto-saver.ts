@@ -7,7 +7,9 @@
  * - `schedule(value)` debounces rapid calls; only the latest value is saved.
  * - A failed save keeps the value parked and retries with capped backoff
  *   indefinitely; the first failure of a streak is flagged so the caller
- *   can notify once instead of on every retry.
+ *   can notify once instead of on every retry. An error `isRetryable`
+ *   rejects is not retried on a timer: the value stays parked until the next
+ *   `schedule` or `flush` tries again.
  * - `flush()` saves any pending value immediately and rejects on failure,
  *   leaving the retry schedule in place.
  */
@@ -24,6 +26,11 @@ export interface AutoSaverEvents {
   onRecovered: () => void;
 }
 
+export interface AutoSaverOptions {
+  /** Whether a failure is worth retrying on a timer. Defaults to always. */
+  isRetryable?: (error: unknown) => boolean;
+}
+
 export interface AutoSaver<T> {
   schedule: (value: T) => void;
   flush: () => Promise<void>;
@@ -33,6 +40,7 @@ export interface AutoSaver<T> {
 export function createAutoSaver<T>(
   save: (value: T) => Promise<void>,
   events: AutoSaverEvents,
+  { isRetryable = () => true }: AutoSaverOptions = {},
 ): AutoSaver<T> {
   let pending: T | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -84,9 +92,11 @@ export function createAutoSaver<T>(
         if (pending === null) pending = value;
         failures++;
         events.onSaveError(error, failures === 1);
-        armTimer(
-          RETRY_DELAYS_MS[Math.min(failures, RETRY_DELAYS_MS.length) - 1],
-        );
+        if (isRetryable(error)) {
+          armTimer(
+            RETRY_DELAYS_MS[Math.min(failures, RETRY_DELAYS_MS.length) - 1],
+          );
+        }
         return false;
       },
     );

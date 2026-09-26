@@ -18,6 +18,6 @@ export interface RenderOptions {
   platform: Platform;
   defaultDevicePresetId: DevicePresetId;
   dimensions: Dimensions;
-  /** For preview: '/assets/', for export: 'file:///...' */
+  /** For preview: '/assets/<projectId>/', for export: 'file:///...' */
   assetUrlPrefix?: string;
 }

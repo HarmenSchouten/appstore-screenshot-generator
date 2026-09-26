@@ -113,7 +113,7 @@ projects/
 - `.gitignore` excludes every project except `default`. Remove that rule if
   you want your projects in version control.
 - `config.json` is plain JSON and fine to edit by hand, but stop the server
-  first: it keeps the active project in memory and the next save from the
+  first: it keeps each opened project in memory and the next save from the
   editor overwrites the file.
 
 ## Store sizes

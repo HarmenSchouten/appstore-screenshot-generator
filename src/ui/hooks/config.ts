@@ -14,6 +14,7 @@ import {
 } from "@ui/utils/config-persistence.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { useNavigateSelection } from "./routing.ts";
+import { isProjectOpen } from "./projects.ts";
 
 /**
  * Fetches initial application data (config, projects, current project)
@@ -66,10 +67,20 @@ export function useCopyPlatformConfig() {
     }) => {
       // Server-side edit of the source platform: land pending local edits
       // first, or the copy is taken from a stale config (see useAddLanguage)
-      await flushPersist();
-      return copyPlatform(language, sourcePlatform, targetPlatform);
+      const projectId = useAppStore.getState().currentProject;
+      await flushPersist(projectId);
+      return {
+        projectId,
+        updatedLang: await copyPlatform(
+          projectId,
+          language,
+          sourcePlatform,
+          targetPlatform,
+        ),
+      };
     },
-    onSuccess: (updatedLang, { language, targetPlatform }) => {
+    onSuccess: ({ projectId, updatedLang }, { language, targetPlatform }) => {
+      if (!isProjectOpen(projectId)) return;
       useAppStore.setState((s) => {
         const newConfig = { ...s.config };
         const langIndex = newConfig.languages?.findIndex(

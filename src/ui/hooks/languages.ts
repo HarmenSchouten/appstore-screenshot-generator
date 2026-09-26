@@ -10,6 +10,7 @@ import { addLanguage, deleteLanguage } from "@ui/utils/api.ts";
 import { useAppStore } from "@ui/store/index.ts";
 import { flushPersist } from "@ui/utils/config-persistence.ts";
 import { useNavigateSelection } from "./routing.ts";
+import { isProjectOpen } from "./projects.ts";
 
 /** Adds a language, optionally copying from an existing one, and selects it. */
 export function useAddLanguage() {
@@ -19,10 +20,15 @@ export function useAddLanguage() {
     mutationFn: async (
       { language, copyFrom }: { language: string; copyFrom: string | null },
     ) => {
-      await flushPersist();
-      return addLanguage(language, copyFrom);
+      const projectId = useAppStore.getState().currentProject;
+      await flushPersist(projectId);
+      return {
+        projectId,
+        newLang: await addLanguage(projectId, language, copyFrom),
+      };
     },
-    onSuccess: (newLang, { language }) => {
+    onSuccess: ({ projectId, newLang }, { language }) => {
+      if (!isProjectOpen(projectId)) return;
       // Into the config before the URL: the route drops a language it cannot
       // find in the config it is resolved against.
       useAppStore.setState((s) => {
@@ -42,10 +48,13 @@ export function useAddLanguage() {
 export function useDeleteLanguage() {
   return useMutation({
     mutationFn: async (language: string) => {
-      await flushPersist();
-      return deleteLanguage(language);
+      const projectId = useAppStore.getState().currentProject;
+      await flushPersist(projectId);
+      await deleteLanguage(projectId, language);
+      return projectId;
     },
-    onSuccess: (_data, language) => {
+    onSuccess: (projectId, language) => {
+      if (!isProjectOpen(projectId)) return;
       useAppStore.setState((s) => ({
         config: {
           ...s.config,
