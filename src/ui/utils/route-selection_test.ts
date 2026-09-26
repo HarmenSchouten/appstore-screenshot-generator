@@ -2,7 +2,7 @@
  * The URL is the source of truth for project, language, platform and
  * selection, so these are the rules the panels are rendered from: what each
  * slot means, what an unknown value falls back to, and which paths are a
- * request to activate another project rather than a statement about this one.
+ * request to open another project rather than a statement about this one.
  *
  * `canonicalPath` is a fixed point on purpose — the effect that corrects the
  * URL navigates to it, and a path that resolved to a different one on the

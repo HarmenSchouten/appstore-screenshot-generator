@@ -2,13 +2,13 @@
  * Projects — create, switch, rename, duplicate, delete.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
-  activateProject,
   createProject,
   deleteProject,
   duplicateProject,
+  openProject,
   renameProject,
 } from "@ui/utils/api.ts";
 import { selectRoute, useAppStore } from "@ui/store/index.ts";
@@ -18,8 +18,16 @@ import {
   requestSegments,
 } from "@ui/utils/route-selection.ts";
 import { switchGuard } from "@ui/utils/switch-guard.ts";
-import { queryKeys } from "@ui/utils/query.ts";
-import { flushPersist } from "@ui/utils/config-persistence.ts";
+import { discardPersist, flushPersist } from "@ui/utils/config-persistence.ts";
+
+/**
+ * Whether the editor still has this project open. A server-side edit that
+ * answers after a switch belongs to the project it was sent to; merging it
+ * into the next project's config would save it there.
+ */
+export function isProjectOpen(projectId: string): boolean {
+  return useAppStore.getState().currentProject === projectId;
+}
 
 interface SwitchProjectRequest extends ProjectRequest {
   /** Replace the current history entry — the path it holds is already gone. */
@@ -27,25 +35,28 @@ interface SwitchProjectRequest extends ProjectRequest {
 }
 
 /**
- * Switches to a different project: flushes pending config saves, activates
- * the project on the server, hydrates the store with the new config, then
- * navigates to what the request asked for and invalidates the per-project
- * queries. A switch that fails puts the path back on the loaded project; the
- * toast comes from the shared `MutationCache` handler.
+ * Switches to a different project: loads it from the server, hydrates the
+ * store with its config, then navigates to what the request asked for. A
+ * switch that fails puts the path back on the loaded project; the toast
+ * comes from the shared `MutationCache` handler.
+ *
+ * The project being left is not flushed: an edit still waiting belongs to
+ * that project, and its saver still saves it there. The project being opened
+ * is: an edit to it still waiting from an earlier visit has to reach the
+ * server before its config is read back, or the editor would show the config
+ * without it and the next save would write over it (#136).
  *
  * `switchGuard` decides what a settled switch may still do when others have
- * been started since — the store follows every activate that succeeded, only
- * one of them writes the URL.
+ * been started since: only one of them writes the URL.
  */
 export function useSwitchProject() {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
   return useMutation({
     mutationFn: async ({ projectId }: SwitchProjectRequest) => {
-      await flushPersist();
-      const data = await activateProject(projectId);
+      await flushPersist(projectId);
+      const data = await openProject(projectId);
       return { projectId, data };
     },
     onMutate: () => ({ token: switchGuard.start() }),
@@ -83,15 +94,12 @@ export function useSwitchProject() {
           });
         }
       }
-
-      queryClient.invalidateQueries({ queryKey: queryKeys.assets.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
     },
 
     onError: (_error, _request, context) => {
       if (!context || !switchGuard.mayNavigate(context.token)) return;
-      // This switch never moved the server, so the path it asked for names a
-      // project that is not loaded; put it on whatever is loaded now — an
+      // This switch never loaded, so the path it asked for names a project
+      // that is not loaded; put it on whatever is loaded now — an
       // older switch may have landed while this one was in flight.
       const state = useAppStore.getState();
       const { canonicalPath } = selectRoute(state, {
@@ -127,7 +135,12 @@ export function useDeleteProject() {
   const switchProject = useSwitchProject();
 
   return useMutation({
-    mutationFn: (projectId: string) => deleteProject(projectId),
+    mutationFn: async (projectId: string) => {
+      await deleteProject(projectId);
+      // An edit still waiting would only be saved into a project that is
+      // gone. Dropped after the delete: if it failed, the edit is still wanted
+      discardPersist(projectId);
+    },
     onSuccess: async (_data, projectId) => {
       const { currentProject, projects } = useAppStore.getState();
       const remaining = projects.filter((p) => p.id !== projectId);

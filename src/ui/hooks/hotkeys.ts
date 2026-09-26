@@ -180,7 +180,7 @@ export function useAppHotkeys() {
   }, enabled && selection.screenshotId !== null);
 
   useShortcut("openOutputFolder", () => {
-    openOutputFolder.mutate();
+    openOutputFolder.mutate(useAppStore.getState().currentProject);
   }, enabled);
 
   // ── Screenshot selection ───────────────────────────────────────────

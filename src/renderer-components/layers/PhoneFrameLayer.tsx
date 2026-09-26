@@ -23,7 +23,7 @@ import { assetUrl } from "@renderer/utils.ts";
 import { PositionedLayer } from "./PositionedLayer.tsx";
 
 interface PhoneFrameLayerRenderProps extends PhoneFrameLayerProps {
-  /** Prefix for resolving asset paths (e.g. "/assets/" in preview) */
+  /** Prefix for resolving asset paths (e.g. "/assets/<projectId>/" in preview) */
   assetUrlPrefix?: string;
   /** Screenshot container width in pixels — used to scale geometry correctly.
    * Required: a fallback here would silently mask preview/export mismatches. */

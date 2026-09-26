@@ -17,8 +17,10 @@ paths:
   `useAppStore.getState()` in handlers, effects and mutation callbacks.
 - A local edit goes through `updateConfig`, which marks the config dirty and
   auto-saves it. A config that came from the server goes through `hydrate`,
-  which does not. A mutation that makes the server read or rewrite the active
-  config calls `await flushPersist()` first.
+  which does not. A mutation that makes the server read or rewrite the open
+  project's config reads `currentProject` once, calls
+  `await flushPersist(projectId)`, sends that id to the API, and drops the
+  answer if `isProjectOpen(projectId)` is false by then.
 - The URL owns the project, language, platform and selected screenshot. Read
   them with `useSelection()`, change them with `useNavigateSelection()`, and
   never copy them into the store. Path segments are validated only in

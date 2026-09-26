@@ -34,7 +34,7 @@ flowchart TB
 
   subgraph server["Deno server · src/server.ts, src/routes"]
     routes["Route factories"]
-    ctx["ServerContext<br/>the one active project"]
+    ctx["ServerContext<br/>cached configs · last opened project"]
     generation["generation.ts"]
     png["png-export.ts<br/>Chrome at 2× → sharp"]
   end
@@ -90,8 +90,11 @@ flowchart TB
   editor's first call) itself, serves `dist/` when a build exists, and shuts
   Chrome down with the process.
 - **`src/routes/`** (`@routes`): one factory per area (`projects`, `config`,
-  `assets`, `generate`, `output`), each taking the `ServerContext` from
-  `context.ts`. `http.ts` has the JSON error handlers and body validators.
+  `assets`, `generate`, `output`). Everything inside a project is mounted
+  under its id (`/api/projects/:projectId/…`, `/assets/:projectId/`,
+  `/output/:projectId/`). The factories that read or write a config take the
+  `ServerContext` from `context.ts`. `http.ts` has the JSON error
+  handlers, the body validators, and `projectIdOf` / `requireProject`.
 - **`src/projects.ts`**: everything that touches a project folder: create,
   load, save, rename, duplicate, delete, and `normalizeProjectConfig`.
 - **`src/generation.ts`**: the export run. `planGeneration` decides every
@@ -149,23 +152,25 @@ flowchart TB
 | The config being edited, and which project it belongs to | Zustand (`config`, `_configDirty`, `currentProject`) | Store actions need the config synchronously to clone and edit; `subscribe` drives auto-save |
 | Modal, overlays, toasts, export progress | Zustand | Client-only |
 | Asset list, last export's results, init payload | TanStack Query cache | Fetched data with loading and error states |
-| The active project and its config on the server | `ServerContext` | The server holds one project at a time |
+| Each project's config on the server, and the project opened last | `ServerContext` | Routes that edit a config in place share one copy; `/api/init` opens the last project |
 
-`currentProject` is the project the server has loaded, which is not always the
-one the URL names: while a switch is in flight they differ.
+`currentProject` is the project whose config the store holds, which is not
+always the one the URL names: while a switch is in flight they differ. Every
+request about a project's contents carries that id.
 
 `useSelection()` resolves the URL against the loaded config on every render.
 Besides navigation the user starts, two places write the URL.
 `useRouteReconciler()`, mounted once in `App`, canonicalises a path that
-resolved to something else and asks the server to activate a project the URL
-names but the server has not loaded. `useSwitchProject` puts the URL on the
+resolved to something else and loads a project the URL names but the store
+does not hold. `useSwitchProject` puts the URL on the
 new project when a switch lands, or back on the loaded one when it fails.
 
 ### Saving the config
 
-The editor saves the whole config with `PUT /api/config`. Local edits and
-server loads take different paths into the store, so a load never saves
-itself back:
+The editor saves the whole config with `PUT /api/projects/<id>/config`. There
+is one auto-saver per project, and each saves only to its own project. Local
+edits and server loads take different paths into the store, so a load never
+saves itself back:
 
 ```mermaid
 sequenceDiagram
@@ -180,31 +185,36 @@ sequenceDiagram
     S->>S: config, _configDirty = true
     S-->>P: subscriber sees a dirty change
     P->>P: debounce 50 ms
-    P->>API: PUT /api/config
+    P->>API: PUT /api/projects/:id/config
     API-->>P: 200
     P->>S: _configDirty = false
-    Note over P,API: on failure: retry after 1, 2, 4, 4… s, one error toast per streak, one toast on recovery
+    Note over P,API: on failure: retry after 1, 2, 4, 4… s, one error toast per streak, one toast on recovery. A 4xx is not retried; the next edit tries again
 
-    Note over C,API: Server-side edit (switch project, add language, copy platform, export)
+    Note over C,API: Server-side edit (add language, copy platform, export)
     C->>H: mutate()
-    H->>P: flushPersist()
-    P->>API: PUT /api/config (only if an edit is pending)
+    H->>P: flushPersist(id)
+    P->>API: PUT /api/projects/:id/config (only if an edit is pending)
     H->>API: the operation itself
     API-->>H: result
-    H->>S: hydrate(config) or setState, leaving _configDirty false
+    H->>S: setState, leaving _configDirty false (skipped if the editor left the project)
     Note over S,P: not dirty, so nothing is saved back
 ```
 
-The per-screenshot routes under `/api/config/screenshot/…` exist on the
-server but the editor does not use them.
+A project switch doesn't flush the project it leaves: an edit still waiting
+belongs to that project, and its saver still saves it there. It does flush
+the project it opens, so an edit left waiting from an earlier visit reaches
+the server before that project's config is read back.
+
+The per-screenshot routes under `/api/projects/<id>/config/screenshot/…`
+exist on the server but the editor does not use them.
 
 ### Export
 
-`POST /api/generate/stream` runs `generateAll` and streams its progress as
-server-sent events. Closing the stream cancels the run after the screenshot in
-progress. A failed screenshot is recorded with its reason and the run carries
-on. `GET /api/generate/generated` reads the manifest; nothing infers results
-from the files on disk.
+`POST /api/projects/<id>/generate/stream` runs `generateAll` and streams its
+progress as server-sent events. Closing the stream cancels the run after the
+screenshot in progress. A failed screenshot is recorded with its reason and the
+run carries on. `GET /api/projects/<id>/generate/generated` reads the manifest;
+nothing infers results from the files on disk.
 
 ### Dev and start mode
 
@@ -297,17 +307,30 @@ it. *Why:* store actions need the config synchronously, and Zustand's
 
 **Local edits and server loads are different operations.** `updateConfig`
 marks the config dirty and gets saved; `hydrate` marks it clean and does not.
-A mutation that has the server read or rewrite the active config calls
-`flushPersist()` first, so the server never works from a stale copy: project
-switch, add or delete language, copy platform, and export do. Project rename,
-duplicate and delete do not yet, and renaming the active project doesn't
+A mutation that has the server read or rewrite the open project's config calls
+`flushPersist()` first, so the server never works from a stale copy: opening
+a project, add or delete language, copy platform, and export do. Project rename,
+duplicate and delete do not yet, and renaming the open project doesn't
 update the store's `config.app.name`, so the next auto-save writes the old
 name back (#141).
 
-**The server has one active project.** `ServerContext` is the only holder of
-the active project id and its cached config, and every config and asset route
-acts on it. `PUT /api/config` does not name its project, so two tabs on
-different projects can overwrite each other: a known gap, tracked in #136.
+**Everything inside a project is addressed by its id.** Config, asset and
+export routes live under `/api/projects/:projectId/`, and files are served
+from `/assets/:projectId/` and `/output/:projectId/`. The editor sends the
+id of the project whose config it holds, read once when an action starts, and
+ignores a server-side edit that answers after it has moved to another
+project. An export records its project, so its results keep pointing at that
+project's output. The server has no active
+project; `ServerContext` only remembers the last one opened, for
+`/api/init`. A request for a project that no longer exists is a 404 and
+creates nothing, and the auto-saver does not retry it. *Why:* with one active
+project on the server, a config save didn't name its project, so two tabs on
+different projects, two switches answered out of order, or an edit made
+during a switch could save one project's config into another. Checking the
+id against a single active project and answering 409 was rejected: it stops
+the overwrite, but two tabs still take the active project from each other,
+and any second client has to move the editor's project to touch its own.
+(#136)
 
 **Every config is normalised on load and save.** `normalizeProjectConfig`
 guarantees both platforms exist for every language, platform default devices

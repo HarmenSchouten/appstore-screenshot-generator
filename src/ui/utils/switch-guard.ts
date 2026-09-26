@@ -5,10 +5,10 @@
  * in flight and a superseded one still runs its callbacks. Two different
  * rules apply to what it may then do:
  *
- * - The store must follow every activate that succeeded, because each one
- *   moved the server's active project. `PUT /api/config` carries no project
- *   id, so a store left on another project would save that project's config
- *   into whichever one the server has active.
+ * - A switch that loaded may hydrate the store unless a newer one already
+ *   has. Applying them in order is harmless, and when the newest then fails
+ *   the store holds the latest project that did load, not the one the user
+ *   left two switches ago.
  * - Only one settled switch may write the URL, or a superseded one would
  *   push a path the user has already navigated away from.
  */
@@ -19,7 +19,7 @@ export function createSwitchGuard() {
   let outstanding = 0;
 
   return {
-    /** False when that project is already being activated. */
+    /** False when that project is already being loaded. */
     claim(projectId: string): boolean {
       if (pending === projectId) return false;
       pending = projectId;

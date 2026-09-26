@@ -13,11 +13,11 @@ interface LanguageSectionProps {
   collapsed: boolean;
   onToggle: () => void;
   showPreviews: boolean;
-  cacheBuster: number;
+  resultUrl: (relativePath: string) => string;
 }
 
 export function LanguageSection(
-  { lang, group, collapsed, onToggle, showPreviews, cacheBuster }:
+  { lang, group, collapsed, onToggle, showPreviews, resultUrl }:
     LanguageSectionProps,
 ) {
   const count = countItems(group);
@@ -52,7 +52,7 @@ export function LanguageSection(
               platform={platform}
               group={group[platform]}
               showPreviews={showPreviews}
-              cacheBuster={cacheBuster}
+              resultUrl={resultUrl}
             />
           ))}
         </div>

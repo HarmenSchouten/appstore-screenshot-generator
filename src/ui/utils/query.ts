@@ -29,10 +29,13 @@ export const queryClient = new QueryClient({
 
 export const queryKeys = {
   init: ["init"] as const,
+  // Keyed by project: two projects' lists never share a cache entry, so a
+  // switch needs no invalidation and a mutation can't patch the wrong one
   assets: {
-    all: ["assets"] as const,
+    list: (projectId: string) => ["assets", projectId] as const,
   },
   generation: {
-    last: ["generation", "last"] as const,
+    all: ["generation", "last"] as const,
+    last: (projectId: string) => ["generation", "last", projectId] as const,
   },
 } as const;

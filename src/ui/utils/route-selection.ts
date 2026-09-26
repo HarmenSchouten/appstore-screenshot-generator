@@ -37,8 +37,9 @@ export interface Selection {
 export type SelectionPatch = Partial<Omit<Selection, "project">>;
 
 /**
- * A project to activate — asked for by a URL, or picked in the UI. The server
- * keeps one project active, so naming another in the URL is a request.
+ * A project to open — asked for by a URL, or picked in the UI. The editor
+ * holds one project's config at a time, so naming another in the URL is a
+ * request to load it.
  */
 export interface ProjectRequest {
   projectId: string;
@@ -191,7 +192,7 @@ export function resolveSelection(
   return {
     selection,
     // A pending switch leaves the URL as it stands: its tail is for the
-    // project being activated, and canonicalising it here against the loaded
+    // project being loaded, and canonicalising it here against the loaded
     // config would throw away what the link asked for.
     canonicalPath: switchTo
       ? buildPath(requestSegments(switchTo))

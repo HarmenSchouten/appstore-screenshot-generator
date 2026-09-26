@@ -29,9 +29,11 @@ export interface AppData {
 }
 
 /**
- * A previous run's results, from GET /api/generate/generated
+ * A previous run's results, from GET /api/projects/<id>/generate/generated
  */
 export interface LastGenerated {
+  /** The project whose output folder these came from. */
+  projectId: string;
   results: import("@app-types").GenerationResult[];
   outputDir: string;
 }
@@ -47,6 +49,12 @@ export interface Assets {
  * Generation progress state
  */
 export interface GenerateProgress {
+  /**
+   * The project the run, or the results on show, belong to. Not the open
+   * project: the modal can outlive a switch, and its thumbnails and "Open in
+   * Explorer" must still point at this project's output.
+   */
+  projectId: string;
   current: number;
   total: number;
   item: string;

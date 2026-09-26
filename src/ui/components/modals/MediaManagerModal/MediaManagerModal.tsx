@@ -62,12 +62,19 @@ export function MediaManagerModal({ onClose }: MediaManagerModalProps) {
     // Cleared before the mutation: the rename is optimistic, so the tile is
     // already showing its new name by the time the request lands
     setRenaming(null);
-    renameAsset.mutate({ oldPath, newName });
+    renameAsset.mutate({
+      projectId: useAppStore.getState().currentProject,
+      oldPath,
+      newName,
+    });
   };
 
   const handleDelete = (path: string) => {
     confirmDelete.disarm();
-    deleteAsset.mutate(path, {
+    deleteAsset.mutate({
+      projectId: useAppStore.getState().currentProject,
+      path,
+    }, {
       onSuccess: () => {
         useAppStore.getState().addToast({
           type: "success",

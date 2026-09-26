@@ -9,7 +9,7 @@ import { exists } from "@std/fs";
 import { initializeProjects, listProjects } from "./projects.ts";
 import { closeBrowser, killBrowser, renderHtmlToPng } from "./png-export.ts";
 import {
-  createAssetMiddleware,
+  createAssetFileRoutes,
   createAssetRoutes,
   createConfigRoutes,
   createGenerateRoutes,
@@ -40,19 +40,22 @@ app.notFound(notFound);
 // Request log in dev only; behind a static build every UI asset would log too
 if (!useStaticUI) app.use(logger());
 
-app.get("/api/init", async (c) =>
-  c.json({
-    config: await ctx.getConfig(),
-    projects: await listProjects(),
-    projectId: ctx.getCurrentProjectId(),
-  }));
+app.get("/api/init", async (c) => {
+  const { projectId, config } = await ctx.getLastProject();
+  return c.json({ config, projects: await listProjects(), projectId });
+});
 
-app.use("/assets/*", createAssetMiddleware(ctx));
+// Everything inside a project is addressed by its id, so a request can only
+// touch the project it names, whatever another tab has open (#136)
 app.route("/api/projects", createProjectRoutes(ctx));
-app.route("/api/config", createConfigRoutes(ctx));
-app.route("/api/assets", createAssetRoutes(ctx));
-app.route("/api/generate", createGenerateRoutes(ctx, renderHtmlToPng));
-app.route("/output", createOutputRoutes(ctx));
+app.route("/api/projects/:projectId/config", createConfigRoutes(ctx));
+app.route("/api/projects/:projectId/assets", createAssetRoutes());
+app.route(
+  "/api/projects/:projectId/generate",
+  createGenerateRoutes(ctx, renderHtmlToPng),
+);
+app.route("/assets/:projectId", createAssetFileRoutes());
+app.route("/output/:projectId", createOutputRoutes());
 
 // Unmatched API paths must not fall through to the SPA shell below
 app.all("/api/*", (c) => c.notFound());

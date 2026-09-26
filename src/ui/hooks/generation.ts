@@ -41,12 +41,15 @@ export function useGenerateAll() {
     // onError below reports with context; the global toast would duplicate it
     meta: { suppressErrorToast: true },
     mutationFn: async () => {
-      await flushPersist();
+      // Recorded by onMutate, which runs first: the whole run, its progress
+      // and its results belong to the project that was open when it started
+      const { projectId } = useAppStore.getState().generateProgress;
+      await flushPersist(projectId);
 
       const controller = new AbortController();
       activeRun = controller;
       try {
-        await generateStream((event) => {
+        await generateStream(projectId, (event) => {
           if (event.type === "start") {
             useAppStore.setState((s) => ({
               generateProgress: { ...s.generateProgress, total: event.total },
@@ -79,6 +82,7 @@ export function useGenerateAll() {
         activeModal: "generate",
         generating: true,
         generateProgress: {
+          projectId: useAppStore.getState().currentProject,
           current: 0,
           total: 0,
           item: "Starting...",
@@ -122,15 +126,15 @@ export function useGenerateAll() {
     onSettled: () => {
       useAppStore.setState({ generating: false });
       // A cancelled run still wrote a manifest for what it finished
-      queryClient.invalidateQueries({ queryKey: queryKeys.generation.last });
+      queryClient.invalidateQueries({ queryKey: queryKeys.generation.all });
     },
   });
 }
 
-/** Opens the output folder in the system file explorer. */
+/** Opens a project's output folder in the system file explorer. */
 export function useOpenOutputFolder() {
   return useMutation({
-    mutationFn: openOutputFolder,
+    mutationFn: (projectId: string) => openOutputFolder(projectId),
   });
 }
 
@@ -141,8 +145,9 @@ export function useOpenOutputFolder() {
  * invalidates the key when a run settles.
  */
 export function useLastGeneratedQuery() {
+  const projectId = useAppStore((s) => s.currentProject);
   return useQuery({
-    queryKey: queryKeys.generation.last,
-    queryFn: fetchGenerated,
+    queryKey: queryKeys.generation.last(projectId),
+    queryFn: () => fetchGenerated(projectId),
   });
 }

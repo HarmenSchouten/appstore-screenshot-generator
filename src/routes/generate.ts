@@ -1,9 +1,10 @@
 /**
  * Generation Routes
  *
- * Thin HTTP adapter over the generation pipeline: an SSE stream that relays
- * progress and turns a client disconnect into cancellation, the last run's
- * manifest, and opening the output folder.
+ * Thin HTTP adapter over the generation pipeline, mounted under
+ * `/api/projects/:projectId/generate`: an SSE stream that relays progress
+ * and turns a client disconnect into cancellation, the last run's manifest,
+ * and opening the output folder.
  */
 
 import { Hono } from "hono";
@@ -16,6 +17,7 @@ import {
   readManifest,
 } from "@/generation.ts";
 import type { ServerContext } from "./context.ts";
+import { projectIdOf, requireProject } from "./http.ts";
 
 const SSE_HEADERS = {
   "Content-Type": "text/event-stream",
@@ -28,14 +30,15 @@ export function createGenerateRoutes(
   convert: HtmlToPngConverter,
 ) {
   const routes = new Hono();
+  routes.use(requireProject);
 
   /**
    * Generate with streaming progress. Cancelling the fetch (or closing the
    * tab) aborts the run after the screenshot in flight.
    */
-  routes.post("/stream", async () => {
-    const config = await ctx.getConfig();
-    const projectId = ctx.getCurrentProjectId();
+  routes.post("/stream", async (c) => {
+    const projectId = projectIdOf(c);
+    const config = await ctx.getConfig(projectId);
     const outputDir = getProjectOutputDir(projectId);
     const assetsDir = getProjectAssetsDir(projectId);
     const abort = new AbortController();
@@ -78,7 +81,7 @@ export function createGenerateRoutes(
   routes.post("/open-folder", async (c) => {
     // The server knows the output dir. Taking a path from the client would
     // let any web page launch the file manager on an arbitrary location.
-    const folderPath = getProjectOutputDir(ctx.getCurrentProjectId());
+    const folderPath = getProjectOutputDir(projectIdOf(c));
     await ensureDir(folderPath);
 
     // Windows: explorer, macOS: open, Linux: xdg-open
@@ -96,7 +99,7 @@ export function createGenerateRoutes(
    * The last run's results, from the manifest the pipeline wrote
    */
   routes.get("/generated", async (c) => {
-    const outputDir = getProjectOutputDir(ctx.getCurrentProjectId());
+    const outputDir = getProjectOutputDir(projectIdOf(c));
     const manifest = await readManifest(outputDir);
     return c.json({ results: manifest?.results ?? [], outputDir });
   });

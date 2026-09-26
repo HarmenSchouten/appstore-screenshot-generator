@@ -15,12 +15,15 @@ interface PlatformResultsProps {
   platform: Platform;
   group: PlatformGroup;
   showPreviews: boolean;
-  /** Query string that changes per run, so thumbnails re-download. */
-  cacheBuster: number;
+  /**
+   * URL of a result file in the run's project, with a query string that
+   * changes per run so thumbnails re-download.
+   */
+  resultUrl: (relativePath: string) => string;
 }
 
 export function PlatformResults(
-  { platform, group, showPreviews, cacheBuster }: PlatformResultsProps,
+  { platform, group, showPreviews, resultUrl }: PlatformResultsProps,
 ) {
   if (!group.feature && group.screenshots.length === 0) return null;
 
@@ -39,7 +42,7 @@ export function PlatformResults(
                 <ResultCard
                   result={group.feature}
                   size={FEATURE_GRAPHIC_SIZE}
-                  cacheBuster={cacheBuster}
+                  resultUrl={resultUrl}
                 />
               </div>
             )}
@@ -50,7 +53,7 @@ export function PlatformResults(
                     key={r.relativePath}
                     result={r}
                     size={DEFAULT_DIMENSIONS[platform]}
-                    cacheBuster={cacheBuster}
+                    resultUrl={resultUrl}
                     compact
                   />
                 ))}
@@ -70,18 +73,18 @@ export function PlatformResults(
   );
 }
 
-function ResultCard({ result, size, cacheBuster, compact = false }: {
+function ResultCard({ result, size, resultUrl, compact = false }: {
   result: GenerateResult;
   /** Sets the thumbnail's aspect ratio before the image loads. */
   size: Readonly<Dimensions>;
-  cacheBuster: number;
+  resultUrl: (relativePath: string) => string;
   compact?: boolean;
 }) {
   const name = resultName(result);
   return (
     <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg overflow-hidden">
       <img
-        src={`/output/${result.relativePath}?t=${cacheBuster}`}
+        src={resultUrl(result.relativePath)}
         alt={name}
         className="w-full object-contain bg-zinc-800"
         style={{ aspectRatio: `${size.width} / ${size.height}` }}

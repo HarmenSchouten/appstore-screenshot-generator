@@ -65,6 +65,7 @@ export const useAppStore = create<AppState>()(
       // ── Generation ─────────────────────────────────────────────────
       generating: false,
       generateProgress: {
+        projectId: "",
         current: 0,
         total: 0,
         item: "",
@@ -73,9 +74,10 @@ export const useAppStore = create<AppState>()(
         error: null,
       },
 
-      viewLastGenerated: ({ results, outputDir }) =>
+      viewLastGenerated: ({ projectId, results, outputDir }) =>
         set({
           generateProgress: {
+            projectId,
             current: results.length,
             total: results.length,
             item: "",

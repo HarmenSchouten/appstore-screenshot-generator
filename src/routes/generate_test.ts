@@ -17,9 +17,13 @@ import {
   withTempProjectsDir,
 } from "@/test-helpers.ts";
 
+const ID = "generate-routes-test";
+const BASE = `/api/projects/${ID}/generate`;
+
 /** Generate routes over a real project with two iOS screenshots. */
 async function makeTestApp(convert: HtmlToPngConverter) {
   const { id } = await createProject("Generate Routes Test");
+  assertEquals(id, ID);
   const config = await loadProject(id);
   config.languages[0].platforms.ios.screenshots.push(
     makeDefaultScreenshot(),
@@ -29,7 +33,7 @@ async function makeTestApp(convert: HtmlToPngConverter) {
 
   const app = makeRouteApp();
   app.route(
-    "/api/generate",
+    "/api/projects/:projectId/generate",
     createGenerateRoutes(createServerContext(id), convert),
   );
   return { app, outputDir: getProjectOutputDir(id) };
@@ -61,7 +65,7 @@ Deno.test("POST /stream relays start/progress/complete as SSE and leaves a manif
   await withTempProjectsDir(async () => {
     const { app, outputDir } = await makeTestApp(writingConverter);
 
-    const res = await app.request("/api/generate/stream", { method: "POST" });
+    const res = await app.request(`${BASE}/stream`, { method: "POST" });
 
     assertEquals(res.status, 200);
     assertEquals(res.headers.get("content-type"), "text/event-stream");
@@ -91,7 +95,7 @@ Deno.test("POST /stream carries a converter failure per screenshot with its real
     const { app } = await makeTestApp(() => Promise.reject(new Error(reason)));
 
     const events = await readEvents(
-      await app.request("/api/generate/stream", { method: "POST" }),
+      await app.request(`${BASE}/stream`, { method: "POST" }),
     );
 
     const complete = events.at(-1);
@@ -109,7 +113,7 @@ Deno.test("POST /stream reports a setup failure as an error event instead of end
     await Deno.writeTextFile(outputDir, "not a directory");
 
     const events = await readEvents(
-      await app.request("/api/generate/stream", { method: "POST" }),
+      await app.request(`${BASE}/stream`, { method: "POST" }),
     );
 
     assertEquals(events.length, 1);
@@ -132,7 +136,7 @@ Deno.test("POST /stream: cancelling the body stops the run after the screenshot 
     };
     const { app, outputDir } = await makeTestApp(convert);
 
-    const res = await app.request("/api/generate/stream", { method: "POST" });
+    const res = await app.request(`${BASE}/stream`, { method: "POST" });
     const reader = res.body!.getReader();
     const first = await reader.read();
     assertStringIncludes(new TextDecoder().decode(first.value), '"start"');
@@ -157,14 +161,14 @@ Deno.test("GET /generated is empty before a run and reads the manifest after one
   await withTempProjectsDir(async () => {
     const { app, outputDir } = await makeTestApp(writingConverter);
 
-    const before = await (await app.request("/api/generate/generated")).json();
+    const before = await (await app.request(`${BASE}/generated`)).json();
     assertEquals(before, { results: [], outputDir });
 
     await readEvents(
-      await app.request("/api/generate/stream", { method: "POST" }),
+      await app.request(`${BASE}/stream`, { method: "POST" }),
     );
 
-    const after = await (await app.request("/api/generate/generated")).json();
+    const after = await (await app.request(`${BASE}/generated`)).json();
     assertEquals(
       (after.results as GenerationResult[]).map((r) => [
         r.relativePath,

@@ -1,8 +1,7 @@
 import { assert, assertEquals, assertFalse } from "@std/assert";
 import { ensureDir, exists } from "@std/fs";
 import { join } from "@std/path";
-import { createAssetMiddleware, createAssetRoutes } from "./assets.ts";
-import { createServerContext } from "./context.ts";
+import { createAssetFileRoutes, createAssetRoutes } from "./assets.ts";
 import { createProject, getProjectAssetsDir } from "@/projects.ts";
 import {
   jsonRequest,
@@ -12,14 +11,18 @@ import {
 
 const PNG_HEADER = new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
 
-/** Asset routes and static middleware over a real on-disk project. */
+const ID = "assets-test";
+const API = `/api/projects/${ID}/assets`;
+const FILES = `/assets/${ID}`;
+
+/** Asset routes and file serving over a real on-disk project. */
 async function makeTestApp() {
   const { id } = await createProject("Assets Test");
+  assertEquals(id, ID);
   const assetsDir = getProjectAssetsDir(id);
-  const ctx = createServerContext(id);
   const app = makeRouteApp();
-  app.use("/assets/*", createAssetMiddleware(ctx));
-  app.route("/api/assets", createAssetRoutes(ctx));
+  app.route("/assets/:projectId", createAssetFileRoutes());
+  app.route("/api/projects/:projectId/assets", createAssetRoutes());
   return { app, assetsDir, projectDir: join(assetsDir, "..") };
 }
 
@@ -31,7 +34,7 @@ async function seedImage(assetsDir: string, name = "screen.png") {
 function upload(app: ReturnType<typeof makeRouteApp>, fileName: string) {
   const form = new FormData();
   form.append("file", new File([PNG_HEADER], fileName, { type: "image/png" }));
-  return app.request("/api/assets/upload", { method: "POST", body: form });
+  return app.request(`${API}/upload`, { method: "POST", body: form });
 }
 
 // Encoded separators survive URL parsing (a literal ".." segment would be
@@ -46,13 +49,13 @@ const TRAVERSAL_PATHS = [
   "C:%5CWindows%5Cwin.ini",
 ];
 
-Deno.test("GET /api/assets lists images under assets/", async () => {
+Deno.test("GET assets lists images under assets/", async () => {
   await withTempProjectsDir(async () => {
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
     await Deno.writeTextFile(join(assetsDir, "images", "notes.txt"), "");
 
-    const res = await app.request("/api/assets");
+    const res = await app.request(API);
 
     assertEquals(res.status, 200);
     assertEquals(await res.json(), { images: ["assets/images/screen.png"] });
@@ -64,7 +67,7 @@ Deno.test("GET /assets/* serves a file with its content type", async () => {
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
 
-    const res = await app.request("/assets/images/screen.png");
+    const res = await app.request(`${FILES}/images/screen.png`);
 
     assertEquals(res.status, 200);
     assertEquals(res.headers.get("content-type"), "image/png");
@@ -77,11 +80,11 @@ Deno.test("GET /assets/* is a JSON 404 for a missing file or a directory", async
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
 
-    const missing = await app.request("/assets/images/nope.png");
+    const missing = await app.request(`${FILES}/images/nope.png`);
     assertEquals(missing.status, 404);
     assertEquals(await missing.json(), { error: "File not found" });
 
-    const dir = await app.request("/assets/images");
+    const dir = await app.request(`${FILES}/images`);
     assertEquals(dir.status, 404);
   });
 });
@@ -91,7 +94,7 @@ Deno.test("GET /assets/* rejects every traversal form with a 400", async () => {
     const { app } = await makeTestApp();
 
     for (const path of TRAVERSAL_PATHS) {
-      const res = await app.request(`/assets/${path}`);
+      const res = await app.request(`${FILES}/${path}`);
       assertEquals(res.status, 400, path);
       assertEquals(await res.json(), { error: "Invalid asset path" });
     }
@@ -134,14 +137,14 @@ Deno.test("POST /upload validates the form and its Content-Type", async () => {
   await withTempProjectsDir(async () => {
     const { app } = await makeTestApp();
 
-    const noFile = await app.request("/api/assets/upload", {
+    const noFile = await app.request(`${API}/upload`, {
       method: "POST",
       body: new FormData(),
     });
     assertEquals(noFile.status, 400);
     assertEquals(await noFile.json(), { error: "No file provided" });
 
-    const json = await jsonRequest(app, "POST", "/api/assets/upload", {
+    const json = await jsonRequest(app, "POST", `${API}/upload`, {
       file: "x",
     });
     assertEquals(json.status, 415);
@@ -156,7 +159,7 @@ Deno.test("PATCH /rename moves the file, carrying the extension over", async () 
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
 
-    const res = await jsonRequest(app, "PATCH", "/api/assets/rename", {
+    const res = await jsonRequest(app, "PATCH", `${API}/rename`, {
       oldPath: "assets/images/screen.png",
       newName: "hero",
     });
@@ -177,7 +180,7 @@ Deno.test("PATCH /rename: unknown source is a 404, existing target is a 409", as
     await seedImage(assetsDir, "a.png");
     await seedImage(assetsDir, "b.png");
 
-    const missing = await jsonRequest(app, "PATCH", "/api/assets/rename", {
+    const missing = await jsonRequest(app, "PATCH", `${API}/rename`, {
       oldPath: "assets/images/nope.png",
       newName: "x",
     });
@@ -186,7 +189,7 @@ Deno.test("PATCH /rename: unknown source is a 404, existing target is a 409", as
       error: 'Asset "assets/images/nope.png" not found',
     });
 
-    const clash = await jsonRequest(app, "PATCH", "/api/assets/rename", {
+    const clash = await jsonRequest(app, "PATCH", `${API}/rename`, {
       oldPath: "assets/images/a.png",
       newName: "b",
     });
@@ -205,7 +208,7 @@ Deno.test("PATCH /rename confines both the source and the new name", async () =>
     const { app, assetsDir, projectDir } = await makeTestApp();
     await seedImage(assetsDir);
 
-    const badSource = await jsonRequest(app, "PATCH", "/api/assets/rename", {
+    const badSource = await jsonRequest(app, "PATCH", `${API}/rename`, {
       oldPath: "assets/../config.json",
       newName: "stolen.json",
     });
@@ -215,7 +218,7 @@ Deno.test("PATCH /rename confines both the source and the new name", async () =>
     });
 
     for (const newName of ["../escaped.png", "..\\escaped.png", ".."]) {
-      const res = await jsonRequest(app, "PATCH", "/api/assets/rename", {
+      const res = await jsonRequest(app, "PATCH", `${API}/rename`, {
         oldPath: "assets/images/screen.png",
         newName,
       });
@@ -230,18 +233,18 @@ Deno.test("PATCH /rename confines both the source and the new name", async () =>
   });
 });
 
-Deno.test("DELETE /api/assets removes the file; unknown path is a 404", async () => {
+Deno.test("DELETE assets removes the file; unknown path is a 404", async () => {
   await withTempProjectsDir(async () => {
     const { app, assetsDir } = await makeTestApp();
     await seedImage(assetsDir);
 
-    const res = await jsonRequest(app, "DELETE", "/api/assets", {
+    const res = await jsonRequest(app, "DELETE", `${API}`, {
       path: "assets/images/screen.png",
     });
     assertEquals(res.status, 200);
     assertFalse(await exists(join(assetsDir, "images", "screen.png")));
 
-    const again = await jsonRequest(app, "DELETE", "/api/assets", {
+    const again = await jsonRequest(app, "DELETE", `${API}`, {
       path: "assets/images/screen.png",
     });
     assertEquals(again.status, 404);
@@ -251,7 +254,7 @@ Deno.test("DELETE /api/assets removes the file; unknown path is a 404", async ()
   });
 });
 
-Deno.test("DELETE /api/assets refuses to reach outside the assets dir", async () => {
+Deno.test("DELETE assets refuses to reach outside the assets dir", async () => {
   await withTempProjectsDir(async () => {
     const { app, projectDir } = await makeTestApp();
 
@@ -263,16 +266,51 @@ Deno.test("DELETE /api/assets refuses to reach outside the assets dir", async ()
         "assets/",
       ]
     ) {
-      const res = await jsonRequest(app, "DELETE", "/api/assets", { path });
+      const res = await jsonRequest(app, "DELETE", `${API}`, { path });
       assertEquals(res.status, 400, path);
       assertEquals(await res.json(), { error: `Invalid asset path "${path}"` });
     }
     assert(await exists(join(projectDir, "config.json")));
 
-    const noPath = await jsonRequest(app, "DELETE", "/api/assets", {});
+    const noPath = await jsonRequest(app, "DELETE", `${API}`, {});
     assertEquals(noPath.status, 400);
     assertEquals(await noPath.json(), {
       error: '"path" must be a non-empty string',
     });
+  });
+});
+
+Deno.test("each project's asset routes see only that project's files (#136)", async () => {
+  await withTempProjectsDir(async () => {
+    const { app, assetsDir } = await makeTestApp();
+    await seedImage(assetsDir, "mine.png");
+    const other = await createProject("Other");
+    await seedImage(getProjectAssetsDir(other.id), "theirs.png");
+
+    const res = await app.request(`/api/projects/${other.id}/assets`);
+    assertEquals(await res.json(), { images: ["assets/images/theirs.png"] });
+    assertEquals(
+      (await app.request(`/assets/${other.id}/images/mine.png`)).status,
+      404,
+    );
+  });
+});
+
+Deno.test("an upload to a project that doesn't exist is a 404 and creates no folder", async () => {
+  await withTempProjectsDir(async (dir) => {
+    const { app } = await makeTestApp();
+    const form = new FormData();
+    form.append("file", new File([PNG_HEADER], "a.png", { type: "image/png" }));
+
+    const res = await app.request(
+      "/api/projects/deleted-elsewhere/assets/upload",
+      {
+        method: "POST",
+        body: form,
+      },
+    );
+
+    assertEquals(res.status, 404);
+    assertFalse(await exists(join(dir, "deleted-elsewhere")));
   });
 });

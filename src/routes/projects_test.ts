@@ -73,12 +73,12 @@ Deno.test("POST /api/projects with an existing id is a 409", async () => {
   });
 });
 
-Deno.test("PUT /:id/activate switches the current project", async () => {
+Deno.test("PUT /:id/open loads a project and remembers it as the last opened", async () => {
   await withTempProjectsDir(async () => {
     const { app, ctx } = await makeTestApp();
     await createProject("Other");
 
-    const res = await app.request("/api/projects/other/activate", {
+    const res = await app.request("/api/projects/other/open", {
       method: "PUT",
     });
 
@@ -86,16 +86,16 @@ Deno.test("PUT /:id/activate switches the current project", async () => {
     const body = await res.json();
     assertEquals(body.projectId, "other");
     assertEquals(body.config.app.name, "Other");
-    assertEquals(ctx.getCurrentProjectId(), "other");
-    assertEquals((await ctx.getConfig()).app.name, "Other");
+    assertEquals(ctx.getLastProjectId(), "other");
+    assertEquals((await ctx.getLastProject()).config.app.name, "Other");
   });
 });
 
-Deno.test("PUT /:id/activate with an unknown id is a 404 and leaves state alone", async () => {
+Deno.test("PUT /:id/open with an unknown id is a 404 and leaves state alone", async () => {
   await withTempProjectsDir(async (dir) => {
     const { app, ctx } = await makeTestApp();
 
-    const res = await app.request("/api/projects/does-not-exist/activate", {
+    const res = await app.request("/api/projects/does-not-exist/open", {
       method: "PUT",
     });
 
@@ -103,7 +103,7 @@ Deno.test("PUT /:id/activate with an unknown id is a 404 and leaves state alone"
     assertEquals(await res.json(), {
       error: 'Project "does-not-exist" not found',
     });
-    assertEquals(ctx.getCurrentProjectId(), "default");
+    assertEquals(ctx.getLastProjectId(), "default");
     // No phantom project appeared on disk
     assertFalse(await exists(join(dir, "does-not-exist")));
   });
@@ -117,9 +117,9 @@ Deno.test("project ids that are not slugs are a 400 on every route", async () =>
 
     for (
       const [method, path] of [
-        ["PUT", `/api/projects/${traversal}/activate`],
+        ["PUT", `/api/projects/${traversal}/open`],
         ["DELETE", `/api/projects/${traversal}`],
-        ["PUT", "/api/projects/Upper%20Case/activate"],
+        ["PUT", "/api/projects/Upper%20Case/open"],
       ] as const
     ) {
       const res = await app.request(path, { method });
@@ -139,7 +139,7 @@ Deno.test("DELETE /:id removes a project; unknown id is a 404", async () => {
     });
     assertEquals(res.status, 200);
     assertFalse(await exists(join(dir, "doomed")));
-    assertEquals(ctx.getCurrentProjectId(), "default");
+    assertEquals(ctx.getLastProjectId(), "default");
 
     const again = await app.request("/api/projects/doomed", {
       method: "DELETE",
@@ -148,19 +148,47 @@ Deno.test("DELETE /:id removes a project; unknown id is a 404", async () => {
   });
 });
 
-Deno.test("DELETE of the current project lands on another existing project", async () => {
+Deno.test("DELETE of the last opened project lands on another existing project", async () => {
   await withTempProjectsDir(async () => {
     const { app, ctx } = await makeTestApp();
     await createProject("Other");
-    await app.request("/api/projects/other/activate", { method: "PUT" });
+    await app.request("/api/projects/other/open", { method: "PUT" });
 
     const res = await app.request("/api/projects/other", {
       method: "DELETE",
     });
 
     assertEquals(res.status, 200);
-    assertEquals(ctx.getCurrentProjectId(), "default");
-    assertEquals(await ctx.getConfig(), await loadProject("default"));
+    assertEquals(ctx.getLastProjectId(), "default");
+    assertEquals(
+      (await ctx.getLastProject()).config,
+      await loadProject("default"),
+    );
+  });
+});
+
+Deno.test("DELETE forgets the cached config, so a new project with that id starts fresh", async () => {
+  await withTempProjectsDir(async () => {
+    const { app, ctx } = await makeTestApp();
+    await createProject("Reused");
+    (await ctx.getConfig("reused")).app.name = "Edited in memory";
+
+    await app.request("/api/projects/reused", { method: "DELETE" });
+    await createProject("Reused");
+
+    assertEquals((await ctx.getConfig("reused")).app.name, "Reused");
+  });
+});
+
+Deno.test("PATCH /:id drops that project's cached config, open or not", async () => {
+  await withTempProjectsDir(async () => {
+    const { app, ctx } = await makeTestApp();
+    await createProject("Old");
+    assertEquals((await ctx.getConfig("old")).app.name, "Old");
+
+    await jsonRequest(app, "PATCH", "/api/projects/old", { name: "New" });
+
+    assertEquals((await ctx.getConfig("old")).app.name, "New");
   });
 });
 
@@ -173,7 +201,7 @@ Deno.test("DELETE of the only project recreates the default", async () => {
     });
 
     assertEquals(res.status, 200);
-    assertEquals(ctx.getCurrentProjectId(), "default");
+    assertEquals(ctx.getLastProjectId(), "default");
     assert(await exists(join(dir, "default", "config.json")));
   });
 });
@@ -228,5 +256,22 @@ Deno.test("POST /:id/duplicate copies a project; unknown source is a 404", async
     );
     assertEquals(unknown.status, 404);
     assertFalse(await exists(join(dir, "whatever")));
+  });
+});
+
+Deno.test("PUT /:id/open for a cached project deleted outside the app is a 404", async () => {
+  await withTempProjectsDir(async (dir) => {
+    const { app } = await makeTestApp();
+    await createProject("Gone");
+    assertEquals(
+      (await app.request("/api/projects/gone/open", { method: "PUT" })).status,
+      200,
+    );
+
+    await Deno.remove(join(dir, "gone"), { recursive: true });
+
+    const res = await app.request("/api/projects/gone/open", { method: "PUT" });
+    assertEquals(res.status, 404);
+    assertFalse(await exists(join(dir, "gone")));
   });
 });
