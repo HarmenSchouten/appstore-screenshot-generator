@@ -5,7 +5,7 @@ requests are the easiest to review and merge.
 
 ## Setup
 
-You need [Deno 2](https://docs.deno.com/runtime/getting_started/installation/)
+You need [Deno 2.9 or newer](https://docs.deno.com/runtime/getting_started/installation/)
 and Google Chrome or Chromium (export drives Chrome to take the PNGs). Node.js
 is not required.
 
@@ -17,12 +17,8 @@ deno task dev
 `deno task dev` runs the API on port 3000 and the Vite dev server with hot
 reload on <http://localhost:5173>. Open the second one.
 
-On a fresh clone the very first `deno task dev` can leave the editor blank
-with a `TsconfigCache` error in the log
-([#138](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/138)).
-Stop it and start it again; it works from the second run on. The
-[README](README.md#troubleshooting) covers the other common problems, such as
-Chrome not being found or port 3000 being taken.
+The [README](README.md#troubleshooting) covers common problems, such as Chrome
+not being found or port 3000 being taken.
 
 ## How the code is organised
 

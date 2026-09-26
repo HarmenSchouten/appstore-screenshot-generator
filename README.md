@@ -41,7 +41,7 @@ and images you can back up or put in git.
 
 ## Quick start
 
-You need [Deno 2](https://docs.deno.com/runtime/getting_started/installation/)
+You need [Deno 2.9 or newer](https://docs.deno.com/runtime/getting_started/installation/)
 and Google Chrome or Chromium. Node.js is not required.
 
 ```sh
@@ -165,12 +165,6 @@ $env:PUPPETEER_EXECUTABLE_PATH = "C:\Path\To\chrome.exe"         # PowerShell
 **Fonts look wrong in the PNGs.** The theme's font is fetched from Google
 Fonts during export. Offline, each screenshot waits up to 5 seconds for it and
 then renders with the fallback font.
-
-**Blank editor on the first `deno task dev`.** On a fresh clone, Vite's first
-dependency scan can fail with `Failed to recover TsconfigCache type from napi
-value`. Stop it and run `deno task dev` again
-([#138](https://github.com/HarmenSchouten/appstore-screenshot-generator/issues/138)).
-`deno task start` is not affected.
 
 **Port 3000 is taken.** `PORT=3001 deno task start` (PowerShell:
 `$env:PORT = 3001; deno task start`).
