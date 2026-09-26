@@ -309,10 +309,12 @@ it. *Why:* store actions need the config synchronously, and Zustand's
 marks the config dirty and gets saved; `hydrate` marks it clean and does not.
 A mutation that has the server read or rewrite the open project's config calls
 `flushPersist()` first, so the server never works from a stale copy: opening
-a project, add or delete language, copy platform, and export do. Project rename,
-duplicate and delete do not yet, and renaming the open project doesn't
-update the store's `config.app.name`, so the next auto-save writes the old
-name back (#141).
+a project, add or delete language, copy platform, export, rename and
+duplicate do. Deleting a project drops its pending edit instead. A rename
+also changes the name inside the config, so the store takes the new name
+into the open project's config as a local edit and saves it. *Why:* marking
+it clean like a load would leave the old name on the server whenever an edit
+saved during the rename landed after it. (#141)
 
 **Everything inside a project is addressed by its id.** Config, asset and
 export routes live under `/api/projects/:projectId/`, and files are served

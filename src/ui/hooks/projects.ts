@@ -162,8 +162,14 @@ export function useDuplicateProject() {
   const switchProject = useSwitchProject();
 
   return useMutation({
-    mutationFn: ({ projectId, name }: { projectId: string; name: string }) =>
-      duplicateProject(projectId, name),
+    mutationFn: async (
+      { projectId, name }: { projectId: string; name: string },
+    ) => {
+      // The server copies the config on disk, which an edit still waiting
+      // hasn't reached yet
+      await flushPersist(projectId);
+      return duplicateProject(projectId, name);
+    },
     onSuccess: async (project) => {
       useAppStore.setState((s) => ({ projects: [...s.projects, project] }));
       await switchProject.mutateAsync({ projectId: project.id });
@@ -171,14 +177,20 @@ export function useDuplicateProject() {
   });
 }
 
+/**
+ * Renames a project. The server rewrites the name in the config on disk, so
+ * an edit still waiting is saved first; after that, the store's copy of the
+ * open project's config has to carry the new name, or its next save would
+ * write the old one back (#141).
+ */
 export function useRenameProject() {
   return useMutation({
-    mutationFn: ({ projectId, name }: { projectId: string; name: string }) =>
-      renameProject(projectId, name),
-    onSuccess: (updated, { projectId }) => {
-      useAppStore.setState((s) => ({
-        projects: s.projects.map((p) => (p.id === projectId ? updated : p)),
-      }));
+    mutationFn: async (
+      { projectId, name }: { projectId: string; name: string },
+    ) => {
+      await flushPersist(projectId);
+      return renameProject(projectId, name);
     },
+    onSuccess: (updated) => useAppStore.getState().projectRenamed(updated),
   });
 }
