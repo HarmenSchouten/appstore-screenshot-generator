@@ -3,7 +3,8 @@
  * a failed save must keep the store dirty, toast once, and retry until the
  * server comes back, unless the server refused it outright; the subscription
  * must save local edits only — never echo a hydration back — and each edit
- * goes to the project it was made in.
+ * goes to the project it was made in. A rename of the open project reaches
+ * the config that gets saved (#141).
  */
 
 import { assert, assertEquals, assertStrictEquals } from "@std/assert";
@@ -229,6 +230,94 @@ Deno.test("discard drops a deleted project's waiting edit", async () => {
     persistence.discard("doomed");
     await time.tickAsync(SAVE_DEBOUNCE_MS * 4);
     assertEquals(saved.length, 0);
+  } finally {
+    stop();
+  }
+});
+
+const projectInfo = (id: string, name: string) => ({
+  id,
+  name,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+});
+
+Deno.test("renaming the open project keeps the new name through the next edit (#141)", async () => {
+  using time = new FakeTime();
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
+
+  try {
+    useAppStore.getState().hydrate({
+      projectId: "a",
+      config: getDefaultConfig("Old"),
+      projects: [projectInfo("a", "Old"), projectInfo("b", "Other")],
+    });
+    useAppStore.getState().projectRenamed(projectInfo("a", "New"));
+    await time.tickAsync(SAVE_DEBOUNCE_MS);
+
+    // An edit that has nothing to do with the name
+    const { config, updateConfig } = useAppStore.getState();
+    updateConfig({ ...config, theme: { ...config.theme } });
+    await time.tickAsync(SAVE_DEBOUNCE_MS);
+
+    assert(saved.length > 0);
+    assertEquals(saved.map((s) => s.name), saved.map(() => "New"));
+    assertEquals(useAppStore.getState().projects.map((p) => p.name), [
+      "New",
+      "Other",
+    ]);
+  } finally {
+    stop();
+  }
+});
+
+Deno.test("a rename saves the new name even when an older save lands after it", async () => {
+  // The server renamed the project, then a save sent while the rename was in
+  // flight wrote the old name back; the rename's own save has to follow it
+  using time = new FakeTime();
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
+
+  try {
+    useAppStore.getState().hydrate({
+      projectId: "a",
+      config: getDefaultConfig("Old"),
+      projects: [projectInfo("a", "Old")],
+    });
+    const { config, updateConfig } = useAppStore.getState();
+    updateConfig({ ...config, theme: { ...config.theme } });
+    await time.tickAsync(SAVE_DEBOUNCE_MS);
+    assertEquals(saved.map((s) => s.name), ["Old"]);
+
+    useAppStore.getState().projectRenamed(projectInfo("a", "New"));
+    await time.tickAsync(SAVE_DEBOUNCE_MS);
+    assertEquals(saved.map((s) => s.name), ["Old", "New"]);
+  } finally {
+    stop();
+  }
+});
+
+Deno.test("renaming a project that isn't open changes only the list", async () => {
+  using time = new FakeTime();
+  const { persistence, saved } = recordingPersistence();
+  const stop = persistence.start();
+
+  try {
+    useAppStore.getState().hydrate({
+      projectId: "a",
+      config: getDefaultConfig("Open"),
+      projects: [projectInfo("a", "Open"), projectInfo("b", "Old")],
+    });
+    useAppStore.getState().projectRenamed(projectInfo("b", "New"));
+    await time.tickAsync(SAVE_DEBOUNCE_MS);
+
+    assertEquals(saved.length, 0);
+    assertEquals(useAppStore.getState().config.app.name, "Open");
+    assertEquals(useAppStore.getState().projects.map((p) => p.name), [
+      "Open",
+      "New",
+    ]);
   } finally {
     stop();
   }

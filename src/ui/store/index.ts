@@ -40,6 +40,19 @@ export const useAppStore = create<AppState>()(
 
       updateConfig: (config) => set({ config, _configDirty: true }),
 
+      projectRenamed: (project) => {
+        const { config, currentProject, projects, updateConfig } = get();
+        set({
+          projects: projects.map((p) => (p.id === project.id ? project : p)),
+        });
+        if (project.id === currentProject) {
+          updateConfig({
+            ...config,
+            app: { ...config.app, name: project.name },
+          });
+        }
+      },
+
       // ── Screenshots ────────────────────────────────────────────────
       ...createScreenshotActions(set, get, store),
 

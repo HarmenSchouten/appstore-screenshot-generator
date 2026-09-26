@@ -55,6 +55,13 @@ export interface AppState {
   ) => void;
   /** Apply a local edit — triggers auto-save via the subscriber. */
   updateConfig: (config: Config) => void;
+  /**
+   * Take a rename the server has made into the project list and, when it is
+   * the open project, into its config. The config change is a local edit, so
+   * it gets saved: otherwise an edit saved while the rename was in flight
+   * would leave the old name on the server (#141).
+   */
+  projectRenamed: (project: ProjectInfo) => void;
 
   // ── Screenshots (implemented in screenshots.ts) ──────────────────
   /** Appends a screenshot and returns its id; null when nothing changed. */
