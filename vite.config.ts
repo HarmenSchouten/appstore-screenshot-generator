@@ -6,6 +6,25 @@ import { fileURLToPath } from "node:url";
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 
 /**
+ * Before 2.9.0, Deno's Node-API layer could leave a native rolldown object
+ * unusable, so a cold `deno task dev` failed about one start in three with
+ * "Failed to recover `TsconfigCache` type from napi value" and a blank
+ * editor (#138, fixed upstream in denoland/deno#35212). Stop here rather
+ * than fail at random later.
+ */
+function requireDeno(minMajor: number, minMinor: number) {
+  const [major, minor] = Deno.version.deno.split(".").map(Number);
+  if (major < minMajor || (major === minMajor && minor < minMinor)) {
+    throw new Error(
+      `Deno ${minMajor}.${minMinor} or newer is required, this is ` +
+        `${Deno.version.deno}. Run \`deno upgrade\`.`,
+    );
+  }
+}
+
+requireDeno(2, 9);
+
+/**
  * Path aliases are declared once, in deno.json `imports`; this turns the
  * local (`./src/...`) entries into Vite aliases so the UI build resolves them
  * exactly like Deno does. jsr:/npm: entries are Deno-only and skipped.

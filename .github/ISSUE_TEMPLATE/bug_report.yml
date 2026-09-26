@@ -41,7 +41,7 @@ body:
         Your OS, the output of `deno --version` (the first line is enough), the
         browser you edit in, and the Chrome used for export if it isn't the
         default one
-      placeholder: Windows 11, deno 2.7.7, Firefox 142, Chrome 141
+      placeholder: Windows 11, deno 2.9.7, Firefox 142, Chrome 141
     validations:
       required: true
 
