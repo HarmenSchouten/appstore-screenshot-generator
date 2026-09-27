@@ -2,7 +2,7 @@ export const snapshot = {};
 
 snapshot[`renderScreenshot: default screenshot snapshot 1`] = `
 \`<!DOCTYPE html>
-<html lang="en"><head><meta charSet="UTF-8"/><meta name="viewport" content="width=1242, height=2688"/><title>Snapshot App - shot-1</title><style>
+<html lang="en"><head><meta charSet="UTF-8"/><meta name="viewport" content="width=1242, height=2688"/><link rel="preload" as="image" href="/assets/images/screen.png"/><title>Snapshot App - shot-1</title><style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
     
     * {
@@ -39,7 +39,7 @@ snapshot[`renderScreenshot: default screenshot snapshot 1`] = `
 
 snapshot[`renderScreenshot: feature graphic snapshot 1`] = `
 \`<!DOCTYPE html>
-<html lang="en"><head><meta charSet="UTF-8"/><meta name="viewport" content="width=1024, height=500"/><title>Snapshot App - fg-1</title><style>
+<html lang="en"><head><meta charSet="UTF-8"/><meta name="viewport" content="width=1024, height=500"/><link rel="preload" as="image" href="/assets/images/screen.png"/><title>Snapshot App - fg-1</title><style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
     
     * {
@@ -76,7 +76,7 @@ snapshot[`renderScreenshot: feature graphic snapshot 1`] = `
 
 snapshot[`renderScreenshot: shape, glow and image layers snapshot 1`] = `
 \`<!DOCTYPE html>
-<html lang="en"><head><meta charSet="UTF-8"/><meta name="viewport" content="width=1080, height=1920"/><title>Snapshot App - shot-effects</title><style>
+<html lang="en"><head><meta charSet="UTF-8"/><meta name="viewport" content="width=1080, height=1920"/><link rel="preload" as="image" href="/assets/images/logo.png"/><title>Snapshot App - shot-effects</title><style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
     
     * {
