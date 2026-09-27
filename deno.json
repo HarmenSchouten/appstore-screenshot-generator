@@ -40,7 +40,7 @@
     "@app-types/": "./src/types/",
     "@routes": "./src/routes/index.ts",
     "@routes/": "./src/routes/",
-    "@std/testing": "jsr:@std/testing@^1.0.20",
+    "@std/testing": "jsr:@std/testing@^1.0.21",
     "@ui/": "./src/ui/",
     "@lib": "./src/lib/index.ts",
     "@lib/": "./src/lib/",
