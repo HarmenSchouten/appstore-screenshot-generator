@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # update-deps dispatches this on its branch, since pushes made with
+  # GITHUB_TOKEN don't trigger pull_request
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,9 +33,9 @@ jobs:
         if: github.actor != 'dependabot[bot]'
         run: deno install --frozen
 
-      # Dependabot edits package.json but cannot regenerate deno.lock, so let
-      # its PRs resolve fresh; the lock is refreshed locally before merging
-      # (see CONTRIBUTING.md).
+      # Dependabot security updates edit package.json but cannot regenerate
+      # deno.lock, so let its PRs resolve fresh; the lock is refreshed locally
+      # before merging (see CONTRIBUTING.md).
       - name: Install dependencies (Dependabot PR)
         if: github.actor == 'dependabot[bot]'
         run: deno install

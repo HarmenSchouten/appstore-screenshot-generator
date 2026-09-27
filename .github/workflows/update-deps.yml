@@ -1,0 +1,96 @@
+name: update-deps
+
+# Replaces Dependabot's npm version updates (#150). Dependabot can't regenerate
+# deno.lock, so its PRs only touched package.json and each needed a manual
+# lockfile sync. This opens one PR per week with the manifests and the lock
+# updated together. Only in-range updates: majors (and 0.x minors) stay manual.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: update-deps
+  cancel-in-progress: false
+
+env:
+  BRANCH: build/weekly-dep-updates
+  TITLE: "build(deps): bump in-range dependencies"
+  NO_COLOR: "1"
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Update dependencies
+        id: update
+        run: |
+          deno outdated > outdated.txt
+          deno outdated --update
+          # outdated --update rewrites the lock, but an explicit install makes
+          # sure it matches what `deno install --frozen` in verify expects
+          deno install
+          if git diff --quiet -- package.json deno.json deno.lock; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push branch
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$BRANCH"
+          git add package.json deno.json deno.lock
+          git commit -m "$TITLE"
+          # Rebuilt from main every run, so an unmerged PR always carries the
+          # current set of updates; anything pushed to it by hand is replaced
+          git push --force origin "$BRANCH"
+
+      - name: Open or update pull request
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Updates every dependency that has a newer version inside its current semver range, with \`deno.lock\` regenerated in the same commit. Opened by the \`update-deps\` workflow."
+            echo
+            echo "\`deno outdated\` before the update (the **Update** column is what this PR applies; **Latest** beyond it needs a manual migration):"
+            echo
+            echo '```'
+            cat outdated.txt
+            echo '```'
+            echo
+            echo "Before merging, check the \`verify\` run. For a puppeteer update, also run a PNG export locally."
+          } > body.md
+          number=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number')
+          if [ -z "$number" ]; then
+            gh pr create --base main --head "$BRANCH" --title "$TITLE" --body-file body.md --label dependencies
+          else
+            gh pr edit "$number" --body-file body.md
+          fi
+
+      # Pushes and PRs made with GITHUB_TOKEN don't trigger pull_request
+      # workflows, but a dispatch does. Its `verify` check lands on the head
+      # commit, which is what branch protection requires.
+      - name: Run verify on the branch
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run verify.yml --ref "$BRANCH"
