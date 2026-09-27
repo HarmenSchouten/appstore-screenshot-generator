@@ -72,9 +72,14 @@ the import aliases, and `deno.lock` is the only lockfile. Don't run
 - To add or update a package, edit `package.json`, run `deno install`, and
   commit the updated `deno.lock` along with it. CI installs with `--frozen`
   and fails if the lockfile is out of date.
-- Dependabot pull requests only change `package.json`, because Dependabot
-  can't update `deno.lock`. Before merging one, check out its branch, run
-  `deno install`, and push the updated lockfile.
+- Every Monday the `update-deps` workflow opens a pull request that updates
+  all dependencies to the newest version within their current range, with
+  `deno.lock` included. Major versions, and minors of `0.x` packages, are
+  left for a manual upgrade. You can also start it from the Actions tab.
+- Dependabot only opens pull requests for security updates. These change
+  `package.json` but not `deno.lock`, because Dependabot can't update it.
+  Before merging one, check out its branch, run `deno install`, and push the
+  updated lockfile.
 - Tasks run tools through their `node_modules/<pkg>/…/bin` path rather than an
   `npm:` specifier. An `npm:` specifier would add a new entry to `deno.lock`
   every time the task runs.

@@ -1,26 +1,18 @@
 version: 2
 updates:
-  # package.json is the single npm manifest (Deno installs from it; deno.lock is
-  # the lockfile). There is no package-lock.json, so Dependabot bumps ranges in
-  # package.json; `increase` makes it propose in-range minor/patch updates too.
-  # Majors arrive as separate PRs and need a manual smoke test before merging
-  # (puppeteer drives the PNG export). After merging any Dependabot PR, run
-  # `deno install` and commit deno.lock — see CONTRIBUTING.md.
+  # npm version updates are off (#150): Dependabot can't regenerate deno.lock,
+  # so the update-deps workflow opens the weekly in-range update PR instead.
+  # A limit of 0 stops version updates only; security updates still arrive as
+  # PRs that edit package.json, and need `deno install` and a committed
+  # deno.lock before merging (see CONTRIBUTING.md).
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    open-pull-requests-limit: 0
     versioning-strategy: increase
-    groups:
-      minor-and-patch:
-        update-types: [minor, patch]
-      # React + its types must move together (react-dom 19 alone is broken).
-      react-major:
-        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
-        update-types: [major]
-    # Deferred majors — each is a source migration tracked in its own issue.
-    # Remove the entry when that issue is done. Minor/patch (incl. security)
-    # updates for these packages still flow.
+    # Deferred majors, each a source migration tracked in its own issue.
+    # Remove the entry when that issue is done.
     ignore:
       - dependency-name: react # #97
         update-types: [version-update:semver-major]
