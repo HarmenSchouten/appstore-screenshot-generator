@@ -362,7 +362,8 @@ export const ShapeLayer = (layer: ShapeLayerProps) => {
         viewBox="0 0 100 100"
         width="100%"
         height="100%"
-        style={{ overflow: "visible" }}
+        // Inline, its baseline gap lifts exported shapes (#153)
+        style={{ display: "block", overflow: "visible" }}
       >
         <ShapeContent layer={layer} />
       </svg>

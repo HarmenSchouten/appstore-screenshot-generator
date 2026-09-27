@@ -198,6 +198,26 @@ Deno.test("renderScreenshot: every shape type snapshot", async (t) => {
   await assertSnapshot(t, html);
 });
 
+// An inline svg leaves descender space under it, so the wrapper grew taller
+// than `size` and the centring translate lifted every exported shape by a
+// few pixels. The preview hid it through Tailwind's preflight (#153).
+Deno.test("renderScreenshot: every shape's svg is a block, not inline", () => {
+  const screenshot = makeAllShapesScreenshot();
+  const html = renderScreenshot({
+    screenshot,
+    theme: baseConfig.theme,
+    app: baseConfig.app,
+    platform: "android",
+    defaultDevicePresetId: "android-pixel-9-pro",
+    dimensions: baseConfig.languages[0].platforms.android.dimensions,
+  });
+
+  const svgs = html.match(/<svg viewBox="0 0 100 100"[^>]*>/g) ?? [];
+  const shapes = screenshot.layers.filter((l) => l.type === "shape");
+  assertEquals(svgs.length, shapes.length);
+  for (const svg of svgs) assertStringIncludes(svg, "display:block");
+});
+
 // An unknown shape used to fall through to a circle; #71 made every switch
 // exhaustive, so a stale config fails loudly instead of drawing the wrong thing.
 Deno.test("renderScreenshot: an unknown shape type throws", () => {
