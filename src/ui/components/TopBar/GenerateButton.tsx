@@ -19,7 +19,7 @@ export function GenerateButton() {
       className={`h-8 px-3 rounded text-sm font-medium flex items-center gap-2 transition-colors ${
         generating
           ? "bg-zinc-700 text-zinc-400 cursor-not-allowed"
-          : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-500/25"
+          : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-xs shadow-indigo-500/25"
       }`}
     >
       {generating

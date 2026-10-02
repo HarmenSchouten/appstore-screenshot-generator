@@ -5,9 +5,47 @@
  * Used alongside Tailwind CSS.
  */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Font Awesome is bundled (not loaded from a CDN) so the editor works offline.
+   Only the icon styles in use are imported; add regular.min.css if needed.
+   Layered, because unlayered CSS would beat every Tailwind utility (an icon's
+   `text-xs` lost its line height to Font Awesome's `line-height: 1`). */
+@import "@fortawesome/fontawesome-free/css/fontawesome.min.css"
+  layer(components);
+@import "@fortawesome/fontawesome-free/css/solid.min.css" layer(components);
+@import "@fortawesome/fontawesome-free/css/brands.min.css" layer(components);
+
+@theme {
+  --animate-fadeIn: fadeIn 150ms ease-out;
+  --animate-slideIn: slideIn 150ms ease-out;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* v4 preflight dropped the pointer cursor on buttons */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 /* Scrollbar styling - subtle and thin */
 ::-webkit-scrollbar {
@@ -29,7 +67,8 @@
   scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
-/* Range inputs — custom track/thumb; Tailwind can't reach these pseudo-elements */
+/* Range inputs: custom track/thumb, which Tailwind can't reach. Colours come
+   from the theme so they match the indigo utilities. */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -39,7 +78,7 @@ input[type="range"] {
   height: 20px;
 }
 input[type="range"]::-webkit-slider-runnable-track {
-  background: #3f3f46;
+  background: var(--color-zinc-700);
   height: 6px;
   border-radius: 3px;
 }
@@ -47,37 +86,38 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -5px;
-  background: #6366f1;
+  background: var(--color-indigo-500);
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  border: 2px solid #818cf8;
+  border: 2px solid var(--color-indigo-400);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 input[type="range"]::-webkit-slider-thumb:hover {
-  background: #818cf8;
+  background: var(--color-indigo-400);
 }
 input[type="range"]::-moz-range-track {
-  background: #3f3f46;
+  background: var(--color-zinc-700);
   height: 6px;
   border-radius: 3px;
 }
 input[type="range"]::-moz-range-thumb {
-  background: #6366f1;
+  background: var(--color-indigo-500);
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  border: 2px solid #818cf8;
+  border: 2px solid var(--color-indigo-400);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 input[type="range"]::-moz-range-thumb:hover {
-  background: #818cf8;
+  background: var(--color-indigo-400);
 }
 input[type="range"]:focus {
   outline: none;
 }
 input[type="range"]:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--color-indigo-500) 30%, transparent);
 }
 
 /* Grouped selects: the group heading small and upper-case, its options at
@@ -102,11 +142,11 @@ input[type="range"]:focus::-webkit-slider-thumb {
   .input {
     @apply w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2
       text-sm text-zinc-200 transition-colors placeholder:text-zinc-500
-      focus:border-indigo-500 focus:outline-none;
+      focus:border-indigo-500 focus:outline-hidden;
   }
   /* Neutral icon-only button; colour the hover per use (`hover:text-red-400`). */
   .btn-icon {
-    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded
+    @apply inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-sm
       text-zinc-500 transition-colors hover:bg-zinc-700 hover:text-zinc-200;
   }
 }
