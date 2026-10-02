@@ -132,7 +132,7 @@ export function ColorInput({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-10 rounded-l border border-zinc-700 hover:border-zinc-500 transition-colors flex-shrink-0"
+          className="w-10 rounded-l border border-zinc-700 hover:border-zinc-500 transition-colors shrink-0"
           style={{ backgroundColor: value || "#ffffff" }}
           title="Click to open color picker"
         />
@@ -142,7 +142,7 @@ export function ColorInput({
           onChange={handleHexChange}
           onBlur={handleHexBlur}
           maxLength={7}
-          className="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 text-zinc-200 rounded-r focus:outline-none focus:border-indigo-500 font-mono uppercase"
+          className="flex-1 min-w-0 px-2 text-sm bg-zinc-800 border-y border-r border-zinc-700 text-zinc-200 rounded-r focus:outline-hidden focus:border-indigo-500 font-mono uppercase"
           placeholder="#ffffff"
         />
       </div>

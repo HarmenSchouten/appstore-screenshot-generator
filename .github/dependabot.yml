@@ -11,11 +11,6 @@ updates:
       interval: weekly
     open-pull-requests-limit: 0
     versioning-strategy: increase
-    # Deferred majors, each a source migration tracked in its own issue.
-    # Remove the entry when that issue is done.
-    ignore:
-      - dependency-name: tailwindcss # #98
-        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /

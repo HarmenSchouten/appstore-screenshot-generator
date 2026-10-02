@@ -21,7 +21,7 @@ const TONE = {
     off: "text-zinc-500 hover:text-zinc-300",
   },
   accent: {
-    indicator: "bg-indigo-600 shadow-sm",
+    indicator: "bg-indigo-600 shadow-xs",
     on: "text-white",
     off: "text-zinc-400 hover:text-zinc-200",
   },

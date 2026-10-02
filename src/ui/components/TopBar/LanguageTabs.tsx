@@ -53,7 +53,7 @@ export function LanguageTabs() {
                   className={cn(
                     "h-8 flex items-center rounded text-xs uppercase font-medium transition-colors",
                     selection.lang === lang
-                      ? "bg-indigo-600 text-white shadow-sm shadow-indigo-500/25"
+                      ? "bg-indigo-600 text-white shadow-xs shadow-indigo-500/25"
                       : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-300",
                   )}
                 >
