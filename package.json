@@ -12,25 +12,25 @@
     "@tanstack/react-devtools": "^0.10.13",
     "@tanstack/react-hotkeys": "^0.10.0",
     "@tanstack/react-hotkeys-devtools": "^0.7.0",
-    "@tanstack/react-query": "^5.104.0",
-    "hono": "^4.13.9",
+    "@tanstack/react-query": "^5.104.1",
+    "hono": "^4.13.13",
     "puppeteer": "^25.12.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
     "react-zoom-pan-pinch": "^4.2.0",
-    "sharp": "^0.35.4",
+    "sharp": "^0.35.5",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@tanstack/react-query-devtools": "^5.104.0",
+    "@tanstack/react-query-devtools": "^5.104.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "concurrently": "^10.0.5",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.1"
+    "vite": "^8.3.2"
   },
   "keywords": [
     "app-store",
