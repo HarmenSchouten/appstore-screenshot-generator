@@ -127,6 +127,22 @@ export function makeFeatureGraphic(): Screenshot {
   };
 }
 
+/**
+ * A store's fixed-size placement — product page header, search results,
+ * feature graphic. Background only: what matters to the tests that use this
+ * is the role and the canvas it resolves to, not the artwork.
+ */
+export function makePlacementScreenshot(
+  id: string,
+  role: Screenshot["role"],
+): Screenshot {
+  return {
+    id,
+    role,
+    layers: [{ id: "bg", type: "background", opacity: 1 }],
+  };
+}
+
 /** Exercises the remaining layer renderers: shape, glow, and image. */
 export function makeEffectsScreenshot(): Screenshot {
   return {

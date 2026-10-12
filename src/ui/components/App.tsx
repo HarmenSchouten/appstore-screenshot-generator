@@ -27,6 +27,7 @@ import {
 } from "@ui/store/index.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import type { Screenshot } from "@ui/types.ts";
+import { getRolePlatforms } from "@lib";
 import {
   useAppHotkeys,
   useConfigAutoSave,
@@ -71,7 +72,16 @@ export function App() {
     ? screenshots.find((s) => s.id === selection.screenshotId)
     : undefined;
 
-  const isFeatureGraphic = selectedScreenshot?.role === "feature-graphic";
+  // A fixed-size placement belongs to one store, whatever the URL is on:
+  // Play's feature graphic renders with the Android device preset even when
+  // the iOS tab is selected. A screenshot belongs to whichever is selected.
+  const placementPlatform = selectedScreenshot
+    ? getRolePlatforms(selectedScreenshot.role)[0]
+    : undefined;
+  const previewPlatform = placementPlatform ?? selection.platform;
+  const previewDevicePresetId = previewPlatform === "android"
+    ? androidDevicePresetId
+    : defaultDevicePresetId;
 
   const handleScreenshotUpdate = useCallback(
     (updates: Partial<Screenshot>) => {
@@ -95,10 +105,8 @@ export function App() {
                   screenshot={selectedScreenshot}
                   theme={theme}
                   app={app}
-                  platform={isFeatureGraphic ? "android" : selection.platform}
-                  defaultDevicePresetId={isFeatureGraphic
-                    ? androidDevicePresetId
-                    : defaultDevicePresetId}
+                  platform={previewPlatform}
+                  defaultDevicePresetId={previewDevicePresetId}
                   dimensions={dimensions}
                 />
               )

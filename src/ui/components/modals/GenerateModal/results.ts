@@ -1,18 +1,23 @@
 /**
  * Shaping a run's results for display: successes grouped by language and
- * platform, the Android feature graphic set apart from the screenshots.
+ * platform, the fixed-size placements set apart from the screenshots.
  */
 
 import type { Platform } from "@app-types";
 import type { GenerateResult } from "@ui/types.ts";
-import { PLATFORMS } from "@lib";
+import { getRoleLabel, PLATFORMS } from "@lib";
 
 export interface PlatformGroup {
-  feature: GenerateResult | null;
+  /** The store's fixed-size placements — feature graphic, header, search results. */
+  placements: GenerateResult[];
   screenshots: GenerateResult[];
 }
 
 export type LanguageGroup = Record<Platform, PlatformGroup>;
+
+function emptyGroup(): PlatformGroup {
+  return { placements: [], screenshots: [] };
+}
 
 /** Languages in the order their first result appeared. */
 export function groupResults(
@@ -23,16 +28,13 @@ export function groupResults(
     if (r.status !== "success") continue;
     let lang = grouped.get(r.language);
     if (!lang) {
-      lang = {
-        android: { feature: null, screenshots: [] },
-        ios: { feature: null, screenshots: [] },
-      };
+      lang = { android: emptyGroup(), ios: emptyGroup() };
       grouped.set(r.language, lang);
     }
-    if (r.role === "feature-graphic" && r.platform === "android") {
-      lang.android.feature = r;
-    } else {
+    if (r.role === "screenshot") {
       lang[r.platform].screenshots.push(r);
+    } else {
+      lang[r.platform].placements.push(r);
     }
   }
   return grouped;
@@ -40,7 +42,7 @@ export function groupResults(
 
 export function countItems(group: LanguageGroup): number {
   return PLATFORMS.reduce(
-    (n, p) => n + group[p].screenshots.length + (group[p].feature ? 1 : 0),
+    (n, p) => n + group[p].screenshots.length + group[p].placements.length,
     0,
   );
 }
@@ -48,6 +50,6 @@ export function countItems(group: LanguageGroup): number {
 /** The screenshot's name; unnamed ones show the file name or their role. */
 export function resultName(r: GenerateResult): string {
   if (r.screenshotName) return r.screenshotName;
-  if (r.role === "feature-graphic") return "Feature Graphic";
+  if (r.role !== "screenshot") return getRoleLabel(r.role);
   return r.relativePath.split("/").pop() || r.relativePath;
 }

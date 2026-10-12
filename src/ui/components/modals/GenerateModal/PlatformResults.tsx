@@ -1,12 +1,12 @@
 /**
  * PlatformResults — one platform's successful files for a language, as
- * thumbnails or as a list. The feature graphic, when there is one, sits
- * full-width above the screenshot grid.
+ * thumbnails or as a list. The fixed-size placements, when there are any,
+ * sit full-width above the screenshot grid.
  */
 
 import type { Dimensions, Platform } from "@app-types";
 import type { GenerateResult } from "@ui/types.ts";
-import { DEFAULT_DIMENSIONS, FEATURE_GRAPHIC_SIZE } from "@lib";
+import { DEFAULT_DIMENSIONS, getScreenshotDimensions } from "@lib";
 import { PLATFORM_META } from "@ui/utils/platform-meta.ts";
 import { cn } from "@ui/utils/cn.ts";
 import { type PlatformGroup, resultName } from "./results.ts";
@@ -25,7 +25,9 @@ interface PlatformResultsProps {
 export function PlatformResults(
   { platform, group, showPreviews, resultUrl }: PlatformResultsProps,
 ) {
-  if (!group.feature && group.screenshots.length === 0) return null;
+  if (group.placements.length === 0 && group.screenshots.length === 0) {
+    return null;
+  }
 
   return (
     <div className="mb-3 last:mb-0">
@@ -37,13 +39,19 @@ export function PlatformResults(
       {showPreviews
         ? (
           <>
-            {group.feature && (
-              <div className="mb-2">
-                <ResultCard
-                  result={group.feature}
-                  size={FEATURE_GRAPHIC_SIZE}
-                  resultUrl={resultUrl}
-                />
+            {group.placements.length > 0 && (
+              <div className="mb-2 space-y-2">
+                {group.placements.map((r) => (
+                  <ResultCard
+                    key={r.relativePath}
+                    result={r}
+                    size={getScreenshotDimensions(
+                      r,
+                      DEFAULT_DIMENSIONS[platform],
+                    )}
+                    resultUrl={resultUrl}
+                  />
+                ))}
               </div>
             )}
             {group.screenshots.length > 0 && (
@@ -63,7 +71,9 @@ export function PlatformResults(
         )
         : (
           <div className="space-y-0.5">
-            {group.feature && <ResultRow result={group.feature} />}
+            {group.placements.map((r) => (
+              <ResultRow key={r.relativePath} result={r} />
+            ))}
             {group.screenshots.map((r) => (
               <ResultRow key={r.relativePath} result={r} />
             ))}

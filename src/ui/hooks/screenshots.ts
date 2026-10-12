@@ -10,6 +10,7 @@
 import { useMemo } from "react";
 import { useAppStore } from "@ui/store/index.ts";
 import type { Screenshot } from "@ui/types.ts";
+import type { ScreenshotRole } from "@app-types";
 import { useNavigateSelection, useSelection } from "./routing.ts";
 
 export function useScreenshotActions() {
@@ -28,16 +29,16 @@ export function useScreenshotActions() {
         if (id) select(id);
       },
 
-      addFeatureGraphic: () => {
-        const id = useAppStore.getState().addFeatureGraphic(selection);
+      addPlacement: (role: ScreenshotRole) => {
+        const id = useAppStore.getState().addRoleScreenshot(selection, role);
         if (id) select(id);
       },
 
       remove: (id: string) =>
         useAppStore.getState().removeScreenshot(selection, id),
 
-      removeFeatureGraphic: () =>
-        useAppStore.getState().removeFeatureGraphic(selection),
+      removePlacement: (role: ScreenshotRole) =>
+        useAppStore.getState().removeRoleScreenshot(selection, role),
 
       reorder: (orderedIds: string[]) =>
         useAppStore.getState().reorderScreenshots(selection, orderedIds),

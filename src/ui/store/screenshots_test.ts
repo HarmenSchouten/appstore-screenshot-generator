@@ -109,8 +109,11 @@ Deno.test("an update that changes nothing does not touch the store", () => {
   assertStrictEquals(useAppStore.getState().config, before);
   assertEquals(useAppStore.getState()._configDirty, false);
 
-  // Only one feature graphic per platform
-  assertEquals(useAppStore.getState().addFeatureGraphic(EN_ANDROID), null);
+  // Only one of a fixed-size placement per platform
+  assertEquals(
+    useAppStore.getState().addRoleScreenshot(EN_ANDROID, "feature-graphic"),
+    null,
+  );
   assertStrictEquals(useAppStore.getState().config, before);
   assertEquals(useAppStore.getState()._configDirty, false);
 
@@ -145,7 +148,7 @@ Deno.test("add, remove and reorder keep working", () => {
     ["shot-2", "shot-1", "fg-1"],
   );
 
-  store.removeFeatureGraphic(EN_ANDROID);
+  store.removeRoleScreenshot(EN_ANDROID, "feature-graphic");
   assertEquals(
     androidOf(useAppStore.getState().config).screenshots.map((s) => s.id),
     ["shot-2", "shot-1"],
@@ -172,7 +175,10 @@ Deno.test("an action edits the language and platform it is handed", () => {
   // Counting is per target too: de had two screenshots of its own
   assertEquals(androidOf(after, "de").screenshots[3].name, "Screenshot 3");
 
-  store.removeFeatureGraphic({ lang: "de", platform: "android" });
+  store.removeRoleScreenshot(
+    { lang: "de", platform: "android" },
+    "feature-graphic",
+  );
   assertEquals(
     androidOf(useAppStore.getState().config, "de").screenshots.map((s) =>
       s.role
@@ -183,5 +189,40 @@ Deno.test("an action edits the language and platform it is handed", () => {
     androidOf(useAppStore.getState().config, "en").screenshots[2]
       .role,
     "feature-graphic",
+  );
+});
+
+Deno.test("each App Store placement is added, named and removed by its role", () => {
+  seedStore();
+  const store = useAppStore.getState();
+  const EN_IOS: ScreenshotTarget = { lang: "en", platform: "ios" };
+  const iosOf = (config: Config, lang = "en") =>
+    config.languages.find((l) => l.language === lang)!.platforms.ios;
+
+  const headerId = store.addRoleScreenshot(EN_IOS, "product-page-header");
+  assert(headerId !== null);
+  const searchId = store.addRoleScreenshot(EN_IOS, "search-result");
+  assert(searchId !== null);
+
+  const placed = iosOf(useAppStore.getState().config).screenshots;
+  // Named from the role table, not hardcoded here, so a label change is one edit.
+  assertEquals(placed.map((s) => [s.name, s.role]), [
+    ["Product Page Header", "product-page-header"],
+    ["Search Results", "search-result"],
+  ]);
+
+  // One of each: the second attempt changes nothing.
+  const before = useAppStore.getState().config;
+  assertEquals(
+    useAppStore.getState().addRoleScreenshot(EN_IOS, "product-page-header"),
+    null,
+  );
+  assertStrictEquals(useAppStore.getState().config, before);
+
+  // Removing the header leaves the search result alone.
+  store.removeRoleScreenshot(EN_IOS, "product-page-header");
+  assertEquals(
+    iosOf(useAppStore.getState().config).screenshots.map((s) => s.role),
+    ["search-result"],
   );
 });

@@ -33,17 +33,35 @@ Deno.test("groupResults keeps languages in first-seen order and drops failures",
   assertEquals(grouped.get("en")!.ios.screenshots.length, 0);
 });
 
-Deno.test("groupResults sets the Android feature graphic apart", () => {
+Deno.test("groupResults sets the store's fixed-size placements apart", () => {
   const grouped = groupResults([
     result({ relativePath: "en/android/1.png" }),
     result({ relativePath: "en/android/fg.png", role: "feature-graphic" }),
+    result({ relativePath: "en/ios/1.png", platform: "ios" }),
+    result({
+      relativePath: "en/ios/header.png",
+      platform: "ios",
+      role: "product-page-header",
+    }),
+    result({
+      relativePath: "en/ios/search.png",
+      platform: "ios",
+      role: "search-result",
+    }),
   ]);
   const en = grouped.get("en")!;
-  assertEquals(en.android.feature?.relativePath, "en/android/fg.png");
+  assertEquals(en.android.placements.map((r) => r.relativePath), [
+    "en/android/fg.png",
+  ]);
+  assertEquals(en.ios.placements.map((r) => r.relativePath), [
+    "en/ios/header.png",
+    "en/ios/search.png",
+  ]);
   assertEquals(en.android.screenshots.map((r) => r.relativePath), [
     "en/android/1.png",
   ]);
-  assertEquals(countItems(en), 2);
+  assertEquals(en.ios.screenshots.map((r) => r.relativePath), ["en/ios/1.png"]);
+  assertEquals(countItems(en), 5);
 });
 
 Deno.test("resultName prefers the screenshot name, then file name or role", () => {
@@ -62,5 +80,15 @@ Deno.test("resultName prefers the screenshot name, then file name or role", () =
       result({ relativePath: "en/android/fg.png", role: "feature-graphic" }),
     ),
     "Feature Graphic",
+  );
+  assertEquals(
+    resultName(
+      result({
+        relativePath: "en/ios/header.png",
+        platform: "ios",
+        role: "product-page-header",
+      }),
+    ),
+    "Product Page Header",
   );
 });

@@ -2,7 +2,7 @@ import type { StateCreator } from "zustand";
 import type { AppState } from "./types.ts";
 import type { Config, Screenshot } from "@ui/types.ts";
 import type { Platform } from "@app-types";
-import { generateLayerId } from "@lib";
+import { generateLayerId, getRoleLabel } from "@lib";
 
 /**
  * Rebuild `config` with a new screenshots array for one language/platform,
@@ -59,11 +59,11 @@ function newScreenshot(
 export type ScreenshotActions = Pick<
   AppState,
   | "addScreenshot"
-  | "addFeatureGraphic"
+  | "addRoleScreenshot"
   | "removeScreenshot"
   | "updateScreenshot"
   | "reorderScreenshots"
-  | "removeFeatureGraphic"
+  | "removeRoleScreenshot"
 >;
 
 /**
@@ -100,7 +100,7 @@ export const createScreenshotActions: StateCreator<
     return id;
   },
 
-  addFeatureGraphic: ({ lang, platform }) => {
+  addRoleScreenshot: ({ lang, platform }, role) => {
     const id = globalThis.crypto.randomUUID();
 
     const next = withScreenshots(
@@ -108,11 +108,11 @@ export const createScreenshotActions: StateCreator<
       lang,
       platform,
       (screenshots) => {
-        // Enforce uniqueness: only one feature-graphic per platform
-        if (screenshots.some((s) => s.role === "feature-graphic")) return null;
+        // Enforce uniqueness: only one of a unique role per platform
+        if (screenshots.some((s) => s.role === role)) return null;
         return [
           ...screenshots,
-          newScreenshot(id, "Feature Graphic", "feature-graphic"),
+          newScreenshot(id, getRoleLabel(role), role),
         ];
       },
     );
@@ -162,14 +162,12 @@ export const createScreenshotActions: StateCreator<
       platform,
       (screenshots) => {
         const byId = new Map(screenshots.map((s) => [s.id, s]));
-        // Keep feature graphics in place, reorder only screenshots
-        const featureGraphics = screenshots.filter(
-          (s) => s.role === "feature-graphic",
-        );
+        // Keep the fixed-size placements in place, reorder only screenshots
+        const creatives = screenshots.filter((s) => s.role !== "screenshot");
         const reordered = orderedIds
           .map((id) => byId.get(id))
           .filter((s): s is Screenshot => s != null && s.role === "screenshot");
-        return [...reordered, ...featureGraphics];
+        return [...reordered, ...creatives];
       },
     );
     if (!next) return;
@@ -177,14 +175,14 @@ export const createScreenshotActions: StateCreator<
     get().updateConfig(next);
   },
 
-  removeFeatureGraphic: ({ lang, platform }) => {
+  removeRoleScreenshot: ({ lang, platform }, role) => {
     const next = withScreenshots(
       get().config,
       lang,
       platform,
       (screenshots) =>
-        screenshots.some((s) => s.role === "feature-graphic")
-          ? screenshots.filter((s) => s.role !== "feature-graphic")
+        screenshots.some((s) => s.role === role)
+          ? screenshots.filter((s) => s.role !== role)
           : null,
     );
     if (!next) return;

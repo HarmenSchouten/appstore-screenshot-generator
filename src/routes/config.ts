@@ -223,10 +223,13 @@ export function createConfigRoutes(ctx: ServerContext) {
     const config = await ctx.getConfig(projectId);
     const langConfig = findLanguage(config, language);
 
-    // Deep clone source screenshots with new ids, excluding feature graphics
+    // Deep clone source screenshots with new ids. Only plain screenshots
+    // carry across: a fixed-size placement belongs to its own store, so the
+    // Play feature graphic must not follow an iOS → Android copy, nor the
+    // App Store header the other way.
     langConfig.platforms[targetPlatform].screenshots = langConfig
       .platforms[sourcePlatform].screenshots
-      .filter((s) => s.role !== "feature-graphic")
+      .filter((s) => s.role === "screenshot")
       .map((s) => ({ ...structuredClone(s), id: crypto.randomUUID() }));
 
     await persist(projectId, config);
