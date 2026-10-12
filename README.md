@@ -130,9 +130,9 @@ Both stores reject images with an alpha channel; exports are opaque PNGs.
 
 Screenshot canvas sizes live in `config.json` under each language's
 `platforms.<ios|android>.dimensions`; the editor doesn't expose them yet.
-Each store's fixed-size placements ignore that setting — a feature graphic is
-always 1024 × 500, a product page header always 3840 × 1646 — and each store
-takes one of each.
+Each store's fixed-size placements ignore that setting and have a single size:
+the feature graphic is 1024 × 500, the product page header 3840 × 1646 and
+search results 3840 × 2560. A store takes one of each.
 
 ## Development
 

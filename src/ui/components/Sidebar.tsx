@@ -34,19 +34,24 @@ function SidebarInner() {
         .map((x) => x.id)
     ),
   );
-  const placementIds = useAppStore(
+  // Primitives only: useShallow compares items with Object.is, so fresh
+  // objects here would never match and re-render forever.
+  const placementIdList = useAppStore(
     useShallow((s) => {
       const screenshots = selectScreenshots(
         s,
         selection.lang,
         selection.platform,
       );
-      return placements.map((role) => ({
-        role,
-        id: screenshots.find((x) => x.role === role)?.id ?? null,
-      }));
+      return placements.map((role) =>
+        screenshots.find((x) => x.role === role)?.id ?? null
+      );
     }),
   );
+  const placementIds = placements.map((role, i) => ({
+    role,
+    id: placementIdList[i],
+  }));
 
   // A subscription, not getState(): this reads config, and the sidebar no
   // longer re-renders on every config change to pick the new value up.

@@ -274,7 +274,7 @@ list all read it, and `SCREENSHOT_ROLES` is derived from its keys. *Why:*
 asking `role === "feature-graphic"` separately in each of those places meant
 adding Apple's product page header and search results was an edit in six
 files, each of which could disagree with the others. A store launching a new
-placement is now one entry. (#14)
+placement is now one entry. (#159)
 
 A placement also fixes the store it renders with: Play's feature graphic
 draws with the Android device preset even when the iOS tab is selected.
