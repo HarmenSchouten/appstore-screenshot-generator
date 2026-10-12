@@ -1,4 +1,4 @@
-import type { PlacementRole, Platform } from "@app-types";
+import type { Dimensions, PlacementRole, Platform } from "@app-types";
 import type {
   Config,
   DevicePresetId,
@@ -85,6 +85,15 @@ export interface AppState {
   updateDefaultDevicePreset: (
     platform: Platform,
     presetId: DevicePresetId,
+  ) => void;
+
+  /**
+   * The canvas a language's screenshots render at. Fixed-size placements
+   * ignore it — see `getScreenshotDimensions`.
+   */
+  updateDimensions: (
+    target: ScreenshotTarget,
+    dimensions: Dimensions,
   ) => void;
 
   // ── Generation ───────────────────────────────────────────────────

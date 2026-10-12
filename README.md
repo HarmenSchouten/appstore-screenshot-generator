@@ -20,12 +20,15 @@ and images you can back up or put in git.
 - **Layers.** Background, text, phone frame, image, glow and 20 decorative
   shapes (lines, arrows, stars, blobs, dot patterns and more). Position,
   rotate, fade and drag to reorder.
-- **Device frames.** iPhone 15 Pro / Pro Max, iPhone 17 Pro / Pro Max,
-  Pixel 9 Pro, Galaxy S24 Ultra, OnePlus 13, and a generic frame per
-  platform. Each platform has a default device that frames inherit.
+- **Device frames.** iPhone 15 Pro / Pro Max, iPhone 17 Pro / Pro Max, the
+  iPhone Duo (open and folded, with the hinge crease), Pixel 9 Pro, Galaxy S24
+  Ultra, OnePlus 13, and a generic frame per platform. Each platform has a
+  default device that frames inherit.
 - **Store formats.** iOS screenshots, Android screenshots, the Google Play
   feature graphic, and the App Store product page header and search results,
-  each at a size the store accepts ([below](#store-sizes)).
+  each at a size the store accepts ([below](#store-sizes)). The screenshot
+  canvas size is a picker in the sidebar, so you can design at 6.9", at a
+  foldable's display, or at any other size the store takes.
 - **Languages.** 34 store languages. A new language can start as a copy of
   the current one, and a platform's screenshots can be copied to the other,
   so localizing is editing text rather than rebuilding layouts.
@@ -121,6 +124,7 @@ projects/
 | Format | Exported at | What the store asks for |
 | --- | --- | --- |
 | iOS screenshot | 1242 × 2688 | Apple's 6.5" size. Apple lists 6.9" (1260 × 2736, 1290 × 2796 or 1320 × 2868) first; without 6.9" uploads, App Store Connect scales the 6.5" set. 1 to 10 per listing. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
+| iOS screenshot, iPhone Duo | 2007 × 2853 or 1398 × 2034 | The foldable's two displays, inner and outer. Apple requires the inner display set from 30 April 2027. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
 | Android screenshot | 1080 × 1920 | 9:16, each side 320 to 3840 px. At least 2 to publish; at least 4 at ≥ 1080 px to be eligible for larger placements. [Google Play specs](https://support.google.com/googleplay/android-developer/answer/9866151) |
 | Play feature graphic | 1024 × 500 | Fixed size, required to publish. |
 | App Store product page header | 3840 × 1646 | 21:9, fixed size. Apple also accepts a 5244 × 2950 "universal" image that serves this placement and search results in one file. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/creative-assets-specifications) |
@@ -128,11 +132,13 @@ projects/
 
 Both stores reject images with an alpha channel; exports are opaque PNGs.
 
-Screenshot canvas sizes live in `config.json` under each language's
-`platforms.<ios|android>.dimensions`; the editor doesn't expose them yet.
-Each store's fixed-size placements ignore that setting and have a single size:
-the feature graphic is 1024 × 500, the product page header 3840 × 1646 and
-search results 3840 × 2560. A store takes one of each.
+A screenshot's canvas size is the **Canvas size** picker at the bottom of the
+sidebar. Picking one sets it for every language of that platform, and is stored
+in `config.json` under each language's `platforms.<ios|android>.dimensions`.
+The list is portrait only. A store's fixed-size placements ignore the picker
+and have a single size each: the feature graphic is 1024 × 500, the product
+page header 3840 × 1646 and search results 3840 × 2560. A store takes one of
+each.
 
 ## Development
 

@@ -10,10 +10,19 @@ import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { arrayMove } from "@dnd-kit/sortable";
 import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
-import { getRoleLabel, getRolesForPlatform } from "@lib";
+import {
+  CANVAS_SIZE_PRESETS,
+  findCanvasSizePreset,
+  getRoleLabel,
+  getRolesForPlatform,
+} from "@lib";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
-import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
+import {
+  selectDimensions,
+  selectScreenshots,
+  useAppStore,
+} from "@ui/store/index.ts";
 import { useScreenshotActions, useSelection } from "@hooks";
 import { SortableList, SortableRow } from "@ui/components/primitives/index.ts";
 import { Select } from "@ui/components/inputs/index.ts";
@@ -60,8 +69,29 @@ function SidebarInner() {
   const updateDefaultDevicePreset = useAppStore((s) =>
     s.updateDefaultDevicePreset
   );
+  const dimensions = useAppStore((s) =>
+    selectDimensions(s, selection.lang, selection.platform)
+  );
+  const updateDimensions = useAppStore((s) => s.updateDimensions);
 
   const platformPresets = getDevicePresetsForPlatform(selection.platform);
+
+  // A canvas the stores don't list — a hand-edited config.json — falls back to
+  // its own pixels rather than showing the wrong preset as selected.
+  const canvasSizes = CANVAS_SIZE_PRESETS[selection.platform];
+  const canvasSizeId =
+    findCanvasSizePreset(selection.platform, dimensions)?.id ??
+      `${dimensions.width}x${dimensions.height}`;
+  const canvasSizeOptions = canvasSizes.some((s) => s.id === canvasSizeId)
+    ? canvasSizes
+    : [
+      ...canvasSizes,
+      {
+        id: canvasSizeId,
+        label: `${dimensions.width} × ${dimensions.height}`,
+        dimensions: { ...dimensions },
+      },
+    ];
 
   return (
     <aside className="w-[268px] bg-zinc-900 border-r border-zinc-800 flex flex-col">
@@ -137,9 +167,30 @@ function SidebarInner() {
         ))}
       </div>
 
-      {/* Device Preset */}
+      {/* Canvas size and Device Preset */}
       <div className="px-3 py-3 border-t border-zinc-800">
         <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1.5 font-medium">
+          Canvas size
+        </div>
+        <Select<string>
+          value={canvasSizeId}
+          onChange={(id) => {
+            const preset = canvasSizeOptions.find((p) => p.id === id);
+            if (preset) updateDimensions(selection, preset.dimensions);
+          }}
+          options={canvasSizeOptions.map((p) => ({
+            value: p.id,
+            label: p.label,
+          }))}
+          className="px-2.5 py-1.5 text-xs rounded"
+        />
+        <div className="mt-1.5 text-[10px] text-zinc-600">
+          {dimensions.width} × {dimensions.height} —{" "}
+          {selection.platform === "ios" ? "Apple" : "Play"}{" "}
+          screenshots portrait.
+        </div>
+
+        <div className="text-[11px] uppercase tracking-wider text-zinc-500 mt-3 mb-1.5 font-medium">
           Default device
         </div>
         <Select<DevicePresetId>

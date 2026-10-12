@@ -75,6 +75,40 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      // ── Canvas size ────────────────────────────────────────────────
+      updateDimensions: ({ lang, platform }, dimensions) => {
+        const config = get().config;
+        const langIndex = config.languages?.findIndex(
+          (l) => l.language === lang,
+        ) ?? -1;
+        if (!config.languages || langIndex === -1) return;
+
+        const langConfig = config.languages[langIndex];
+        const platformConfig = langConfig.platforms?.[platform];
+        if (!platformConfig) return;
+
+        // Spread into a new object: phone-frame geometry is derived from the
+        // canvas width, so a mutated one would leave the preview drawing at
+        // the old size until something else forced a re-render.
+        get().updateConfig({
+          ...config,
+          languages: config.languages.map((l, i) =>
+            i === langIndex
+              ? {
+                ...langConfig,
+                platforms: {
+                  ...langConfig.platforms,
+                  [platform]: {
+                    ...platformConfig,
+                    dimensions: { ...dimensions },
+                  },
+                },
+              }
+              : l
+          ),
+        });
+      },
+
       // ── Generation ─────────────────────────────────────────────────
       generating: false,
       generateProgress: {

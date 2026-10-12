@@ -79,6 +79,17 @@ export interface DeviceMaterialPreset {
 }
 
 /**
+ * The crease down the middle of a foldable's inner display. Drawn as a
+ * vertical band over the screen, `shadow` for the shading either side of it.
+ */
+export interface DeviceCreasePreset {
+  /** Width of the crease itself. */
+  width: number;
+  color: string;
+  shadow: string;
+}
+
+/**
  * All measurements are in units of `DEVICE_PRESET_REFERENCE_WIDTH`
  * (`@device-presets`), which the renderer scales to the rendered width.
  *
@@ -96,6 +107,8 @@ export interface DevicePreset<Id extends string = DevicePresetId> {
   outerRadius: number;
   screen: DeviceScreenPreset;
   cutout?: DeviceCutoutPreset;
+  /** Fold hinge; a rigid device omits it. */
+  crease?: DeviceCreasePreset;
   /** Readonly: presets are shared, immutable data — builders hand out the
    * same arrays rather than copying them per preset. */
   buttons: readonly DeviceButtonPreset[];

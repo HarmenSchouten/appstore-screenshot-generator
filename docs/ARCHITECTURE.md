@@ -67,11 +67,12 @@ flowchart TB
   `background`, `text`, `phone-frame`, `image`, `glow`, `shape`. Shapes are a
   second union, discriminated on `shapeType` into families.
 - **`src/lib/`** (`@lib`): helpers that depend on nothing but `types`.
-  `index.ts` has platforms, the default canvas sizes (`DEFAULT_DIMENSIONS`)
+`index.ts` has platforms, the default canvas sizes (`DEFAULT_DIMENSIONS`)
   and `assertNever`; `screenshot-roles.ts` has what each screenshot role means
   (`SCREENSHOT_ROLE_SPECS`, the store's fixed-size canvases,
-  `getScreenshotDimensions`); `layers.ts` has the defaults every layer type
-  falls back to
+  `getScreenshotDimensions`); `canvas-sizes.ts` has the canvas sizes the stores
+  accept as a pick list; `layers.ts` has the defaults every layer type falls
+  back to
   (`LAYER_DEFAULTS`, `SHAPE_DEFAULTS`, `withDefaults`, `resolveShape`) and
   shape metadata; `gradient.ts` builds, parses and matches gradient CSS.
 - **`src/device-presets/`** (`@device-presets`): device frames as data.
@@ -302,6 +303,23 @@ platform's default (`platformDefaults.<platform>.defaultDevicePresetId`).
 device per project can't fit both iOS and Android. Parametric geometry scales
 to any canvas and keeps copyrighted renders out of the repository. (#116,
 #134)
+
+**A foldable is two presets, and its geometry comes from the store.** The
+iPhone Duo is registered open and folded rather than as one preset with a
+"folded" flag: the two displays have different shapes, App Store Connect takes
+a screenshot of each, and the crease (`DeviceCreasePreset`, drawn by
+`PhoneFrameLayer` over the screen) only exists open. Body heights are derived
+from Apple's published screenshot sizes — 2007 × 2853 inner, 1398 × 2034
+outer — so the frame matches the canvas it is drawn into; `index_test.ts`
+pins the screen box back to those ratios. *Why:* an eyeballed ratio drifts
+from the canvas and the preview stops predicting the export, which is the one
+thing the frame exists to do.
+
+**Canvas sizes are a pick list, not arithmetic.** `CANVAS_SIZE_PRESETS`
+(`src/lib/canvas-sizes.ts`) carries the portrait sizes the stores publish, and
+the sidebar sets the language's `dimensions` from it. Portrait only, because
+every device preset is. *Why:* before this the only way to design at 6.9" or at
+a foldable's display was to hand-edit `config.json` and restart the server.
 
 **The URL is the single source of truth for the selection.** The store holds
 no selected language, platform or screenshot, and no requested project; store

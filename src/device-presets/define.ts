@@ -8,6 +8,7 @@
 
 import type {
   DeviceButtonPreset,
+  DeviceCreasePreset,
   DeviceMaterialPreset,
   DevicePreset,
   DeviceScreenPreset,
@@ -124,6 +125,121 @@ export function defineIphone<const Id extends string>(
     cutout: DYNAMIC_ISLAND,
     buttons: form.buttons,
     material: { ...IPHONE_MATERIAL, ...spec.material },
+    summary: spec.summary,
+  };
+}
+
+// ── iPhone Duo ──────────────────────────────────────────────
+
+/**
+ * The Duo folds, so it is two presets rather than one preset with a "folded"
+ * flag: the two displays have different shapes, App Store Connect takes a
+ * screenshot of each, and the crease only exists when it is open.
+ *
+ * The body heights come from Apple's published screenshot sizes — 2007 × 2853
+ * on the inner display, 1398 × 2034 on the outer — brought to the
+ * `DEVICE_PRESET_REFERENCE_WIDTH` frame with an even bezel, so a Duo frame
+ * matches the canvas it is drawn into rather than an eyeballed ratio.
+ */
+const DUO_MATERIAL = {
+  faceFill: "#040404",
+  faceInset: 4,
+  faceBorderColor: "rgba(255,255,255,0.03)",
+  faceBorderWidth: 0.75,
+  borderWidth: 1,
+  shadow: "0 20px 44px rgba(0, 0, 0, 0.26), 0 9px 20px rgba(0, 0, 0, 0.11)",
+} satisfies Partial<DeviceMaterialPreset>;
+
+/** The hinge line: a hairline dark, lit on one face and shaded on the other. */
+const DUO_CREASE = {
+  width: 2,
+  color: "rgba(0,0,0,0.45)",
+  shadow:
+    "-7px 0 12px -5px rgba(255,255,255,0.07), 7px 0 12px -5px rgba(0,0,0,0.6)",
+} satisfies DeviceCreasePreset;
+
+/** The 12 MP Center Stage camera, visible only on the outer display. */
+const DUO_OUTER_CUTOUT = {
+  type: "hole-punch",
+  top: 16,
+  diameter: 13,
+  background: "#000",
+  borderColor: "rgba(255,255,255,0.04)",
+  borderWidth: 0.75,
+  shadow: "0 1px 1px rgba(0,0,0,0.35)",
+} satisfies HolePunchCutoutPreset;
+
+/**
+ * What a Duo form factor fixes. Annotated rather than `satisfies`-only: a
+ * literal keeps its own narrow type, and the builder reads `cutout` off
+ * whichever form it was handed.
+ */
+type IphoneDuoFormFactor =
+  & Pick<
+    DevicePreset<string>,
+    "family" | "outerRadius" | "screen" | "buttons"
+  >
+  & Partial<Pick<DevicePreset<string>, "cutout" | "crease">>;
+
+const DUO_FORMS: Record<"open" | "closed", IphoneDuoFormFactor> = {
+  /** Open: the 7.6" inner display. No cutout — its camera sits under the panel. */
+  open: {
+    family: "iPhone Duo",
+    outerRadius: 44,
+    screen: { top: 7, right: 7, bottom: 7, left: 7, radius: 37 },
+    crease: DUO_CREASE,
+    // Volume on the left half's outer edge, side button on the right half's.
+    buttons: [
+      railButton("left", 150, 68),
+      railButton("left", 233, 68),
+      railButton("right", 200, 85),
+    ],
+  },
+  /** Closed: the 5.4" outer display, which reads as a conventional phone. */
+  closed: {
+    family: "iPhone Duo",
+    outerRadius: 52,
+    // Deeper bezels than the open form: closed, they have to hold the cameras.
+    screen: { top: 12, right: 12, bottom: 12, left: 12, radius: 40 },
+    cutout: DUO_OUTER_CUTOUT,
+    buttons: [
+      railButton("left", 145, 68),
+      railButton("left", 228, 68),
+      railButton("right", 235, 85),
+    ],
+  },
+};
+
+type IphoneDuoForm = keyof typeof DUO_FORMS;
+
+interface IphoneDuoSpec<Id extends string> {
+  id: Id;
+  label: string;
+  form: IphoneDuoForm;
+  bodyHeight: number;
+  /** Laid over `DUO_MATERIAL`, so a preset can override any default. */
+  material: DeviceMaterialPreset;
+  summary: string;
+}
+
+export function defineIphoneDuo<const Id extends string>(
+  spec: IphoneDuoSpec<Id>,
+): DevicePreset<Id> {
+  const form = DUO_FORMS[spec.form];
+  return {
+    id: spec.id,
+    label: spec.label,
+    platform: "ios",
+    family: form.family,
+    bodyHeight: spec.bodyHeight,
+    outerRadius: form.outerRadius,
+    screen: form.screen,
+    // Spread rather than assigned: a closed Duo has no hinge to describe, and
+    // the registry snapshot pins every key a preset actually carries.
+    ...(form.cutout ? { cutout: form.cutout } : {}),
+    ...(form.crease ? { crease: form.crease } : {}),
+    buttons: form.buttons,
+    material: { ...DUO_MATERIAL, ...spec.material },
     summary: spec.summary,
   };
 }

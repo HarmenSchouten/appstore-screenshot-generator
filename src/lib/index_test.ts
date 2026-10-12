@@ -1,6 +1,9 @@
-import { assertEquals } from "@std/assert";
+import { assert, assertEquals } from "@std/assert";
 import {
+  CANVAS_SIZE_PRESETS,
+  DEFAULT_DIMENSIONS,
   FEATURE_GRAPHIC_SIZE,
+  findCanvasSizePreset,
   getRoleLabel,
   getRolePlatform,
   getRolesForPlatform,
@@ -73,4 +76,51 @@ Deno.test("getRolesForPlatform lists each store's placements", () => {
     "product-page-header",
     "search-result",
   ]);
+});
+
+Deno.test("canvas sizes: the default canvas is on the list for both stores", () => {
+  // The picker shows the stored size as selected, so a default that is not
+  // in the list would render the sidebar selecting the wrong entry.
+  for (const platform of ["ios", "android"] as const) {
+    assert(
+      findCanvasSizePreset(platform, DEFAULT_DIMENSIONS[platform]) !== null,
+      `${platform}: default ${DEFAULT_DIMENSIONS[platform].width}×${
+        DEFAULT_DIMENSIONS[platform].height
+      } is not offered`,
+    );
+  }
+});
+
+Deno.test("canvas sizes: ids are unique and each carries its own pixels", () => {
+  for (const platform of ["ios", "android"] as const) {
+    const presets = CANVAS_SIZE_PRESETS[platform];
+    const ids = presets.map((p) => p.id);
+    assertEquals(new Set(ids).size, ids.length, `${platform}: duplicate id`);
+
+    for (const preset of presets) {
+      const { width, height } = preset.dimensions;
+      assert(width > 0 && height > 0, `${preset.id}: empty dimensions`);
+      assertEquals(
+        findCanvasSizePreset(platform, preset.dimensions)?.id,
+        preset.id,
+        `${preset.id}: does not round-trip`,
+      );
+    }
+  }
+});
+
+Deno.test("canvas sizes: an unlisted size is reported as unknown, not guessed", () => {
+  // A hand-edited config.json keeps working; the sidebar adds its own entry.
+  assertEquals(findCanvasSizePreset("ios", { width: 999, height: 1111 }), null);
+});
+
+Deno.test("canvas sizes: the iPhone Duo's two displays are both offered", () => {
+  assertEquals(
+    findCanvasSizePreset("ios", { width: 2007, height: 2853 })?.id,
+    "ios-duo-inner",
+  );
+  assertEquals(
+    findCanvasSizePreset("ios", { width: 1398, height: 2034 })?.id,
+    "ios-duo-outer",
+  );
 });

@@ -105,6 +105,58 @@ Deno.test("device presets: geometry fits inside the frame", () => {
   }
 });
 
+/**
+ * A foldable's frame has to match the canvas it is drawn into, so the Duo's
+ * body heights are derived from Apple's published screenshot sizes rather
+ * than eyeballed. This is the guard that keeps them in step: if a future
+ * revision nudges a bezel, the screen box has to keep Apple's ratio.
+ *
+ * developer.apple.com/help/app-store-connect/reference/app-information/
+ *   screenshot-specifications
+ */
+Deno.test("device presets: the Duo's screen boxes match Apple's screenshot sizes", () => {
+  const apple = [
+    { id: "ios-iphone-duo", width: 2007, height: 2853 },
+    { id: "ios-iphone-duo-folded", width: 1398, height: 2034 },
+  ] as const;
+
+  for (const { id, width, height } of apple) {
+    const preset = DEVICE_PRESETS[id];
+    const screenWidth = DEVICE_PRESET_REFERENCE_WIDTH - preset.screen.left -
+      preset.screen.right;
+    const screenHeight = preset.bodyHeight - preset.screen.top -
+      preset.screen.bottom;
+
+    // 0.5% is well under a pixel at Apple's own width, and wide enough to
+    // survive the rounding of a 400-unit body height.
+    const expected = height / width;
+    const actual = screenHeight / screenWidth;
+    assert(
+      Math.abs(actual - expected) / expected < 0.005,
+      `${id}: screen is ${actual}, Apple screenshots are ${expected}`,
+    );
+  }
+});
+
+Deno.test("device presets: the Duo shows a crease only when it is open", () => {
+  const open = DEVICE_PRESETS["ios-iphone-duo"];
+  const closed = DEVICE_PRESETS["ios-iphone-duo-folded"];
+
+  assert(open.crease !== undefined, "the open Duo hinges");
+  assert(open.crease.width > 0, "the crease is visible");
+  // Its front camera is under the panel, so the inner display has no cutout.
+  assertEquals(open.cutout, undefined);
+
+  // Closed there is no hinge to draw, and the outer display has the camera.
+  assertEquals(closed.crease, undefined);
+  assertEquals(closed.cutout?.type, "hole-punch");
+
+  for (const preset of ALL_DEVICE_PRESETS) {
+    if (preset.id.startsWith("ios-iphone-duo")) continue;
+    assertEquals(preset.crease, undefined, `${preset.id}: rigid device`);
+  }
+});
+
 Deno.test("device presets: platform defaults point at existing presets", () => {
   for (
     const defaults of [DEFAULT_PLATFORM_DEFAULTS, LEGACY_PLATFORM_DEFAULTS]

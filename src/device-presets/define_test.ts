@@ -1,5 +1,10 @@
 import { assert, assertEquals } from "@std/assert";
-import { defineAndroid, defineGeneric, defineIphone } from "./define.ts";
+import {
+  defineAndroid,
+  defineGeneric,
+  defineIphone,
+  defineIphoneDuo,
+} from "./define.ts";
 
 // Every number these builders inject is pinned by the registry snapshot in
 // index_test.ts; these tests cover what the snapshot cannot see — the merge
@@ -60,6 +65,35 @@ Deno.test("defineIphone: the form factor fixes family, radii and buttons", () =>
   for (const button of [...pro.buttons, ...proMax.buttons]) {
     assertEquals([button.width, button.offset, button.radius], [3, 2, 1.5]);
   }
+});
+
+Deno.test("defineIphoneDuo: the form picks what folding changes", () => {
+  const spec = {
+    id: "ios-test-duo",
+    label: "Test Duo",
+    bodyHeight: 560,
+    material: { frameFill: "#a8a9ad" },
+    summary: "Test",
+  } as const;
+  const open = defineIphoneDuo({ ...spec, form: "open" });
+  const closed = defineIphoneDuo({ ...spec, form: "closed" });
+
+  assertEquals(open.platform, "ios");
+  assertEquals(open.family, "iPhone Duo");
+  // Folded, the bezel has to hold the cameras, so it is deeper all round.
+  assert(
+    closed.screen.top > open.screen.top,
+    "closed bezel is deeper than open",
+  );
+  // The crease is a property of the panel, so only the open form carries the
+  // key at all — a preset that omits a feature must not ship a null for it.
+  assert("crease" in open);
+  assertEquals("crease" in closed, false);
+  assertEquals("cutout" in closed, true);
+  assertEquals("cutout" in open, false);
+
+  assertEquals(open.material.faceInset, 4, "shared Duo material");
+  assertEquals(open.material.frameFill, "#a8a9ad", "spec material wins");
 });
 
 Deno.test("defineAndroid: spec values win over the shared defaults", () => {
