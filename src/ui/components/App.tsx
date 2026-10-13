@@ -72,9 +72,7 @@ export function App() {
     ? screenshots.find((s) => s.id === selection.screenshotId)
     : undefined;
 
-  // A fixed-size placement belongs to one store, whatever the URL is on:
-  // Play's feature graphic renders with the Android device preset even when
-  // the iOS tab is selected. A screenshot belongs to whichever is selected.
+  // A placement previews with its own store's device preset.
   const placementPlatform = selectedScreenshot
     ? getRolePlatform(selectedScreenshot.role)
     : undefined;

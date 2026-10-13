@@ -424,19 +424,18 @@ Deno.test("POST /copy-platform leaves the App Store placements behind", async ()
 Deno.test("POST /copy-platform keeps the target's own placements", async () => {
   await withTempProjectsDir(async () => {
     const { app, ctx } = await makeTestApp();
-    // Source carries a plain screenshot; the target already has its own.
     await jsonRequest(
       app,
       "POST",
       `${BASE}/screenshot/en/android`,
       makeDefaultScreenshot(),
     );
-    await jsonRequest(
+    const header = await (await jsonRequest(
       app,
       "POST",
       `${BASE}/screenshot/en/ios`,
       makePlacementScreenshot("header-1", "product-page-header"),
-    );
+    )).json();
 
     await jsonRequest(app, "POST", `${BASE}/copy-platform`, {
       language: "en",
@@ -446,15 +445,11 @@ Deno.test("POST /copy-platform keeps the target's own placements", async () => {
 
     const target =
       (await ctx.getConfig(ID)).languages[0].platforms.ios.screenshots;
-    // The copy replaces the screenshots, not the store's header: a header
-    // says nothing about the source platform and used to be lost here.
     assertEquals(target.map((s) => s.role), [
       "screenshot",
       "product-page-header",
     ]);
-    // The server issues its own id, so assert on the role surviving rather
-    // than on the one the test posted.
-    assertEquals(UUID.test(target[1].id), true, "still exactly one header");
+    assertEquals(target[1].id, header.id);
   });
 });
 
@@ -469,9 +464,9 @@ Deno.test("POST /screenshot rejects a placement on the wrong platform", async ()
       makePlacementScreenshot("header-1", "product-page-header"),
     );
     assertEquals(wrong.status, 400);
-    assert(
-      (await wrong.json()).error.includes("App Store asset"),
-      "the error names the store it belongs to",
+    assertEquals(
+      (await wrong.json()).error,
+      "Product Page Header can only be added to ios",
     );
 
     const right = await jsonRequest(
@@ -482,7 +477,6 @@ Deno.test("POST /screenshot rejects a placement on the wrong platform", async ()
     );
     assertEquals(right.status, 200);
 
-    // A plain screenshot is fine on either platform.
     const plain = await jsonRequest(
       app,
       "POST",

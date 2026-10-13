@@ -9,7 +9,7 @@
  * - effects.ts    - ShapeType
  * - typography.ts - TypographyOptions
  * - device.ts     - DevicePreset, DevicePresetId, PlatformDefaults
- * - screenshot.ts - Screenshot, ScreenshotRole
+ * - screenshot.ts - Screenshot, ScreenshotRole, PlacementRole
  * - theme.ts      - ThemeConfig, ColorPalette, AppBranding
  * - config.ts     - PlatformConfig, LanguageConfig, ProjectConfig
  * - renderer.ts   - RenderOptions

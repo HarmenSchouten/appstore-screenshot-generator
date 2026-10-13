@@ -5,7 +5,7 @@
  */
 
 import { Hono } from "hono";
-import type { Screenshot, ShapeLayerProps } from "@app-types";
+import type { PlacementRole, Screenshot, ShapeLayerProps } from "@app-types";
 import { SHAPE_META, SHAPE_TYPES } from "@lib";
 import { notFound, onError } from "@routes/http.ts";
 
@@ -127,14 +127,10 @@ export function makeFeatureGraphic(): Screenshot {
   };
 }
 
-/**
- * A store's fixed-size placement — product page header, search results,
- * feature graphic. Background only: what matters to the tests that use this
- * is the role and the canvas it resolves to, not the artwork.
- */
+/** A placement with only a background. */
 export function makePlacementScreenshot(
   id: string,
-  role: Screenshot["role"],
+  role: PlacementRole,
 ): Screenshot {
   return {
     id,

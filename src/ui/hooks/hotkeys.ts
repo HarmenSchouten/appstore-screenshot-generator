@@ -213,8 +213,7 @@ export function useAppHotkeys() {
       selection.lang,
       selection.platform,
     );
-    // Play has one placement, Apple has two, so this walks whichever the
-    // selected store has; from none selected it starts at the first.
+    // Cycles through the store's placements, starting at the first.
     const present = getRolesForPlatform(selection.platform)
       .map((role) => screenshots.find((s) => s.role === role))
       .filter((s): s is Screenshot => s != null);

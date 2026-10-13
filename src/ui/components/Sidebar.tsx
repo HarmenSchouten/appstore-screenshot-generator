@@ -22,7 +22,6 @@ function SidebarInner() {
   const selection = useSelection();
   const screenshotActions = useScreenshotActions();
 
-  // The fixed-size placements this store takes, one per platform each.
   const placements = getRolesForPlatform(selection.platform);
 
   // Ids only, shallow-compared: the sidebar renders positional titles and
@@ -34,8 +33,7 @@ function SidebarInner() {
         .map((x) => x.id)
     ),
   );
-  // Primitives only: useShallow compares items with Object.is, so fresh
-  // objects here would never match and re-render forever.
+  // Ids, not objects: useShallow compares items with Object.is.
   const placementIdList = useAppStore(
     useShallow((s) => {
       const screenshots = selectScreenshots(
@@ -110,11 +108,7 @@ function SidebarInner() {
           <i className="fa-solid fa-plus mr-1" /> Add Screenshot
         </button>
 
-        {
-          /* The store's fixed-size placements: Play's feature graphic,
-            Apple's product page header and search results. One each, so
-            each is a card or an add button — never a list. */
-        }
+        {/* One of each placement: a card, or an add button */}
         {placementIds.map(({ role, id }) => (
           <div key={role}>
             <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-1.5 font-medium">

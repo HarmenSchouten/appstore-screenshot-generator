@@ -1,4 +1,4 @@
-import type { Platform, ScreenshotRole } from "@app-types";
+import type { PlacementRole, Platform } from "@app-types";
 import type {
   Config,
   DevicePresetId,
@@ -66,14 +66,10 @@ export interface AppState {
   // ── Screenshots (implemented in screenshots.ts) ──────────────────
   /** Appends a screenshot and returns its id; null when nothing changed. */
   addScreenshot: (target: ScreenshotTarget) => string | null;
-  /**
-   * Appends a fixed-size placement — Play's feature graphic, Apple's product
-   * page header. Null when the platform already has one: the store takes one
-   * of each, so the sidebar shows an add button only when it is missing.
-   */
-  addRoleScreenshot: (
+  /** Appends a placement; null when the platform already has one. */
+  addPlacement: (
     target: ScreenshotTarget,
-    role: ScreenshotRole,
+    role: PlacementRole,
   ) => string | null;
   removeScreenshot: (target: ScreenshotTarget, id: string) => void;
   updateScreenshot: (
@@ -82,11 +78,7 @@ export interface AppState {
     updates: Partial<Screenshot>,
   ) => void;
   reorderScreenshots: (target: ScreenshotTarget, orderedIds: string[]) => void;
-  /** Removes whichever placement of this role the platform holds. */
-  removeRoleScreenshot: (
-    target: ScreenshotTarget,
-    role: ScreenshotRole,
-  ) => void;
+  removePlacement: (target: ScreenshotTarget, role: PlacementRole) => void;
 
   // ── Device presets ───────────────────────────────────────────────
   getDefaultDevicePreset: (platform: Platform) => DevicePresetId;

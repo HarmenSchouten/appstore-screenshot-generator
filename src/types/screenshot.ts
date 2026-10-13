@@ -4,18 +4,15 @@
 
 import type { Layer } from "./layers.ts";
 
-/**
- * Role determines canvas size and layout: a store screenshot, or one of the
- * fixed-size assets a store asks for separately from screenshots.
- *
- * `SCREENSHOT_ROLE_SPECS` (`@lib`) is what gives a role its canvas, its store
- * and its name; this union only says which roles exist.
- */
+/** A store screenshot, or one of the fixed-size placements in `SCREENSHOT_ROLE_SPECS`. */
 export type ScreenshotRole =
   | "screenshot"
   | "feature-graphic"
   | "product-page-header"
   | "search-result";
+
+/** Every role but a plain screenshot. */
+export type PlacementRole = Exclude<ScreenshotRole, "screenshot">;
 
 export interface Screenshot {
   /** Unique identifier for this screenshot */

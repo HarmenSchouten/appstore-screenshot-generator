@@ -59,11 +59,11 @@ function newScreenshot(
 export type ScreenshotActions = Pick<
   AppState,
   | "addScreenshot"
-  | "addRoleScreenshot"
+  | "addPlacement"
   | "removeScreenshot"
   | "updateScreenshot"
   | "reorderScreenshots"
-  | "removeRoleScreenshot"
+  | "removePlacement"
 >;
 
 /**
@@ -100,7 +100,7 @@ export const createScreenshotActions: StateCreator<
     return id;
   },
 
-  addRoleScreenshot: ({ lang, platform }, role) => {
+  addPlacement: ({ lang, platform }, role) => {
     const id = globalThis.crypto.randomUUID();
 
     const next = withScreenshots(
@@ -108,7 +108,7 @@ export const createScreenshotActions: StateCreator<
       lang,
       platform,
       (screenshots) => {
-        // Enforce uniqueness: only one of a unique role per platform
+        // One of each placement per platform
         if (screenshots.some((s) => s.role === role)) return null;
         return [
           ...screenshots,
@@ -175,7 +175,7 @@ export const createScreenshotActions: StateCreator<
     get().updateConfig(next);
   },
 
-  removeRoleScreenshot: ({ lang, platform }, role) => {
+  removePlacement: ({ lang, platform }, role) => {
     const next = withScreenshots(
       get().config,
       lang,

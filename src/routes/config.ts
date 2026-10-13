@@ -142,14 +142,10 @@ export function createConfigRoutes(ctx: ServerContext) {
     const { lang, platform } = c.req.param();
     const screenshot = requireNewScreenshot(await readJsonBody(c));
 
-    // A placement belongs to one store, so a product page header is not a
-    // valid Android screenshot however well-formed the body is.
     const rolePlatform = getRolePlatform(screenshot.role);
     if (rolePlatform && rolePlatform !== platform) {
       throw new ValidationError(
-        `The ${getRoleLabel(screenshot.role).toLowerCase()} is an ${
-          rolePlatform === "ios" ? "App Store" : "Google Play"
-        } asset, not a ${platform} one`,
+        `${getRoleLabel(screenshot.role)} can only be added to ${rolePlatform}`,
       );
     }
 
@@ -239,14 +235,8 @@ export function createConfigRoutes(ctx: ServerContext) {
     const config = await ctx.getConfig(projectId);
     const langConfig = findLanguage(config, language);
 
-    // Deep clone the source screenshots with new ids. Only plain screenshots
-    // carry across: a placement belongs to its own store, so the Play
-    // feature graphic must not follow an iOS → Android copy, nor the App
-    // Store placements the other way.
-    //
-    // The target keeps its own placements — a copy replaces the screenshots,
-    // not the store's header or search results, which say nothing about the
-    // source platform and would be lost on every copy.
+    // Only plain screenshots carry across, with new ids. The target keeps its
+    // own placements: they belong to its store, not the source.
     const targetPlatformConfig = langConfig.platforms[targetPlatform];
     const copied = langConfig
       .platforms[sourcePlatform].screenshots

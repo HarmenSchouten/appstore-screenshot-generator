@@ -8,7 +8,6 @@ import type { GenerateResult } from "@ui/types.ts";
 import { getRoleLabel, PLATFORMS } from "@lib";
 
 export interface PlatformGroup {
-  /** The store's fixed-size placements — feature graphic, header, search results. */
   placements: GenerateResult[];
   screenshots: GenerateResult[];
 }
