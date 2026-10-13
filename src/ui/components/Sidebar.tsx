@@ -15,6 +15,7 @@ import {
   findCanvasSizePreset,
   getRoleLabel,
   getRolesForPlatform,
+  getScreenshotDimensions,
 } from "@lib";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
@@ -76,20 +77,40 @@ function SidebarInner() {
 
   const platformPresets = getDevicePresetsForPlatform(selection.platform);
 
-  // A canvas the stores don't list — a hand-edited config.json — falls back to
-  // its own pixels rather than showing the wrong preset as selected.
+  // What the selected screenshot actually renders at. A fixed-size placement
+  // ignores the platform's canvas, so the picker shows *its* size and is
+  // disabled rather than offering to change something that would have no
+  // effect. Compared by value, so it survives the size coming from anywhere
+  // but the stored dimensions object.
+  const selectedScreenshot = useAppStore((s) =>
+    selection.screenshotId
+      ? selectScreenshots(s, selection.lang, selection.platform).find((x) =>
+        x.id === selection.screenshotId
+      )
+      : undefined
+  );
+  const effectiveDimensions = getScreenshotDimensions(
+    selectedScreenshot ?? { role: "screenshot" },
+    dimensions,
+  );
+  const canvasLocked = effectiveDimensions.width !== dimensions.width ||
+    effectiveDimensions.height !== dimensions.height;
+
+  // A canvas the stores don't list — a hand-edited config.json, or a
+  // placement's own size — falls back to its pixels rather than showing the
+  // wrong preset as selected.
   const canvasSizes = CANVAS_SIZE_PRESETS[selection.platform];
   const canvasSizeId =
-    findCanvasSizePreset(selection.platform, dimensions)?.id ??
-      `${dimensions.width}x${dimensions.height}`;
+    findCanvasSizePreset(selection.platform, effectiveDimensions)?.id ??
+      `${effectiveDimensions.width}x${effectiveDimensions.height}`;
   const canvasSizeOptions = canvasSizes.some((s) => s.id === canvasSizeId)
     ? canvasSizes
     : [
       ...canvasSizes,
       {
         id: canvasSizeId,
-        label: `${dimensions.width} × ${dimensions.height}`,
-        dimensions: { ...dimensions },
+        label: `${effectiveDimensions.width} × ${effectiveDimensions.height}`,
+        dimensions: { ...effectiveDimensions },
       },
     ];
 
@@ -174,9 +195,12 @@ function SidebarInner() {
         </div>
         <Select<string>
           value={canvasSizeId}
+          disabled={canvasLocked}
           onChange={(id) => {
             const preset = canvasSizeOptions.find((p) => p.id === id);
-            if (preset) updateDimensions(selection, preset.dimensions);
+            if (preset) {
+              updateDimensions(selection.platform, preset.dimensions);
+            }
           }}
           options={canvasSizeOptions.map((p) => ({
             value: p.id,
@@ -184,11 +208,6 @@ function SidebarInner() {
           }))}
           className="px-2.5 py-1.5 text-xs rounded"
         />
-        <div className="mt-1.5 text-[10px] text-zinc-600">
-          {dimensions.width} × {dimensions.height} —{" "}
-          {selection.platform === "ios" ? "Apple" : "Play"}{" "}
-          screenshots portrait.
-        </div>
 
         <div className="text-[11px] uppercase tracking-wider text-zinc-500 mt-3 mb-1.5 font-medium">
           Default device

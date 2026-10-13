@@ -67,7 +67,7 @@ flowchart TB
   `background`, `text`, `phone-frame`, `image`, `glow`, `shape`. Shapes are a
   second union, discriminated on `shapeType` into families.
 - **`src/lib/`** (`@lib`): helpers that depend on nothing but `types`.
-`index.ts` has platforms, the default canvas sizes (`DEFAULT_DIMENSIONS`)
+  `index.ts` has platforms, the default canvas sizes (`DEFAULT_DIMENSIONS`)
   and `assertNever`; `screenshot-roles.ts` has what each screenshot role means
   (`SCREENSHOT_ROLE_SPECS`, the store's fixed-size canvases,
   `getScreenshotDimensions`); `canvas-sizes.ts` has the canvas sizes the stores
@@ -317,9 +317,12 @@ thing the frame exists to do.
 
 **Canvas sizes are a pick list, not arithmetic.** `CANVAS_SIZE_PRESETS`
 (`src/lib/canvas-sizes.ts`) carries the portrait sizes the stores publish, and
-the sidebar sets the language's `dimensions` from it. Portrait only, because
-every device preset is. *Why:* before this the only way to design at 6.9" or at
-a foldable's display was to hand-edit `config.json` and restart the server.
+the sidebar sets `dimensions` from it for every language of the platform — a
+canvas is a property of the store, so switching English to a foldable's
+display should not leave German exporting at the old size. Portrait only,
+because every device preset is. *Why:* before this the only way to design at
+6.9" or at a foldable's display was to hand-edit `config.json` and restart the
+server.
 
 **The URL is the single source of truth for the selection.** The store holds
 no selected language, platform or screenshot, and no requested project; store

@@ -88,13 +88,12 @@ export interface AppState {
   ) => void;
 
   /**
-   * The canvas a language's screenshots render at. Fixed-size placements
-   * ignore it — see `getScreenshotDimensions`.
+   * The canvas every language's screenshots render at, for one platform. A
+   * canvas is a property of the store rather than of a language, so this
+   * applies to all of them. Fixed-size placements ignore it entirely — see
+   * `getScreenshotDimensions`.
    */
-  updateDimensions: (
-    target: ScreenshotTarget,
-    dimensions: Dimensions,
-  ) => void;
+  updateDimensions: (platform: Platform, dimensions: Dimensions) => void;
 
   // ── Generation ───────────────────────────────────────────────────
   generating: boolean;

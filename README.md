@@ -124,7 +124,7 @@ projects/
 | Format | Exported at | What the store asks for |
 | --- | --- | --- |
 | iOS screenshot | 1242 × 2688 | Apple's 6.5" size. Apple lists 6.9" (1260 × 2736, 1290 × 2796 or 1320 × 2868) first; without 6.9" uploads, App Store Connect scales the 6.5" set. 1 to 10 per listing. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
-| iOS screenshot, iPhone Duo | 2007 × 2853 or 1398 × 2034 | The foldable's two displays, inner and outer. Apple requires the inner display set from 30 April 2027. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
+| iOS screenshot, iPhone Duo | 2007 × 2853 or 1398 × 2034 | The foldable's two displays, inner and outer. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) |
 | Android screenshot | 1080 × 1920 | 9:16, each side 320 to 3840 px. At least 2 to publish; at least 4 at ≥ 1080 px to be eligible for larger placements. [Google Play specs](https://support.google.com/googleplay/android-developer/answer/9866151) |
 | Play feature graphic | 1024 × 500 | Fixed size, required to publish. |
 | App Store product page header | 3840 × 1646 | 21:9, fixed size. Apple also accepts a 5244 × 2950 "universal" image that serves this placement and search results in one file. [Apple specs](https://developer.apple.com/help/app-store-connect/reference/app-information/creative-assets-specifications) |

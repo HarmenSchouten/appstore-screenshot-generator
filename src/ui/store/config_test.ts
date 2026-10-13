@@ -55,24 +55,32 @@ Deno.test("a local edit after hydration is dirty again", () => {
   assertEquals(useAppStore.getState()._configDirty, true);
 });
 
-Deno.test("updateDimensions edits one platform and leaves the rest alone", () => {
+Deno.test("updateDimensions edits every language of the platform", () => {
   const config = getDefaultConfig("Test App");
   useAppStore.setState({ config, _configDirty: false });
   const before = useAppStore.getState().config;
+  const languageCount = before.languages.length;
 
-  useAppStore.getState().updateDimensions(
-    { lang: "en", platform: "ios" },
-    { width: 2007, height: 2853 },
-  );
+  useAppStore.getState().updateDimensions("ios", {
+    width: 2007,
+    height: 2853,
+  });
 
   const after = useAppStore.getState().config;
   const platformOf = (c: Config, platform: "ios" | "android") =>
     c.languages[0].platforms[platform];
 
-  assertEquals(platformOf(after, "ios").dimensions, {
-    width: 2007,
-    height: 2853,
-  });
+  // Every language, not only the one being edited. A canvas is a property of
+  // the store, so German must not keep exporting 1242 x 2688 after English
+  // was switched to the Duo's display (#162).
+  assertEquals(after.languages.length, languageCount);
+  for (const language of after.languages) {
+    assertEquals(language.platforms.ios.dimensions, {
+      width: 2007,
+      height: 2853,
+    });
+  }
+
   // The dimensions object is replaced, not mutated in place: phone-frame
   // geometry derives from the canvas width, so identity is what makes the
   // preview redraw at the new size.
@@ -80,18 +88,11 @@ Deno.test("updateDimensions edits one platform and leaves the rest alone", () =>
     platformOf(after, "ios").dimensions,
     platformOf(before, "ios").dimensions,
   );
+  // The other platform is untouched, identity included.
   assertStrictEquals(
     platformOf(after, "android"),
     platformOf(before, "android"),
   );
   assertStrictEquals(after.theme, before.theme);
   assertEquals(useAppStore.getState()._configDirty, true);
-
-  // A language the config does not carry is a no-op, not a crash.
-  const current = useAppStore.getState().config;
-  useAppStore.getState().updateDimensions(
-    { lang: "xx", platform: "ios" },
-    { width: 1080, height: 1920 },
-  );
-  assertStrictEquals(useAppStore.getState().config, current);
 });

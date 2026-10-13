@@ -68,14 +68,16 @@ export const ALL_DEVICE_PRESETS = [
     id: "ios-iphone-duo",
     label: "iPhone Duo",
     form: "open",
-    bodyHeight: 563,
+    // Landscape, from Apple's 2853 × 2007 inner display: 386 × 272 of screen
+    // inside a 400 × 286 body. Rotate the layer on a portrait canvas.
+    bodyHeight: 286,
     material: {
       frameFill: "#a8a9ad",
       borderColor: "rgba(255,255,255,0.18)",
       faceShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
     },
     summary:
-      'Foldable, unfolded 7.6" inner display with a visible hinge crease',
+      'Foldable, unfolded 7.6" inner display, landscape with a hinge crease',
   }),
   defineIphoneDuo({
     id: "ios-iphone-duo-folded",

@@ -136,7 +136,7 @@ export function defineIphone<const Id extends string>(
  * flag: the two displays have different shapes, App Store Connect takes a
  * screenshot of each, and the crease only exists when it is open.
  *
- * The body heights come from Apple's published screenshot sizes — 2007 × 2853
+ * The body heights come from Apple's published screenshot sizes — 2853 × 2007
  * on the inner display, 1398 × 2034 on the outer — brought to the
  * `DEVICE_PRESET_REFERENCE_WIDTH` frame with an even bezel, so a Duo frame
  * matches the canvas it is drawn into rather than an eyeballed ratio.
@@ -150,12 +150,16 @@ const DUO_MATERIAL = {
   shadow: "0 20px 44px rgba(0, 0, 0, 0.26), 0 9px 20px rgba(0, 0, 0, 0.11)",
 } satisfies Partial<DeviceMaterialPreset>;
 
-/** The hinge line: a hairline dark, lit on one face and shaded on the other. */
+/**
+ * The hinge line. Deliberately faint: it crosses the middle of the app's own
+ * screenshot, and a crease you notice competes with the content. A soft dip
+ * rather than a drawn line.
+ */
 const DUO_CREASE = {
   width: 2,
-  color: "rgba(0,0,0,0.45)",
+  color: "rgba(0,0,0,0.07)",
   shadow:
-    "-7px 0 12px -5px rgba(255,255,255,0.07), 7px 0 12px -5px rgba(0,0,0,0.6)",
+    "-3px 0 6px -3px rgba(255,255,255,0.03), 3px 0 6px -3px rgba(0,0,0,0.22)",
 } satisfies DeviceCreasePreset;
 
 /** The 12 MP Center Stage camera, visible only on the outer display. */
@@ -182,24 +186,31 @@ type IphoneDuoFormFactor =
   & Partial<Pick<DevicePreset<string>, "cutout" | "crease">>;
 
 const DUO_FORMS: Record<"open" | "closed", IphoneDuoFormFactor> = {
-  /** Open: the 7.6" inner display. No cutout — its camera sits under the panel. */
+  /**
+   * Open: the 7.6" inner display. Landscape, because a Duo opens like a book —
+   * the screen box is set from Apple's 2853 × 2007 rather than its portrait
+   * 2007 × 2853, so the layer is rotated on a portrait canvas. The crease
+   * still runs down the middle: that is the book's spine. No cutout, because
+   * the front camera sits under the panel.
+   */
   open: {
     family: "iPhone Duo",
-    outerRadius: 44,
-    screen: { top: 7, right: 7, bottom: 7, left: 7, radius: 37 },
+    outerRadius: 33,
+    screen: { top: 7, right: 7, bottom: 7, left: 7, radius: 26 },
     crease: DUO_CREASE,
     // Volume on the left half's outer edge, side button on the right half's.
     buttons: [
-      railButton("left", 150, 68),
-      railButton("left", 233, 68),
-      railButton("right", 200, 85),
+      railButton("left", 80, 45),
+      railButton("left", 133, 45),
+      railButton("right", 118, 55),
     ],
   },
   /** Closed: the 5.4" outer display, which reads as a conventional phone. */
   closed: {
     family: "iPhone Duo",
     outerRadius: 52,
-    // Deeper bezels than the open form: closed, they have to hold the cameras.
+    // Deeper bezels than the open form, which has room for none: closed, this
+    // is the face the Center Stage camera is cut into.
     screen: { top: 12, right: 12, bottom: 12, left: 12, radius: 40 },
     cutout: DUO_OUTER_CUTOUT,
     buttons: [

@@ -76,37 +76,34 @@ export const useAppStore = create<AppState>()(
       },
 
       // ── Canvas size ────────────────────────────────────────────────
-      updateDimensions: ({ lang, platform }, dimensions) => {
+      updateDimensions: (platform, dimensions) => {
         const config = get().config;
-        const langIndex = config.languages?.findIndex(
-          (l) => l.language === lang,
-        ) ?? -1;
-        if (!config.languages || langIndex === -1) return;
+        const languages = config.languages;
+        if (!languages) return;
 
-        const langConfig = config.languages[langIndex];
-        const platformConfig = langConfig.platforms?.[platform];
-        if (!platformConfig) return;
-
-        // Spread into a new object: phone-frame geometry is derived from the
-        // canvas width, so a mutated one would leave the preview drawing at
-        // the old size until something else forced a re-render.
-        get().updateConfig({
-          ...config,
-          languages: config.languages.map((l, i) =>
-            i === langIndex
-              ? {
-                ...langConfig,
-                platforms: {
-                  ...langConfig.platforms,
-                  [platform]: {
-                    ...platformConfig,
-                    dimensions: { ...dimensions },
-                  },
-                },
-              }
-              : l
-          ),
+        // Every language of the platform, not just the one on screen: a canvas
+        // is a property of the store, and a designer who switches English to
+        // 6.9" or to a Duo's display expects German to export at that size
+        // too rather than silently keeping the old one.
+        let changed = false;
+        const updated = languages.map((language) => {
+          const platformConfig = language.platforms?.[platform];
+          if (!platformConfig) return language;
+          changed = true;
+          // Spread into new objects: phone-frame geometry is derived from the
+          // canvas width, so a mutated one would leave the preview drawing at
+          // the old size until something else forced a re-render.
+          return {
+            ...language,
+            platforms: {
+              ...language.platforms,
+              [platform]: { ...platformConfig, dimensions: { ...dimensions } },
+            },
+          };
         });
+
+        if (!changed) return;
+        get().updateConfig({ ...config, languages: updated });
       },
 
       // ── Generation ─────────────────────────────────────────────────

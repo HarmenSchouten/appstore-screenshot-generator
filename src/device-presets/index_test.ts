@@ -116,7 +116,9 @@ Deno.test("device presets: geometry fits inside the frame", () => {
  */
 Deno.test("device presets: the Duo's screen boxes match Apple's screenshot sizes", () => {
   const apple = [
-    { id: "ios-iphone-duo", width: 2007, height: 2853 },
+    // The inner display is landscape: a Duo opens like a book, and the layer
+    // is rotated on a portrait canvas.
+    { id: "ios-iphone-duo", width: 2853, height: 2007 },
     { id: "ios-iphone-duo-folded", width: 1398, height: 2034 },
   ] as const;
 
@@ -136,6 +138,21 @@ Deno.test("device presets: the Duo's screen boxes match Apple's screenshot sizes
       `${id}: screen is ${actual}, Apple screenshots are ${expected}`,
     );
   }
+});
+
+Deno.test("device presets: the open Duo is a landscape frame", () => {
+  // A portrait open Duo would render the foldable as if held upright, which is
+  // not how it opens. Its body is wider than it is tall.
+  const open = DEVICE_PRESETS["ios-iphone-duo"];
+  assert(
+    open.bodyHeight < DEVICE_PRESET_REFERENCE_WIDTH,
+    `open Duo body is ${open.bodyHeight} tall against a ${DEVICE_PRESET_REFERENCE_WIDTH} reference width`,
+  );
+  // Closed, it reads as a conventional portrait phone.
+  assert(
+    DEVICE_PRESETS["ios-iphone-duo-folded"].bodyHeight >
+      DEVICE_PRESET_REFERENCE_WIDTH,
+  );
 });
 
 Deno.test("device presets: the Duo shows a crease only when it is open", () => {

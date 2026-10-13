@@ -24,6 +24,11 @@ interface SelectProps<T extends string> {
   groups?: SelectGroup<T>[];
   /** A leading option with the empty value. */
   placeholder?: string;
+  /**
+   * Shown but not editable — for a value the app derives rather than stores,
+   * such as a fixed-size asset's canvas.
+   */
+  disabled?: boolean;
   className?: string;
 }
 
@@ -34,6 +39,7 @@ export function Select<T extends string>({
   options,
   groups,
   placeholder,
+  disabled,
   className,
 }: SelectProps<T>) {
   const id = useId();
@@ -42,8 +48,13 @@ export function Select<T extends string>({
     <select
       id={id}
       value={value}
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value as T)}
-      className={cn("input", className)}
+      className={cn(
+        "input",
+        disabled && "opacity-50 cursor-not-allowed",
+        className,
+      )}
     >
       {placeholder !== undefined && <option value="">{placeholder}</option>}
       {options?.map((o) => (
