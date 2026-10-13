@@ -4,8 +4,15 @@
 
 import type { Layer } from "./layers.ts";
 
-/** Role determines canvas size and layout: store screenshot vs. Play feature graphic */
-export type ScreenshotRole = "screenshot" | "feature-graphic";
+/** A store screenshot, or one of the fixed-size placements in `SCREENSHOT_ROLE_SPECS`. */
+export type ScreenshotRole =
+  | "screenshot"
+  | "feature-graphic"
+  | "product-page-header"
+  | "search-result";
+
+/** Every role but a plain screenshot. */
+export type PlacementRole = Exclude<ScreenshotRole, "screenshot">;
 
 export interface Screenshot {
   /** Unique identifier for this screenshot */

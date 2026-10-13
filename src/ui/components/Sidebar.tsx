@@ -10,6 +10,7 @@ import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { arrayMove } from "@dnd-kit/sortable";
 import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
+import { getRoleLabel, getRolesForPlatform } from "@lib";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
@@ -21,6 +22,8 @@ function SidebarInner() {
   const selection = useSelection();
   const screenshotActions = useScreenshotActions();
 
+  const placements = getRolesForPlatform(selection.platform);
+
   // Ids only, shallow-compared: the sidebar renders positional titles and
   // selection state, so editing a layer must not re-render it (#64).
   const screenshotIds = useAppStore(
@@ -30,10 +33,23 @@ function SidebarInner() {
         .map((x) => x.id)
     ),
   );
-  const featureGraphicId = useAppStore((s) =>
-    selectScreenshots(s, selection.lang, selection.platform)
-      .find((x) => x.role === "feature-graphic")?.id ?? null
+  // Ids, not objects: useShallow compares items with Object.is.
+  const placementIdList = useAppStore(
+    useShallow((s) => {
+      const screenshots = selectScreenshots(
+        s,
+        selection.lang,
+        selection.platform,
+      );
+      return placements.map((role) =>
+        screenshots.find((x) => x.role === role)?.id ?? null
+      );
+    }),
   );
+  const placementIds = placements.map((role, i) => ({
+    role,
+    id: placementIdList[i],
+  }));
 
   // A subscription, not getState(): this reads config, and the sidebar no
   // longer re-renders on every config change to pick the new value up.
@@ -92,32 +108,33 @@ function SidebarInner() {
           <i className="fa-solid fa-plus mr-1" /> Add Screenshot
         </button>
 
-        {/* Feature Graphic (Android only) */}
-        {selection.platform === "android" && (
-          <>
+        {/* One of each placement: a card, or an add button */}
+        {placementIds.map(({ role, id }) => (
+          <div key={role}>
             <div className="text-xs text-zinc-500 uppercase tracking-wider mt-4 mb-1.5 font-medium">
-              Feature Graphic
+              {getRoleLabel(role)}
             </div>
-            {featureGraphicId
+            {id
               ? (
                 <SidebarItemCard
-                  title="Feature Graphic"
-                  isSelected={selection.screenshotId === featureGraphicId}
-                  onSelect={() => screenshotActions.select(featureGraphicId)}
-                  onDelete={screenshotActions.removeFeatureGraphic}
+                  title={getRoleLabel(role)}
+                  isSelected={selection.screenshotId === id}
+                  onSelect={() => screenshotActions.select(id)}
+                  onDelete={() => screenshotActions.removePlacement(role)}
                 />
               )
               : (
                 <button
                   type="button"
-                  onClick={screenshotActions.addFeatureGraphic}
+                  onClick={() => screenshotActions.addPlacement(role)}
                   className="w-full py-2 text-xs bg-zinc-800 rounded hover:bg-zinc-700 border border-dashed border-zinc-600 transition-colors"
                 >
-                  <i className="fa-solid fa-plus mr-1" /> Add Feature Graphic
+                  <i className="fa-solid fa-plus mr-1" /> Add{" "}
+                  {getRoleLabel(role)}
                 </button>
               )}
-          </>
-        )}
+          </div>
+        ))}
       </div>
 
       {/* Device Preset */}

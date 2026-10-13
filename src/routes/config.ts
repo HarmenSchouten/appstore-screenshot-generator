@@ -13,7 +13,12 @@ import type {
   Screenshot,
 } from "@app-types";
 import { createLanguageConfig, saveProject } from "@/projects.ts";
-import { isScreenshotRole, SCREENSHOT_ROLES } from "@lib";
+import {
+  getRoleLabel,
+  getRolePlatform,
+  isScreenshotRole,
+  SCREENSHOT_ROLES,
+} from "@lib";
 import { ConflictError, NotFoundError, ValidationError } from "@/errors.ts";
 import type { ServerContext } from "./context.ts";
 import {
@@ -137,6 +142,13 @@ export function createConfigRoutes(ctx: ServerContext) {
     const { lang, platform } = c.req.param();
     const screenshot = requireNewScreenshot(await readJsonBody(c));
 
+    const rolePlatform = getRolePlatform(screenshot.role);
+    if (rolePlatform && rolePlatform !== platform) {
+      throw new ValidationError(
+        `${getRoleLabel(screenshot.role)} can only be added to ${rolePlatform}`,
+      );
+    }
+
     const projectId = projectIdOf(c);
     const config = await ctx.getConfig(projectId);
     findPlatform(config, lang, platform).screenshots.push(screenshot);
@@ -223,11 +235,20 @@ export function createConfigRoutes(ctx: ServerContext) {
     const config = await ctx.getConfig(projectId);
     const langConfig = findLanguage(config, language);
 
-    // Deep clone source screenshots with new ids, excluding feature graphics
-    langConfig.platforms[targetPlatform].screenshots = langConfig
+    // Only plain screenshots carry across, with new ids. The target keeps its
+    // own placements: they belong to its store, not the source.
+    const targetPlatformConfig = langConfig.platforms[targetPlatform];
+    const copied = langConfig
       .platforms[sourcePlatform].screenshots
-      .filter((s) => s.role !== "feature-graphic")
+      .filter((s) => s.role === "screenshot")
       .map((s) => ({ ...structuredClone(s), id: crypto.randomUUID() }));
+
+    targetPlatformConfig.screenshots = [
+      ...copied,
+      ...targetPlatformConfig.screenshots.filter((s) =>
+        s.role !== "screenshot"
+      ),
+    ];
 
     await persist(projectId, config);
     return c.json(langConfig);

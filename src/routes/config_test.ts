@@ -7,6 +7,7 @@ import {
   jsonRequest,
   makeDefaultScreenshot,
   makeFeatureGraphic,
+  makePlacementScreenshot,
   makeRouteApp,
   withTempProjectsDir,
 } from "@/test-helpers.ts";
@@ -382,6 +383,107 @@ Deno.test("POST /copy-platform copies screenshots with fresh ids, skipping featu
     assertEquals(copied[0].role, "screenshot");
     assertNotEquals(copied[0].id, shot.id);
     assert(UUID.test(copied[0].id));
+  });
+});
+
+Deno.test("POST /copy-platform leaves the App Store placements behind", async () => {
+  await withTempProjectsDir(async () => {
+    const { app, ctx } = await makeTestApp();
+    await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makeDefaultScreenshot(),
+    );
+    await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    );
+    await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makePlacementScreenshot("search-1", "search-result"),
+    );
+
+    const res = await jsonRequest(app, "POST", `${BASE}/copy-platform`, {
+      language: "en",
+      sourcePlatform: "ios",
+      targetPlatform: "android",
+    });
+
+    assertEquals(res.status, 200);
+    const copied =
+      (await ctx.getConfig(ID)).languages[0].platforms.android.screenshots;
+    assertEquals(copied.map((s) => s.role), ["screenshot"]);
+  });
+});
+
+Deno.test("POST /copy-platform keeps the target's own placements", async () => {
+  await withTempProjectsDir(async () => {
+    const { app, ctx } = await makeTestApp();
+    await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/android`,
+      makeDefaultScreenshot(),
+    );
+    const header = await (await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    )).json();
+
+    await jsonRequest(app, "POST", `${BASE}/copy-platform`, {
+      language: "en",
+      sourcePlatform: "android",
+      targetPlatform: "ios",
+    });
+
+    const target =
+      (await ctx.getConfig(ID)).languages[0].platforms.ios.screenshots;
+    assertEquals(target.map((s) => s.role), [
+      "screenshot",
+      "product-page-header",
+    ]);
+    assertEquals(target[1].id, header.id);
+  });
+});
+
+Deno.test("POST /screenshot rejects a placement on the wrong platform", async () => {
+  await withTempProjectsDir(async () => {
+    const { app } = await makeTestApp();
+
+    const wrong = await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/android`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    );
+    assertEquals(wrong.status, 400);
+    assertEquals(
+      (await wrong.json()).error,
+      "Product Page Header can only be added to ios",
+    );
+
+    const right = await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    );
+    assertEquals(right.status, 200);
+
+    const plain = await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/android`,
+      makeDefaultScreenshot(),
+    );
+    assertEquals(plain.status, 200);
   });
 });
 

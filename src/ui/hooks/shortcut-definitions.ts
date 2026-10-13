@@ -135,10 +135,11 @@ export const SHORTCUTS = {
     preventDefault: false,
     ignoreInputs: true,
   },
-  selectFeatureGraphic: {
+  selectPlacement: {
     keys: "G",
-    label: "Feature Graphic",
-    description: "Select the feature graphic (Android only)",
+    label: "Store Placement",
+    description:
+      "Select the feature graphic, header or search results, whichever this store has",
     icon: "fa-solid fa-image",
     preventDefault: false,
     ignoreInputs: true,

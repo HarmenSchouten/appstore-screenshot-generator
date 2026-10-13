@@ -9,6 +9,8 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { type RegisterableHotkey, useHotkeys } from "@tanstack/react-hotkeys";
+import { getRolesForPlatform } from "@lib";
+import type { Screenshot } from "@ui/types.ts";
 import {
   selectNoOverlayOpen,
   selectScreenshots,
@@ -172,8 +174,8 @@ export function useAppHotkeys() {
       selection.lang,
       selection.platform,
     ).find((s) => s.id === id);
-    if (screenshot?.role === "feature-graphic") {
-      screenshotActions.removeFeatureGraphic();
+    if (screenshot && screenshot.role !== "screenshot") {
+      screenshotActions.removePlacement(screenshot.role);
     } else {
       screenshotActions.remove(id);
     }
@@ -205,14 +207,19 @@ export function useAppHotkeys() {
   useShortcut("nextScreenshot", () => stepScreenshot(1), enabled);
   useShortcut("prevScreenshot", () => stepScreenshot(-1), enabled);
 
-  useShortcut("selectFeatureGraphic", () => {
-    if (selection.platform !== "android") return;
-    const fg = selectScreenshots(
+  useShortcut("selectPlacement", () => {
+    const screenshots = selectScreenshots(
       useAppStore.getState(),
       selection.lang,
       selection.platform,
-    ).find((s) => s.role === "feature-graphic");
-    if (fg) screenshotActions.select(fg.id);
+    );
+    // Cycles through the store's placements, starting at the first.
+    const present = getRolesForPlatform(selection.platform)
+      .map((role) => screenshots.find((s) => s.role === role))
+      .filter((s): s is Screenshot => s != null);
+    if (present.length === 0) return;
+    const index = present.findIndex((s) => s.id === selection.screenshotId);
+    screenshotActions.select(present[(index + 1) % present.length].id);
   }, enabled);
 
   // ── Cheat sheet ────────────────────────────────────────────────────

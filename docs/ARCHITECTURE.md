@@ -67,9 +67,11 @@ flowchart TB
   `background`, `text`, `phone-frame`, `image`, `glow`, `shape`. Shapes are a
   second union, discriminated on `shapeType` into families.
 - **`src/lib/`** (`@lib`): helpers that depend on nothing but `types`.
-  `index.ts` has platforms, store sizes (`DEFAULT_DIMENSIONS`,
-  `FEATURE_GRAPHIC_SIZE`, `getScreenshotDimensions`) and `assertNever`;
-  `layers.ts` has the defaults every layer type falls back to
+  `index.ts` has platforms, the default canvas sizes (`DEFAULT_DIMENSIONS`)
+  and `assertNever`; `screenshot-roles.ts` has what each screenshot role means
+  (`SCREENSHOT_ROLE_SPECS`, the store's fixed-size canvases,
+  `getScreenshotDimensions`); `layers.ts` has the defaults every layer type
+  falls back to
   (`LAYER_DEFAULTS`, `SHAPE_DEFAULTS`, `withDefaults`, `resolveShape`) and
   shape metadata; `gradient.ts` builds, parses and matches gradient CSS.
 - **`src/device-presets/`** (`@device-presets`): device frames as data.
@@ -258,11 +260,20 @@ it. (#123, #133)
 **A screenshot is an ordered list of layers, and list order is paint order.**
 There is no `zIndex`. Every positioned layer is centred on `posX`/`posY`
 percent of the canvas and rotated in degrees; the background layer always
-fills the canvas. The Play feature graphic is a `Screenshot` with
-`role: "feature-graphic"`, not a separate type. *Why:* one positioning model
-for every element and one code path for both roles. Fixed layout slots,
-layout templates and a hybrid "simple mode" were rejected: each new layout
-would have meant new fields or a second code path. (#14)
+fills the canvas. A store's fixed-size placement is a `Screenshot` with a
+`role`, not a separate type. *Why:* one positioning model for every element
+and one code path for every role. Fixed layout slots, layout templates and a
+hybrid "simple mode" were rejected: each new layout would have meant new
+fields or a second code path. (#14)
+
+**What a placement means is one table.** `SCREENSHOT_ROLE_SPECS`
+(`src/lib/screenshot-roles.ts`) gives each placement its label, fixed canvas
+and store. The sidebar, the G shortcut, the canvas size, the preview's device
+preset, the results list and the screenshot route's store check all read it. A
+plain screenshot has no entry, because its canvas comes from the language
+config. *Why:* adding Apple's product page header and search results would
+otherwise have meant copying a `role === "feature-graphic"` check in six
+places. A new placement is now one entry. (#159)
 
 **The background follows the theme live.** A background layer with neither
 `gradient` nor `colors` renders `theme.background.gradient` at render time, so
@@ -276,10 +287,11 @@ raw CSS otherwise; from then on that layer no longer follows the theme.
 produce. (#125)
 
 **Canvas size comes from one function.** `getScreenshotDimensions` gives a
-screenshot its platform's `dimensions`, or 1024 × 500 for a feature graphic,
-and both the preview and export call it. *Why:* frame geometry scales with
-canvas width, so a preview at another width drew frames at a different size
-than the PNG. (#108)
+screenshot its platform's `dimensions`, or the role's fixed size when it has
+one (1024 × 500 for the Play feature graphic, 3840 × 1646 for the App Store
+header, 3840 × 2560 for search results), and both the preview and export call
+it. *Why:* frame geometry scales with canvas width, so a preview at another
+width drew frames at a different size than the PNG. (#108)
 
 **Device frames are data.** A device is one object literal in
 `device-presets/presets.ts`; its geometry is normalised to a 400 px reference

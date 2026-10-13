@@ -1,4 +1,4 @@
-import type { Platform } from "@app-types";
+import type { PlacementRole, Platform } from "@app-types";
 import type {
   Config,
   DevicePresetId,
@@ -66,8 +66,11 @@ export interface AppState {
   // ── Screenshots (implemented in screenshots.ts) ──────────────────
   /** Appends a screenshot and returns its id; null when nothing changed. */
   addScreenshot: (target: ScreenshotTarget) => string | null;
-  /** Appends the feature graphic; null when the platform already has one. */
-  addFeatureGraphic: (target: ScreenshotTarget) => string | null;
+  /** Appends a placement; null when the platform already has one. */
+  addPlacement: (
+    target: ScreenshotTarget,
+    role: PlacementRole,
+  ) => string | null;
   removeScreenshot: (target: ScreenshotTarget, id: string) => void;
   updateScreenshot: (
     target: ScreenshotTarget,
@@ -75,7 +78,7 @@ export interface AppState {
     updates: Partial<Screenshot>,
   ) => void;
   reorderScreenshots: (target: ScreenshotTarget, orderedIds: string[]) => void;
-  removeFeatureGraphic: (target: ScreenshotTarget) => void;
+  removePlacement: (target: ScreenshotTarget, role: PlacementRole) => void;
 
   // ── Device presets ───────────────────────────────────────────────
   getDefaultDevicePreset: (platform: Platform) => DevicePresetId;

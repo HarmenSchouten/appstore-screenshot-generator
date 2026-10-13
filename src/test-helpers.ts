@@ -5,7 +5,7 @@
  */
 
 import { Hono } from "hono";
-import type { Screenshot, ShapeLayerProps } from "@app-types";
+import type { PlacementRole, Screenshot, ShapeLayerProps } from "@app-types";
 import { SHAPE_META, SHAPE_TYPES } from "@lib";
 import { notFound, onError } from "@routes/http.ts";
 
@@ -124,6 +124,18 @@ export function makeFeatureGraphic(): Screenshot {
         opacity: 1,
       },
     ],
+  };
+}
+
+/** A placement with only a background. */
+export function makePlacementScreenshot(
+  id: string,
+  role: PlacementRole,
+): Screenshot {
+  return {
+    id,
+    role,
+    layers: [{ id: "bg", type: "background", opacity: 1 }],
   };
 }
 

@@ -27,6 +27,7 @@ import {
 } from "@ui/store/index.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import type { Screenshot } from "@ui/types.ts";
+import { getRolePlatform } from "@lib";
 import {
   useAppHotkeys,
   useConfigAutoSave,
@@ -71,7 +72,14 @@ export function App() {
     ? screenshots.find((s) => s.id === selection.screenshotId)
     : undefined;
 
-  const isFeatureGraphic = selectedScreenshot?.role === "feature-graphic";
+  // A placement previews with its own store's device preset.
+  const placementPlatform = selectedScreenshot
+    ? getRolePlatform(selectedScreenshot.role)
+    : undefined;
+  const previewPlatform = placementPlatform ?? selection.platform;
+  const previewDevicePresetId = previewPlatform === "android"
+    ? androidDevicePresetId
+    : defaultDevicePresetId;
 
   const handleScreenshotUpdate = useCallback(
     (updates: Partial<Screenshot>) => {
@@ -95,10 +103,8 @@ export function App() {
                   screenshot={selectedScreenshot}
                   theme={theme}
                   app={app}
-                  platform={isFeatureGraphic ? "android" : selection.platform}
-                  defaultDevicePresetId={isFeatureGraphic
-                    ? androidDevicePresetId
-                    : defaultDevicePresetId}
+                  platform={previewPlatform}
+                  defaultDevicePresetId={previewDevicePresetId}
                   dimensions={dimensions}
                 />
               )
