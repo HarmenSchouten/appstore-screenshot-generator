@@ -27,7 +27,7 @@ import {
 } from "@ui/store/index.ts";
 import { EmptyState } from "@ui/components/EmptyState.tsx";
 import type { Screenshot } from "@ui/types.ts";
-import { getRolePlatforms } from "@lib";
+import { getRolePlatform } from "@lib";
 import {
   useAppHotkeys,
   useConfigAutoSave,
@@ -76,7 +76,7 @@ export function App() {
   // Play's feature graphic renders with the Android device preset even when
   // the iOS tab is selected. A screenshot belongs to whichever is selected.
   const placementPlatform = selectedScreenshot
-    ? getRolePlatforms(selectedScreenshot.role)[0]
+    ? getRolePlatform(selectedScreenshot.role)
     : undefined;
   const previewPlatform = placementPlatform ?? selection.platform;
   const previewDevicePresetId = previewPlatform === "android"

@@ -421,6 +421,78 @@ Deno.test("POST /copy-platform leaves the App Store placements behind", async ()
   });
 });
 
+Deno.test("POST /copy-platform keeps the target's own placements", async () => {
+  await withTempProjectsDir(async () => {
+    const { app, ctx } = await makeTestApp();
+    // Source carries a plain screenshot; the target already has its own.
+    await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/android`,
+      makeDefaultScreenshot(),
+    );
+    await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    );
+
+    await jsonRequest(app, "POST", `${BASE}/copy-platform`, {
+      language: "en",
+      sourcePlatform: "android",
+      targetPlatform: "ios",
+    });
+
+    const target =
+      (await ctx.getConfig(ID)).languages[0].platforms.ios.screenshots;
+    // The copy replaces the screenshots, not the store's header: a header
+    // says nothing about the source platform and used to be lost here.
+    assertEquals(target.map((s) => s.role), [
+      "screenshot",
+      "product-page-header",
+    ]);
+    // The server issues its own id, so assert on the role surviving rather
+    // than on the one the test posted.
+    assertEquals(UUID.test(target[1].id), true, "still exactly one header");
+  });
+});
+
+Deno.test("POST /screenshot rejects a placement on the wrong platform", async () => {
+  await withTempProjectsDir(async () => {
+    const { app } = await makeTestApp();
+
+    const wrong = await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/android`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    );
+    assertEquals(wrong.status, 400);
+    assert(
+      (await wrong.json()).error.includes("App Store asset"),
+      "the error names the store it belongs to",
+    );
+
+    const right = await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/ios`,
+      makePlacementScreenshot("header-1", "product-page-header"),
+    );
+    assertEquals(right.status, 200);
+
+    // A plain screenshot is fine on either platform.
+    const plain = await jsonRequest(
+      app,
+      "POST",
+      `${BASE}/screenshot/en/android`,
+      makeDefaultScreenshot(),
+    );
+    assertEquals(plain.status, 200);
+  });
+});
+
 Deno.test("POST /copy-platform validates both platforms", async () => {
   await withTempProjectsDir(async () => {
     const { app } = await makeTestApp();

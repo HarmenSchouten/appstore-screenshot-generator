@@ -266,15 +266,22 @@ and one code path for every role. Fixed layout slots, layout templates and a
 hybrid "simple mode" were rejected: each new layout would have meant new
 fields or a second code path. (#14)
 
-**What a role means is one table.** `SCREENSHOT_ROLE_SPECS`
-(`src/lib/screenshot-roles.ts`) gives each role its label, its fixed canvas,
-the stores it belongs to and whether it is one-per-platform; the sidebar, the
-store's uniqueness rule, the canvas, the copy-platform filter and the results
-list all read it, and `SCREENSHOT_ROLES` is derived from its keys. *Why:*
-asking `role === "feature-graphic"` separately in each of those places meant
-adding Apple's product page header and search results was an edit in six
-files, each of which could disagree with the others. A store launching a new
-placement is now one entry. (#159)
+**What a placement means is one table.** `SCREENSHOT_ROLE_SPECS`
+(`src/lib/screenshot-roles.ts`) gives each placement its label, its fixed
+canvas and the one store it belongs to; the sidebar, the canvas, the store's
+one-per-platform rule, `copy-platform`, the screenshot route's validation and
+the results list all read it, and `SCREENSHOT_ROLES` is the table's keys plus
+`"screenshot"`. *Why:* asking `role === "feature-graphic"` separately in each
+of those places meant adding Apple's product page header and search results
+was an edit in six files, each of which could disagree with the others. A
+store launching a placement is now one entry. (#159)
+
+The table holds placements only. A plain screenshot is not one: it belongs to
+both stores and takes its canvas from the language config, so it has no entry
+and everything that tells the two apart asks `role === "screenshot"`. That is
+also why the table can give a placement a single `platform` rather than a
+list — which is what lets the route reject a product page header posted to
+Android as a 400 instead of storing it where no export would use it.
 
 A placement also fixes the store it renders with: Play's feature graphic
 draws with the Android device preset even when the iOS tab is selected.

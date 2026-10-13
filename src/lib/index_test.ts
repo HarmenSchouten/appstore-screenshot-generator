@@ -2,11 +2,11 @@ import { assertEquals } from "@std/assert";
 import {
   FEATURE_GRAPHIC_SIZE,
   getRoleLabel,
+  getRolePlatform,
   getRolePlatforms,
+  getRolesForPlatform,
   getScreenshotDimensions,
-  getUniqueRolesForPlatform,
   isScreenshotRole,
-  isUniqueScreenshotRole,
   PRODUCT_PAGE_HEADER_SIZE,
   SCREENSHOT_ROLE_SPECS,
   SCREENSHOT_ROLES,
@@ -42,18 +42,28 @@ Deno.test("getScreenshotDimensions: regular screenshot uses platform dimensions"
 });
 
 Deno.test("the role table and its runtime twin agree", () => {
+  assertEquals(SCREENSHOT_ROLES[0], "screenshot", "the plain one comes first");
   assertEquals(
     [...SCREENSHOT_ROLES].sort(),
-    Object.keys(SCREENSHOT_ROLE_SPECS).sort(),
+    ["screenshot", ...Object.keys(SCREENSHOT_ROLE_SPECS)].sort(),
   );
   for (const role of SCREENSHOT_ROLES) {
     assertEquals(isScreenshotRole(role), true, `${role} is a valid role`);
-    assertEquals(
-      isUniqueScreenshotRole(role),
-      SCREENSHOT_ROLE_SPECS[role].unique,
-    );
   }
   assertEquals(isScreenshotRole("poster"), false);
+});
+
+Deno.test("the role table holds placements only, one store each", () => {
+  // A plain screenshot is not a placement: it belongs to both stores and
+  // takes its canvas from the language config, so it is deliberately absent.
+  assertEquals("screenshot" in SCREENSHOT_ROLE_SPECS, false);
+
+  const roles = Object.keys(SCREENSHOT_ROLE_SPECS) as Exclude<
+    ScreenshotRole,
+    "screenshot"
+  >[];
+  const platforms = roles.map((role) => SCREENSHOT_ROLE_SPECS[role].platform);
+  assertEquals(platforms, ["android", "ios", "ios"]);
 });
 
 Deno.test("every role table entry has the size and label the stores expect", () => {
@@ -72,28 +82,18 @@ Deno.test("every role table entry has the size and label the stores expect", () 
   assertEquals(getRoleLabel("screenshot"), "Screenshot");
 });
 
-Deno.test("a placement belongs to one store; a screenshot belongs to both", () => {
+Deno.test("a placement names its one store; a screenshot names none", () => {
   assertEquals(getRolePlatforms("feature-graphic"), ["android"]);
   assertEquals(getRolePlatforms("product-page-header"), ["ios"]);
   assertEquals(getRolePlatforms("search-result"), ["ios"]);
   assertEquals(getRolePlatforms("screenshot"), []);
+  assertEquals(getRolePlatform("product-page-header"), "ios");
+  assertEquals(getRolePlatform("screenshot"), undefined);
 });
 
-Deno.test("getUniqueRolesForPlatform lists what each store still asks for", () => {
-  assertEquals(getUniqueRolesForPlatform("android"), ["feature-graphic"]);
-  assertEquals(getUniqueRolesForPlatform("ios"), [
-    "product-page-header",
-    "search-result",
-  ]);
-});
-
-Deno.test("a role with no fixed canvas falls through to the platform's", () => {
-  // The one role without dimensions is the one that uses the platform's —
-  // the table expresses that by omitting the field, not with a null.
-  const withFixedSize = (Object.keys(SCREENSHOT_ROLE_SPECS) as ScreenshotRole[])
-    .filter((role) => SCREENSHOT_ROLE_SPECS[role].dimensions != null);
-  assertEquals(withFixedSize, [
-    "feature-graphic",
+Deno.test("getRolesForPlatform lists what each store still asks for", () => {
+  assertEquals(getRolesForPlatform("android"), ["feature-graphic"]);
+  assertEquals(getRolesForPlatform("ios"), [
     "product-page-header",
     "search-result",
   ]);

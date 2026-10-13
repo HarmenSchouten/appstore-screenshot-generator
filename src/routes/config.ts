@@ -13,7 +13,12 @@ import type {
   Screenshot,
 } from "@app-types";
 import { createLanguageConfig, saveProject } from "@/projects.ts";
-import { isScreenshotRole, SCREENSHOT_ROLES } from "@lib";
+import {
+  getRoleLabel,
+  getRolePlatform,
+  isScreenshotRole,
+  SCREENSHOT_ROLES,
+} from "@lib";
 import { ConflictError, NotFoundError, ValidationError } from "@/errors.ts";
 import type { ServerContext } from "./context.ts";
 import {
@@ -137,6 +142,17 @@ export function createConfigRoutes(ctx: ServerContext) {
     const { lang, platform } = c.req.param();
     const screenshot = requireNewScreenshot(await readJsonBody(c));
 
+    // A placement belongs to one store, so a product page header is not a
+    // valid Android screenshot however well-formed the body is.
+    const rolePlatform = getRolePlatform(screenshot.role);
+    if (rolePlatform && rolePlatform !== platform) {
+      throw new ValidationError(
+        `The ${getRoleLabel(screenshot.role).toLowerCase()} is an ${
+          rolePlatform === "ios" ? "App Store" : "Google Play"
+        } asset, not a ${platform} one`,
+      );
+    }
+
     const projectId = projectIdOf(c);
     const config = await ctx.getConfig(projectId);
     findPlatform(config, lang, platform).screenshots.push(screenshot);
@@ -223,14 +239,26 @@ export function createConfigRoutes(ctx: ServerContext) {
     const config = await ctx.getConfig(projectId);
     const langConfig = findLanguage(config, language);
 
-    // Deep clone source screenshots with new ids. Only plain screenshots
-    // carry across: a fixed-size placement belongs to its own store, so the
-    // Play feature graphic must not follow an iOS → Android copy, nor the
-    // App Store header the other way.
-    langConfig.platforms[targetPlatform].screenshots = langConfig
+    // Deep clone the source screenshots with new ids. Only plain screenshots
+    // carry across: a placement belongs to its own store, so the Play
+    // feature graphic must not follow an iOS → Android copy, nor the App
+    // Store placements the other way.
+    //
+    // The target keeps its own placements — a copy replaces the screenshots,
+    // not the store's header or search results, which say nothing about the
+    // source platform and would be lost on every copy.
+    const targetPlatformConfig = langConfig.platforms[targetPlatform];
+    const copied = langConfig
       .platforms[sourcePlatform].screenshots
       .filter((s) => s.role === "screenshot")
       .map((s) => ({ ...structuredClone(s), id: crypto.randomUUID() }));
+
+    targetPlatformConfig.screenshots = [
+      ...copied,
+      ...targetPlatformConfig.screenshots.filter((s) =>
+        s.role !== "screenshot"
+      ),
+    ];
 
     await persist(projectId, config);
     return c.json(langConfig);

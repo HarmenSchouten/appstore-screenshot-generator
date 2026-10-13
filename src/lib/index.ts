@@ -22,10 +22,11 @@ export function isPlatform(value: unknown): value is Platform {
 
 export * from "./screenshot-roles.ts";
 
-/** Runtime twin of `ScreenshotRole` — the keys of the role table. */
-export const SCREENSHOT_ROLES: readonly ScreenshotRole[] = Object.keys(
-  SCREENSHOT_ROLE_SPECS,
-) as ScreenshotRole[];
+/** Runtime twin of `ScreenshotRole`: a plain screenshot plus every placement. */
+export const SCREENSHOT_ROLES: readonly ScreenshotRole[] = [
+  "screenshot",
+  ...Object.keys(SCREENSHOT_ROLE_SPECS),
+] as ScreenshotRole[];
 
 export function isScreenshotRole(value: unknown): value is ScreenshotRole {
   return typeof value === "string" &&

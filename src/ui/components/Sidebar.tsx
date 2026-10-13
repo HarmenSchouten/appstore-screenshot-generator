@@ -10,7 +10,7 @@ import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { arrayMove } from "@dnd-kit/sortable";
 import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
-import { getRoleLabel, getUniqueRolesForPlatform } from "@lib";
+import { getRoleLabel, getRolesForPlatform } from "@lib";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
@@ -23,7 +23,7 @@ function SidebarInner() {
   const screenshotActions = useScreenshotActions();
 
   // The fixed-size placements this store takes, one per platform each.
-  const placements = getUniqueRolesForPlatform(selection.platform);
+  const placements = getRolesForPlatform(selection.platform);
 
   // Ids only, shallow-compared: the sidebar renders positional titles and
   // selection state, so editing a layer must not re-render it (#64).

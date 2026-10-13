@@ -1,12 +1,17 @@
 /**
- * What every screenshot role means, in one table.
+ * The store placements this tool can design: the fixed-size assets a store
+ * asks for separately from screenshots.
  *
- * The roles are the placements a store asks for: the screenshots themselves,
- * plus the assets it takes separately and at a fixed size. Asking whether a
- * role is one-per-platform, which store it belongs to, what canvas it renders
- * at and what to call it used to be a `role === "feature-graphic"` branch in
- * each of those places. They all read this table now, so a store launching a
- * new placement is an entry here rather than an edit in six files.
+ * Every role question in the app — the sidebar's section, which store a
+ * placement belongs to, what canvas it renders at, what to call it, and which
+ * store may accept it — is answered from this table. Adding a placement a
+ * store launches is an entry here rather than an edit in six files.
+ *
+ * `ScreenshotRole` itself is the union of `"screenshot"` and these keys.
+ * Plain screenshots are deliberately *not* an entry: they are not a
+ * placement, they belong to both stores, and their canvas comes from the
+ * language config rather than a fixed size. Everything downstream that needs
+ * to tell them apart asks `role === "screenshot"`, and says so.
  *
  * Sizes are Apple's and Google's published figures, in pixels:
  * developer.apple.com/help/app-store-connect/reference/app-information/
@@ -19,12 +24,10 @@ import type { Dimensions, Platform, ScreenshotRole } from "@app-types";
 export interface ScreenshotRoleSpec {
   /** The sidebar section heading, and what an unnamed result shows. */
   label: string;
-  /** Fixed canvas; omitted means the role uses the platform's dimensions. */
-  dimensions?: Readonly<Dimensions>;
-  /** The stores this placement exists in. */
-  platforms: readonly Platform[];
-  /** At most one per platform — Play's feature graphic, Apple's header. */
-  unique: boolean;
+  /** Fixed canvas. A placement never renders at the platform's dimensions. */
+  dimensions: Readonly<Dimensions>;
+  /** The one store this placement exists in. */
+  platform: Platform;
 }
 
 /** Google Play feature graphic. Play takes no other fixed-size asset. */
@@ -53,53 +56,52 @@ export const SEARCH_RESULT_SIZE: Readonly<Dimensions> = {
   height: 2560,
 };
 
+/** Placements only — see the module note on why `screenshot` is absent. */
 export const SCREENSHOT_ROLE_SPECS: Record<
-  ScreenshotRole,
+  Exclude<ScreenshotRole, "screenshot">,
   ScreenshotRoleSpec
 > = {
-  screenshot: {
-    label: "Screenshots",
-    platforms: ["android", "ios"],
-    unique: false,
-  },
   "feature-graphic": {
     label: "Feature Graphic",
     dimensions: FEATURE_GRAPHIC_SIZE,
-    platforms: ["android"],
-    unique: true,
+    platform: "android",
   },
   "product-page-header": {
     label: "Product Page Header",
     dimensions: PRODUCT_PAGE_HEADER_SIZE,
-    platforms: ["ios"],
-    unique: true,
+    platform: "ios",
   },
   "search-result": {
     label: "Search Results",
     dimensions: SEARCH_RESULT_SIZE,
-    platforms: ["ios"],
-    unique: true,
+    platform: "ios",
   },
 };
 
-/** The stores a placement belongs to; none for a plain screenshot. */
+/**
+ * The stores a placement belongs to; none for a plain screenshot, which
+ * belongs to whichever store is being edited.
+ */
 export function getRolePlatforms(role: ScreenshotRole): readonly Platform[] {
-  return role === "screenshot" ? [] : SCREENSHOT_ROLE_SPECS[role].platforms;
+  const platform = getRolePlatform(role);
+  return platform ? [platform] : [];
 }
 
-/** The stores that have a one-per-platform placement to show the user. */
-export function getUniqueRolesForPlatform(
+/** The one store a placement belongs to, or undefined for a screenshot. */
+export function getRolePlatform(role: ScreenshotRole): Platform | undefined {
+  return role === "screenshot"
+    ? undefined
+    : SCREENSHOT_ROLE_SPECS[role].platform;
+}
+
+/** The placements the given store takes, one of each. */
+export function getRolesForPlatform(
   platform: Platform,
-): ScreenshotRole[] {
-  return (Object.keys(SCREENSHOT_ROLE_SPECS) as ScreenshotRole[])
-    .filter((role) =>
-      role !== "screenshot" && SCREENSHOT_ROLE_SPECS[role].platforms
-        .includes(platform)
-    );
-}
-
-export function isUniqueScreenshotRole(role: ScreenshotRole): boolean {
-  return SCREENSHOT_ROLE_SPECS[role].unique;
+): Exclude<ScreenshotRole, "screenshot">[] {
+  return (Object.keys(SCREENSHOT_ROLE_SPECS) as Exclude<
+    ScreenshotRole,
+    "screenshot"
+  >[]).filter((role) => SCREENSHOT_ROLE_SPECS[role].platform === platform);
 }
 
 export function getRoleLabel(role: ScreenshotRole): string {
@@ -109,9 +111,9 @@ export function getRoleLabel(role: ScreenshotRole): string {
 }
 
 /**
- * The canvas a screenshot renders at. A role with a fixed size ignores the
- * platform's dimensions — that is the whole point of the feature graphic and
- * of Apple's header — and a screenshot uses the platform's own.
+ * The canvas a screenshot renders at. A placement ignores the platform's
+ * dimensions — that is the whole point of it — and a screenshot uses the
+ * platform's own.
  *
  * Preview and export must both derive dimensions from here: phone-frame
  * geometry scales from the canvas width, so a mismatch breaks WYSIWYG.
@@ -120,6 +122,7 @@ export function getScreenshotDimensions(
   screenshot: { role: ScreenshotRole },
   platformDimensions: Readonly<Dimensions>,
 ): Readonly<Dimensions> {
-  return SCREENSHOT_ROLE_SPECS[screenshot.role].dimensions ??
-    platformDimensions;
+  return screenshot.role === "screenshot"
+    ? platformDimensions
+    : SCREENSHOT_ROLE_SPECS[screenshot.role].dimensions;
 }

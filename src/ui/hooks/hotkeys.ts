@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { type RegisterableHotkey, useHotkeys } from "@tanstack/react-hotkeys";
-import { getUniqueRolesForPlatform } from "@lib";
+import { getRolesForPlatform } from "@lib";
 import type { Screenshot } from "@ui/types.ts";
 import {
   selectNoOverlayOpen,
@@ -215,7 +215,7 @@ export function useAppHotkeys() {
     );
     // Play has one placement, Apple has two, so this walks whichever the
     // selected store has; from none selected it starts at the first.
-    const present = getUniqueRolesForPlatform(selection.platform)
+    const present = getRolesForPlatform(selection.platform)
       .map((role) => screenshots.find((s) => s.role === role))
       .filter((s): s is Screenshot => s != null);
     if (present.length === 0) return;

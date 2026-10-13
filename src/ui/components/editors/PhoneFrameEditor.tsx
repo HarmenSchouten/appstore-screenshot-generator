@@ -6,7 +6,7 @@ import type { DevicePresetId, PhoneFrameLayerProps } from "@app-types";
 import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
 import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
 import { useAssets, useLayerSetter, useSelection } from "@hooks";
-import { LAYER_DEFAULTS } from "@lib";
+import { getRolePlatform, LAYER_DEFAULTS } from "@lib";
 import { ImageSelect, Select, Slider } from "@ui/components/inputs/index.ts";
 import { SectionHeading } from "./SectionHeading.tsx";
 import { OpacitySlider, PositionControls } from "./PositionControls.tsx";
@@ -32,8 +32,8 @@ export function PhoneFrameEditor(
   const platformDefaultId = useAppStore((s) => {
     const selected = selectScreenshots(s, selection.lang, selection.platform)
       .find((x) => x.id === selection.screenshotId);
-    const platform = selected?.role === "feature-graphic"
-      ? "android"
+    const platform = selected
+      ? getRolePlatform(selected.role) ?? selection.platform
       : selection.platform;
     return s.getDefaultDevicePreset(platform);
   });
