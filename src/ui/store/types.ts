@@ -1,4 +1,4 @@
-import type { PlacementRole, Platform } from "@app-types";
+import type { Dimensions, PlacementRole, Platform } from "@app-types";
 import type {
   Config,
   DevicePresetId,
@@ -86,6 +86,9 @@ export interface AppState {
     platform: Platform,
     presetId: DevicePresetId,
   ) => void;
+
+  /** Sets the screenshot canvas for every language of the platform. */
+  updateDimensions: (platform: Platform, dimensions: Dimensions) => void;
 
   // ── Generation ───────────────────────────────────────────────────
   generating: boolean;

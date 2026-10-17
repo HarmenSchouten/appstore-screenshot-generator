@@ -75,6 +75,25 @@ export const useAppStore = create<AppState>()(
         });
       },
 
+      // ── Canvas size ────────────────────────────────────────────────
+      updateDimensions: (platform, dimensions) => {
+        const { config, updateConfig } = get();
+        // Every language, so none keeps exporting at the old size.
+        updateConfig({
+          ...config,
+          languages: config.languages.map((language) => ({
+            ...language,
+            platforms: {
+              ...language.platforms,
+              [platform]: {
+                ...language.platforms[platform],
+                dimensions: { ...dimensions },
+              },
+            },
+          })),
+        });
+      },
+
       // ── Generation ─────────────────────────────────────────────────
       generating: false,
       generateProgress: {

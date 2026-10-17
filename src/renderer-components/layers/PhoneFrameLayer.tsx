@@ -137,6 +137,21 @@ function PhoneFrameCore(
   const screenPixelWidth = pixelWidth -
     (preset.screen.left + preset.screen.right) * s;
 
+  const creaseStyle: CSSProperties | null = preset.crease
+    ? {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      left: "50%",
+      width: `${preset.crease.width * s}px`,
+      transform: "translateX(-50%)",
+      background: preset.crease.color,
+      boxShadow: preset.crease.shadow,
+      pointerEvents: "none",
+      zIndex: 2,
+    }
+    : null;
+
   return (
     <div style={frameStyle}>
       {preset.buttons.map((button, index) => (
@@ -166,6 +181,7 @@ function PhoneFrameCore(
             />
           )
           : <EmptyScreen screenWidth={screenPixelWidth} animate={animate} />}
+        {creaseStyle && <div style={creaseStyle} />}
       </div>
     </div>
   );

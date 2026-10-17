@@ -105,6 +105,44 @@ Deno.test("device presets: geometry fits inside the frame", () => {
   }
 });
 
+// The Duo's body heights are derived from Apple's screenshot sizes; a bezel
+// tweak must keep the screen box at Apple's ratio.
+Deno.test("device presets: the Duo's screen boxes match Apple's screenshot sizes", () => {
+  const apple = [
+    { id: "ios-iphone-duo", width: 2853, height: 2007 },
+    { id: "ios-iphone-duo-folded", width: 1398, height: 2034 },
+  ] as const;
+
+  for (const { id, width, height } of apple) {
+    const preset = DEVICE_PRESETS[id];
+    const screenWidth = DEVICE_PRESET_REFERENCE_WIDTH - preset.screen.left -
+      preset.screen.right;
+    const screenHeight = preset.bodyHeight - preset.screen.top -
+      preset.screen.bottom;
+
+    // 0.5% is well under a pixel at Apple's own width, and wide enough to
+    // survive the rounding of a 400-unit body height.
+    const expected = height / width;
+    const actual = screenHeight / screenWidth;
+    assert(
+      Math.abs(actual - expected) / expected < 0.005,
+      `${id}: screen is ${actual}, Apple screenshots are ${expected}`,
+    );
+  }
+});
+
+Deno.test("device presets: the open Duo is a landscape frame", () => {
+  const open = DEVICE_PRESETS["ios-iphone-duo"];
+  assert(
+    open.bodyHeight < DEVICE_PRESET_REFERENCE_WIDTH,
+    `open Duo body is ${open.bodyHeight} tall against a ${DEVICE_PRESET_REFERENCE_WIDTH} reference width`,
+  );
+  assert(
+    DEVICE_PRESETS["ios-iphone-duo-folded"].bodyHeight >
+      DEVICE_PRESET_REFERENCE_WIDTH,
+  );
+});
+
 Deno.test("device presets: platform defaults point at existing presets", () => {
   for (
     const defaults of [DEFAULT_PLATFORM_DEFAULTS, LEGACY_PLATFORM_DEFAULTS]

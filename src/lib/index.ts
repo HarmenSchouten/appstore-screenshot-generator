@@ -51,6 +51,8 @@ export const DEFAULT_DIMENSIONS: Readonly<Record<Platform, Dimensions>> = {
   android: { width: 1080, height: 1920 },
 };
 
+export * from "./canvas-sizes.ts";
+
 // ============================================================
 // Gradients
 // ============================================================

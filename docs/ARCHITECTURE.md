@@ -70,8 +70,9 @@ flowchart TB
   `index.ts` has platforms, the default canvas sizes (`DEFAULT_DIMENSIONS`)
   and `assertNever`; `screenshot-roles.ts` has what each screenshot role means
   (`SCREENSHOT_ROLE_SPECS`, the store's fixed-size canvases,
-  `getScreenshotDimensions`); `layers.ts` has the defaults every layer type
-  falls back to
+  `getScreenshotDimensions`); `canvas-sizes.ts` has the canvas sizes the stores
+  accept as a pick list; `layers.ts` has the defaults every layer type falls
+  back to
   (`LAYER_DEFAULTS`, `SHAPE_DEFAULTS`, `withDefaults`, `resolveShape`) and
   shape metadata; `gradient.ts` builds, parses and matches gradient CSS.
 - **`src/device-presets/`** (`@device-presets`): device frames as data.
@@ -302,6 +303,23 @@ platform's default (`platformDefaults.<platform>.defaultDevicePresetId`).
 device per project can't fit both iOS and Android. Parametric geometry scales
 to any canvas and keeps copyrighted renders out of the repository. (#116,
 #134)
+
+**A foldable is two presets, and its geometry comes from the store.** The
+iPhone Duo is registered open and folded rather than as one preset with a
+"folded" flag: the two displays have different shapes, App Store Connect takes
+a screenshot of each, and the crease (`DeviceCreasePreset`, drawn by
+`PhoneFrameLayer` over the screen) only exists open. The open frame is
+landscape, because the Duo opens like a book. Body heights are derived from
+Apple's screenshot sizes (2853 × 2007 inner, 1398 × 2034 outer), and
+`index_test.ts` pins the screen box to those ratios. *Why:* an eyeballed ratio
+drifts from the canvas, and the preview stops predicting the export.
+
+**Canvas sizes are a pick list.** `CANVAS_SIZE_PRESETS`
+(`src/lib/canvas-sizes.ts`) holds the portrait sizes each store accepts, and
+the sidebar sets `dimensions` from it for every language of the platform.
+*Why:* a canvas belongs to the store rather than the language, so switching
+English to the Duo's display should not leave German exporting at the old
+size. (#162)
 
 **The URL is the single source of truth for the selection.** The store holds
 no selected language, platform or screenshot, and no requested project; store

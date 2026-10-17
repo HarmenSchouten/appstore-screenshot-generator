@@ -8,6 +8,7 @@
 
 import type {
   DeviceButtonPreset,
+  DeviceCreasePreset,
   DeviceMaterialPreset,
   DevicePreset,
   DeviceScreenPreset,
@@ -124,6 +125,109 @@ export function defineIphone<const Id extends string>(
     cutout: DYNAMIC_ISLAND,
     buttons: form.buttons,
     material: { ...IPHONE_MATERIAL, ...spec.material },
+    summary: spec.summary,
+  };
+}
+
+// ── iPhone Duo ──────────────────────────────────────────────
+
+/**
+ * Two presets, open and folded: the displays differ in shape and App Store
+ * Connect takes a screenshot of each. Body heights follow Apple's screenshot
+ * sizes so the screen box matches the canvas.
+ */
+const DUO_MATERIAL = {
+  faceFill: "#040404",
+  faceInset: 4,
+  faceBorderColor: "rgba(255,255,255,0.03)",
+  faceBorderWidth: 0.75,
+  borderWidth: 1,
+  shadow: "0 20px 44px rgba(0, 0, 0, 0.26), 0 9px 20px rgba(0, 0, 0, 0.11)",
+} satisfies Partial<DeviceMaterialPreset>;
+
+/** Faint, because it crosses the middle of the app's screenshot. */
+const DUO_CREASE = {
+  width: 2,
+  color: "rgba(0,0,0,0.07)",
+  shadow:
+    "-3px 0 6px -3px rgba(255,255,255,0.03), 3px 0 6px -3px rgba(0,0,0,0.22)",
+} satisfies DeviceCreasePreset;
+
+const DUO_OUTER_CUTOUT = {
+  type: "hole-punch",
+  top: 16,
+  diameter: 13,
+  background: "#000",
+  borderColor: "rgba(255,255,255,0.04)",
+  borderWidth: 0.75,
+  shadow: "0 1px 1px rgba(0,0,0,0.35)",
+} satisfies HolePunchCutoutPreset;
+
+/** Annotated rather than `satisfies`, so `cutout` and `crease` read on both. */
+type IphoneDuoFormFactor =
+  & Pick<
+    DevicePreset<string>,
+    "family" | "outerRadius" | "screen" | "buttons"
+  >
+  & Partial<Pick<DevicePreset<string>, "cutout" | "crease">>;
+
+const DUO_FORMS: Record<"open" | "closed", IphoneDuoFormFactor> = {
+  // Landscape, because it opens like a book; rotate the layer on a portrait
+  // canvas. The camera is under the panel, so no cutout.
+  open: {
+    family: "iPhone Duo",
+    outerRadius: 33,
+    screen: { top: 7, right: 7, bottom: 7, left: 7, radius: 26 },
+    crease: DUO_CREASE,
+    // Volume on the left half's outer edge, side button on the right half's.
+    buttons: [
+      railButton("left", 80, 45),
+      railButton("left", 133, 45),
+      railButton("right", 118, 55),
+    ],
+  },
+  closed: {
+    family: "iPhone Duo",
+    outerRadius: 52,
+    screen: { top: 12, right: 12, bottom: 12, left: 12, radius: 40 },
+    cutout: DUO_OUTER_CUTOUT,
+    buttons: [
+      railButton("left", 145, 68),
+      railButton("left", 228, 68),
+      railButton("right", 235, 85),
+    ],
+  },
+};
+
+type IphoneDuoForm = keyof typeof DUO_FORMS;
+
+interface IphoneDuoSpec<Id extends string> {
+  id: Id;
+  label: string;
+  form: IphoneDuoForm;
+  bodyHeight: number;
+  /** Laid over `DUO_MATERIAL`, so a preset can override any default. */
+  material: DeviceMaterialPreset;
+  summary: string;
+}
+
+export function defineIphoneDuo<const Id extends string>(
+  spec: IphoneDuoSpec<Id>,
+): DevicePreset<Id> {
+  const form = DUO_FORMS[spec.form];
+  return {
+    id: spec.id,
+    label: spec.label,
+    platform: "ios",
+    family: form.family,
+    bodyHeight: spec.bodyHeight,
+    outerRadius: form.outerRadius,
+    screen: form.screen,
+    // Spread so a form without one has no key, which the snapshot pins.
+    ...(form.cutout ? { cutout: form.cutout } : {}),
+    ...(form.crease ? { crease: form.crease } : {}),
+    buttons: form.buttons,
+    material: { ...DUO_MATERIAL, ...spec.material },
     summary: spec.summary,
   };
 }

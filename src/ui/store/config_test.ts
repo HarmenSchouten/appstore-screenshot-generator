@@ -3,7 +3,11 @@
  * auto-saver — which only writes a dirty config — never echoes a load back.
  */
 
-import { assertEquals, assertStrictEquals } from "@std/assert";
+import {
+  assertEquals,
+  assertNotStrictEquals,
+  assertStrictEquals,
+} from "@std/assert";
 import { useAppStore } from "./index.ts";
 import { getDefaultConfig } from "@/projects.ts";
 import type { Config } from "@ui/types.ts";
@@ -46,5 +50,41 @@ Deno.test("a local edit after hydration is dirty again", () => {
   const config = getDefaultConfig("Test App");
   useAppStore.getState().hydrate({ projectId: "a", config });
   useAppStore.getState().updateConfig({ ...config });
+  assertEquals(useAppStore.getState()._configDirty, true);
+});
+
+Deno.test("updateDimensions edits every language of the platform", () => {
+  const config = getDefaultConfig("Test App");
+  useAppStore.setState({ config, _configDirty: false });
+  const before = useAppStore.getState().config;
+  const languageCount = before.languages.length;
+
+  useAppStore.getState().updateDimensions("ios", {
+    width: 2007,
+    height: 2853,
+  });
+
+  const after = useAppStore.getState().config;
+  const platformOf = (c: Config, platform: "ios" | "android") =>
+    c.languages[0].platforms[platform];
+
+  assertEquals(after.languages.length, languageCount);
+  for (const language of after.languages) {
+    assertEquals(language.platforms.ios.dimensions, {
+      width: 2007,
+      height: 2853,
+    });
+  }
+
+  // Replaced rather than mutated, so the preview redraws at the new size.
+  assertNotStrictEquals(
+    platformOf(after, "ios").dimensions,
+    platformOf(before, "ios").dimensions,
+  );
+  assertStrictEquals(
+    platformOf(after, "android"),
+    platformOf(before, "android"),
+  );
+  assertStrictEquals(after.theme, before.theme);
   assertEquals(useAppStore.getState()._configDirty, true);
 });

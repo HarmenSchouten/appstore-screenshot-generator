@@ -11,6 +11,7 @@ import {
   defineAndroid,
   defineGeneric,
   defineIphone,
+  defineIphoneDuo,
   railButton,
 } from "./define.ts";
 
@@ -62,6 +63,32 @@ export const ALL_DEVICE_PRESETS = [
       faceShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
     },
     summary: 'Aluminum alloy body, Dynamic Island, expansive 6.9" display',
+  }),
+  defineIphoneDuo({
+    id: "ios-iphone-duo",
+    label: "iPhone Duo",
+    form: "open",
+    // Landscape: 386 × 272 of screen for Apple's 2853 × 2007 inner display.
+    bodyHeight: 286,
+    material: {
+      frameFill: "#a8a9ad",
+      borderColor: "rgba(255,255,255,0.18)",
+      faceShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    },
+    summary:
+      'Foldable, unfolded 7.6" inner display, landscape with a hinge crease',
+  }),
+  defineIphoneDuo({
+    id: "ios-iphone-duo-folded",
+    label: "iPhone Duo (Folded)",
+    form: "closed",
+    bodyHeight: 571,
+    material: {
+      frameFill: "#a8a9ad",
+      borderColor: "rgba(255,255,255,0.18)",
+      faceShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    },
+    summary: 'Foldable, closed 5.4" outer display with Center Stage camera',
   }),
   defineGeneric({ id: "ios-legacy-classic", platform: "ios" }),
 

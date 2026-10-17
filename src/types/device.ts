@@ -78,6 +78,13 @@ export interface DeviceMaterialPreset {
   topHighlight?: string;
 }
 
+/** A vertical band down the middle of a foldable's inner display. */
+export interface DeviceCreasePreset {
+  width: number;
+  color: string;
+  shadow: string;
+}
+
 /**
  * All measurements are in units of `DEVICE_PRESET_REFERENCE_WIDTH`
  * (`@device-presets`), which the renderer scales to the rendered width.
@@ -96,6 +103,8 @@ export interface DevicePreset<Id extends string = DevicePresetId> {
   outerRadius: number;
   screen: DeviceScreenPreset;
   cutout?: DeviceCutoutPreset;
+  /** Fold hinge; a rigid device omits it. */
+  crease?: DeviceCreasePreset;
   /** Readonly: presets are shared, immutable data — builders hand out the
    * same arrays rather than copying them per preset. */
   buttons: readonly DeviceButtonPreset[];

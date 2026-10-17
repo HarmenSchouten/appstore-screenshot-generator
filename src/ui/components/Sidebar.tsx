@@ -10,10 +10,20 @@ import { memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { arrayMove } from "@dnd-kit/sortable";
 import { getDevicePreset, getDevicePresetsForPlatform } from "@device-presets";
-import { getRoleLabel, getRolesForPlatform } from "@lib";
+import {
+  CANVAS_SIZE_PRESETS,
+  findCanvasSizePreset,
+  getRoleLabel,
+  getRolesForPlatform,
+  getScreenshotDimensions,
+} from "@lib";
 import type { DevicePresetId } from "@ui/types.ts";
 import { SidebarItemCard } from "./SidebarItemCard.tsx";
-import { selectScreenshots, useAppStore } from "@ui/store/index.ts";
+import {
+  selectDimensions,
+  selectScreenshots,
+  useAppStore,
+} from "@ui/store/index.ts";
 import { useScreenshotActions, useSelection } from "@hooks";
 import { SortableList, SortableRow } from "@ui/components/primitives/index.ts";
 import { Select } from "@ui/components/inputs/index.ts";
@@ -60,8 +70,44 @@ function SidebarInner() {
   const updateDefaultDevicePreset = useAppStore((s) =>
     s.updateDefaultDevicePreset
   );
+  const dimensions = useAppStore((s) =>
+    selectDimensions(s, selection.lang, selection.platform)
+  );
+  const updateDimensions = useAppStore((s) => s.updateDimensions);
 
   const platformPresets = getDevicePresetsForPlatform(selection.platform);
+
+  // A fixed-size placement ignores the platform canvas, so the picker shows
+  // its own size, disabled.
+  const selectedScreenshot = useAppStore((s) =>
+    selection.screenshotId
+      ? selectScreenshots(s, selection.lang, selection.platform).find((x) =>
+        x.id === selection.screenshotId
+      )
+      : undefined
+  );
+  const effectiveDimensions = getScreenshotDimensions(
+    selectedScreenshot ?? { role: "screenshot" },
+    dimensions,
+  );
+  const canvasLocked = effectiveDimensions.width !== dimensions.width ||
+    effectiveDimensions.height !== dimensions.height;
+
+  // A size not on the list, hand-edited or a placement's, gets its own entry.
+  const canvasSizes = CANVAS_SIZE_PRESETS[selection.platform];
+  const canvasSizeId =
+    findCanvasSizePreset(selection.platform, effectiveDimensions)?.id ??
+      `${effectiveDimensions.width}x${effectiveDimensions.height}`;
+  const canvasSizeOptions = canvasSizes.some((s) => s.id === canvasSizeId)
+    ? canvasSizes
+    : [
+      ...canvasSizes,
+      {
+        id: canvasSizeId,
+        label: `${effectiveDimensions.width} × ${effectiveDimensions.height}`,
+        dimensions: { ...effectiveDimensions },
+      },
+    ];
 
   return (
     <aside className="w-[268px] bg-zinc-900 border-r border-zinc-800 flex flex-col">
@@ -137,9 +183,28 @@ function SidebarInner() {
         ))}
       </div>
 
-      {/* Device Preset */}
+      {/* Canvas size and Device Preset */}
       <div className="px-3 py-3 border-t border-zinc-800">
         <div className="text-[11px] uppercase tracking-wider text-zinc-500 mb-1.5 font-medium">
+          Canvas size
+        </div>
+        <Select<string>
+          value={canvasSizeId}
+          disabled={canvasLocked}
+          onChange={(id) => {
+            const preset = canvasSizeOptions.find((p) => p.id === id);
+            if (preset) {
+              updateDimensions(selection.platform, preset.dimensions);
+            }
+          }}
+          options={canvasSizeOptions.map((p) => ({
+            value: p.id,
+            label: p.label,
+          }))}
+          className="px-2.5 py-1.5 text-xs rounded"
+        />
+
+        <div className="text-[11px] uppercase tracking-wider text-zinc-500 mt-3 mb-1.5 font-medium">
           Default device
         </div>
         <Select<DevicePresetId>
