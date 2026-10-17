@@ -24,10 +24,6 @@ interface SelectProps<T extends string> {
   groups?: SelectGroup<T>[];
   /** A leading option with the empty value. */
   placeholder?: string;
-  /**
-   * Shown but not editable — for a value the app derives rather than stores,
-   * such as a fixed-size asset's canvas.
-   */
   disabled?: boolean;
   className?: string;
 }

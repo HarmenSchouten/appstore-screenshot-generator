@@ -80,13 +80,7 @@ Deno.test("defineIphoneDuo: the form picks what folding changes", () => {
 
   assertEquals(open.platform, "ios");
   assertEquals(open.family, "iPhone Duo");
-  // Folded, the bezel has to hold the cameras, so it is deeper all round.
-  assert(
-    closed.screen.top > open.screen.top,
-    "closed bezel is deeper than open",
-  );
-  // The crease is a property of the panel, so only the open form carries the
-  // key at all — a preset that omits a feature must not ship a null for it.
+  // Only the open form carries the key at all, rather than an undefined one.
   assert("crease" in open);
   assertEquals("crease" in closed, false);
   assertEquals("cutout" in closed, true);

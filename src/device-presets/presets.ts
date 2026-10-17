@@ -68,8 +68,7 @@ export const ALL_DEVICE_PRESETS = [
     id: "ios-iphone-duo",
     label: "iPhone Duo",
     form: "open",
-    // Landscape, from Apple's 2853 × 2007 inner display: 386 × 272 of screen
-    // inside a 400 × 286 body. Rotate the layer on a portrait canvas.
+    // Landscape: 386 × 272 of screen for Apple's 2853 × 2007 inner display.
     bodyHeight: 286,
     material: {
       frameFill: "#a8a9ad",

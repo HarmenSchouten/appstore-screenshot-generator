@@ -77,11 +77,8 @@ function SidebarInner() {
 
   const platformPresets = getDevicePresetsForPlatform(selection.platform);
 
-  // What the selected screenshot actually renders at. A fixed-size placement
-  // ignores the platform's canvas, so the picker shows *its* size and is
-  // disabled rather than offering to change something that would have no
-  // effect. Compared by value, so it survives the size coming from anywhere
-  // but the stored dimensions object.
+  // A fixed-size placement ignores the platform canvas, so the picker shows
+  // its own size, disabled.
   const selectedScreenshot = useAppStore((s) =>
     selection.screenshotId
       ? selectScreenshots(s, selection.lang, selection.platform).find((x) =>
@@ -96,9 +93,7 @@ function SidebarInner() {
   const canvasLocked = effectiveDimensions.width !== dimensions.width ||
     effectiveDimensions.height !== dimensions.height;
 
-  // A canvas the stores don't list — a hand-edited config.json, or a
-  // placement's own size — falls back to its pixels rather than showing the
-  // wrong preset as selected.
+  // A size not on the list, hand-edited or a placement's, gets its own entry.
   const canvasSizes = CANVAS_SIZE_PRESETS[selection.platform];
   const canvasSizeId =
     findCanvasSizePreset(selection.platform, effectiveDimensions)?.id ??

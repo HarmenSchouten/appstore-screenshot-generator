@@ -137,8 +137,6 @@ function PhoneFrameCore(
   const screenPixelWidth = pixelWidth -
     (preset.screen.left + preset.screen.right) * s;
 
-  // Over the image, under nothing else in the screen: a hinge is a property
-  // of the panel, so it stays put whatever is behind it.
   const creaseStyle: CSSProperties | null = preset.crease
     ? {
       position: "absolute",

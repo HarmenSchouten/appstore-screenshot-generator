@@ -308,21 +308,18 @@ to any canvas and keeps copyrighted renders out of the repository. (#116,
 iPhone Duo is registered open and folded rather than as one preset with a
 "folded" flag: the two displays have different shapes, App Store Connect takes
 a screenshot of each, and the crease (`DeviceCreasePreset`, drawn by
-`PhoneFrameLayer` over the screen) only exists open. Body heights are derived
-from Apple's published screenshot sizes — 2007 × 2853 inner, 1398 × 2034
-outer — so the frame matches the canvas it is drawn into; `index_test.ts`
-pins the screen box back to those ratios. *Why:* an eyeballed ratio drifts
-from the canvas and the preview stops predicting the export, which is the one
-thing the frame exists to do.
+`PhoneFrameLayer` over the screen) only exists open. The open frame is
+landscape, because the Duo opens like a book. Body heights are derived from
+Apple's screenshot sizes (2853 × 2007 inner, 1398 × 2034 outer), and
+`index_test.ts` pins the screen box to those ratios. *Why:* an eyeballed ratio
+drifts from the canvas, and the preview stops predicting the export.
 
-**Canvas sizes are a pick list, not arithmetic.** `CANVAS_SIZE_PRESETS`
-(`src/lib/canvas-sizes.ts`) carries the portrait sizes the stores publish, and
-the sidebar sets `dimensions` from it for every language of the platform — a
-canvas is a property of the store, so switching English to a foldable's
-display should not leave German exporting at the old size. Portrait only,
-because every device preset is. *Why:* before this the only way to design at
-6.9" or at a foldable's display was to hand-edit `config.json` and restart the
-server.
+**Canvas sizes are a pick list.** `CANVAS_SIZE_PRESETS`
+(`src/lib/canvas-sizes.ts`) holds the portrait sizes each store accepts, and
+the sidebar sets `dimensions` from it for every language of the platform.
+*Why:* a canvas belongs to the store rather than the language, so switching
+English to the Duo's display should not leave German exporting at the old
+size. (#162)
 
 **The URL is the single source of truth for the selection.** The store holds
 no selected language, platform or screenshot, and no requested project; store

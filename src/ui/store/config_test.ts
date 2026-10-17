@@ -1,8 +1,6 @@
 /**
  * Store tests for hydration (#65): server state comes in clean, so the
  * auto-saver — which only writes a dirty config — never echoes a load back.
- * The canvas test lives here too: like the device default, it edits the spine
- * down to one platform and must leave the rest of the config alone.
  */
 
 import {
@@ -70,9 +68,6 @@ Deno.test("updateDimensions edits every language of the platform", () => {
   const platformOf = (c: Config, platform: "ios" | "android") =>
     c.languages[0].platforms[platform];
 
-  // Every language, not only the one being edited. A canvas is a property of
-  // the store, so German must not keep exporting 1242 x 2688 after English
-  // was switched to the Duo's display (#162).
   assertEquals(after.languages.length, languageCount);
   for (const language of after.languages) {
     assertEquals(language.platforms.ios.dimensions, {
@@ -81,14 +76,11 @@ Deno.test("updateDimensions edits every language of the platform", () => {
     });
   }
 
-  // The dimensions object is replaced, not mutated in place: phone-frame
-  // geometry derives from the canvas width, so identity is what makes the
-  // preview redraw at the new size.
+  // Replaced rather than mutated, so the preview redraws at the new size.
   assertNotStrictEquals(
     platformOf(after, "ios").dimensions,
     platformOf(before, "ios").dimensions,
   );
-  // The other platform is untouched, identity included.
   assertStrictEquals(
     platformOf(after, "android"),
     platformOf(before, "android"),

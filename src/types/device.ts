@@ -78,12 +78,8 @@ export interface DeviceMaterialPreset {
   topHighlight?: string;
 }
 
-/**
- * The crease down the middle of a foldable's inner display. Drawn as a
- * vertical band over the screen, `shadow` for the shading either side of it.
- */
+/** A vertical band down the middle of a foldable's inner display. */
 export interface DeviceCreasePreset {
-  /** Width of the crease itself. */
   width: number;
   color: string;
   shadow: string;

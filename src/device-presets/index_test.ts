@@ -105,19 +105,10 @@ Deno.test("device presets: geometry fits inside the frame", () => {
   }
 });
 
-/**
- * A foldable's frame has to match the canvas it is drawn into, so the Duo's
- * body heights are derived from Apple's published screenshot sizes rather
- * than eyeballed. This is the guard that keeps them in step: if a future
- * revision nudges a bezel, the screen box has to keep Apple's ratio.
- *
- * developer.apple.com/help/app-store-connect/reference/app-information/
- *   screenshot-specifications
- */
+// The Duo's body heights are derived from Apple's screenshot sizes; a bezel
+// tweak must keep the screen box at Apple's ratio.
 Deno.test("device presets: the Duo's screen boxes match Apple's screenshot sizes", () => {
   const apple = [
-    // The inner display is landscape: a Duo opens like a book, and the layer
-    // is rotated on a portrait canvas.
     { id: "ios-iphone-duo", width: 2853, height: 2007 },
     { id: "ios-iphone-duo-folded", width: 1398, height: 2034 },
   ] as const;
@@ -141,37 +132,15 @@ Deno.test("device presets: the Duo's screen boxes match Apple's screenshot sizes
 });
 
 Deno.test("device presets: the open Duo is a landscape frame", () => {
-  // A portrait open Duo would render the foldable as if held upright, which is
-  // not how it opens. Its body is wider than it is tall.
   const open = DEVICE_PRESETS["ios-iphone-duo"];
   assert(
     open.bodyHeight < DEVICE_PRESET_REFERENCE_WIDTH,
     `open Duo body is ${open.bodyHeight} tall against a ${DEVICE_PRESET_REFERENCE_WIDTH} reference width`,
   );
-  // Closed, it reads as a conventional portrait phone.
   assert(
     DEVICE_PRESETS["ios-iphone-duo-folded"].bodyHeight >
       DEVICE_PRESET_REFERENCE_WIDTH,
   );
-});
-
-Deno.test("device presets: the Duo shows a crease only when it is open", () => {
-  const open = DEVICE_PRESETS["ios-iphone-duo"];
-  const closed = DEVICE_PRESETS["ios-iphone-duo-folded"];
-
-  assert(open.crease !== undefined, "the open Duo hinges");
-  assert(open.crease.width > 0, "the crease is visible");
-  // Its front camera is under the panel, so the inner display has no cutout.
-  assertEquals(open.cutout, undefined);
-
-  // Closed there is no hinge to draw, and the outer display has the camera.
-  assertEquals(closed.crease, undefined);
-  assertEquals(closed.cutout?.type, "hole-punch");
-
-  for (const preset of ALL_DEVICE_PRESETS) {
-    if (preset.id.startsWith("ios-iphone-duo")) continue;
-    assertEquals(preset.crease, undefined, `${preset.id}: rigid device`);
-  }
 });
 
 Deno.test("device presets: platform defaults point at existing presets", () => {

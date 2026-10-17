@@ -87,12 +87,7 @@ export interface AppState {
     presetId: DevicePresetId,
   ) => void;
 
-  /**
-   * The canvas every language's screenshots render at, for one platform. A
-   * canvas is a property of the store rather than of a language, so this
-   * applies to all of them. Fixed-size placements ignore it entirely — see
-   * `getScreenshotDimensions`.
-   */
+  /** Sets the screenshot canvas for every language of the platform. */
   updateDimensions: (platform: Platform, dimensions: Dimensions) => void;
 
   // ── Generation ───────────────────────────────────────────────────

@@ -132,14 +132,9 @@ export function defineIphone<const Id extends string>(
 // ── iPhone Duo ──────────────────────────────────────────────
 
 /**
- * The Duo folds, so it is two presets rather than one preset with a "folded"
- * flag: the two displays have different shapes, App Store Connect takes a
- * screenshot of each, and the crease only exists when it is open.
- *
- * The body heights come from Apple's published screenshot sizes — 2853 × 2007
- * on the inner display, 1398 × 2034 on the outer — brought to the
- * `DEVICE_PRESET_REFERENCE_WIDTH` frame with an even bezel, so a Duo frame
- * matches the canvas it is drawn into rather than an eyeballed ratio.
+ * Two presets, open and folded: the displays differ in shape and App Store
+ * Connect takes a screenshot of each. Body heights follow Apple's screenshot
+ * sizes so the screen box matches the canvas.
  */
 const DUO_MATERIAL = {
   faceFill: "#040404",
@@ -150,11 +145,7 @@ const DUO_MATERIAL = {
   shadow: "0 20px 44px rgba(0, 0, 0, 0.26), 0 9px 20px rgba(0, 0, 0, 0.11)",
 } satisfies Partial<DeviceMaterialPreset>;
 
-/**
- * The hinge line. Deliberately faint: it crosses the middle of the app's own
- * screenshot, and a crease you notice competes with the content. A soft dip
- * rather than a drawn line.
- */
+/** Faint, because it crosses the middle of the app's screenshot. */
 const DUO_CREASE = {
   width: 2,
   color: "rgba(0,0,0,0.07)",
@@ -162,7 +153,6 @@ const DUO_CREASE = {
     "-3px 0 6px -3px rgba(255,255,255,0.03), 3px 0 6px -3px rgba(0,0,0,0.22)",
 } satisfies DeviceCreasePreset;
 
-/** The 12 MP Center Stage camera, visible only on the outer display. */
 const DUO_OUTER_CUTOUT = {
   type: "hole-punch",
   top: 16,
@@ -173,11 +163,7 @@ const DUO_OUTER_CUTOUT = {
   shadow: "0 1px 1px rgba(0,0,0,0.35)",
 } satisfies HolePunchCutoutPreset;
 
-/**
- * What a Duo form factor fixes. Annotated rather than `satisfies`-only: a
- * literal keeps its own narrow type, and the builder reads `cutout` off
- * whichever form it was handed.
- */
+/** Annotated rather than `satisfies`, so `cutout` and `crease` read on both. */
 type IphoneDuoFormFactor =
   & Pick<
     DevicePreset<string>,
@@ -186,13 +172,8 @@ type IphoneDuoFormFactor =
   & Partial<Pick<DevicePreset<string>, "cutout" | "crease">>;
 
 const DUO_FORMS: Record<"open" | "closed", IphoneDuoFormFactor> = {
-  /**
-   * Open: the 7.6" inner display. Landscape, because a Duo opens like a book —
-   * the screen box is set from Apple's 2853 × 2007 rather than its portrait
-   * 2007 × 2853, so the layer is rotated on a portrait canvas. The crease
-   * still runs down the middle: that is the book's spine. No cutout, because
-   * the front camera sits under the panel.
-   */
+  // Landscape, because it opens like a book; rotate the layer on a portrait
+  // canvas. The camera is under the panel, so no cutout.
   open: {
     family: "iPhone Duo",
     outerRadius: 33,
@@ -205,12 +186,9 @@ const DUO_FORMS: Record<"open" | "closed", IphoneDuoFormFactor> = {
       railButton("right", 118, 55),
     ],
   },
-  /** Closed: the 5.4" outer display, which reads as a conventional phone. */
   closed: {
     family: "iPhone Duo",
     outerRadius: 52,
-    // Deeper bezels than the open form, which has room for none: closed, this
-    // is the face the Center Stage camera is cut into.
     screen: { top: 12, right: 12, bottom: 12, left: 12, radius: 40 },
     cutout: DUO_OUTER_CUTOUT,
     buttons: [
@@ -245,8 +223,7 @@ export function defineIphoneDuo<const Id extends string>(
     bodyHeight: spec.bodyHeight,
     outerRadius: form.outerRadius,
     screen: form.screen,
-    // Spread rather than assigned: a closed Duo has no hinge to describe, and
-    // the registry snapshot pins every key a preset actually carries.
+    // Spread so a form without one has no key, which the snapshot pins.
     ...(form.cutout ? { cutout: form.cutout } : {}),
     ...(form.crease ? { crease: form.crease } : {}),
     buttons: form.buttons,

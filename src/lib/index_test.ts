@@ -79,8 +79,6 @@ Deno.test("getRolesForPlatform lists each store's placements", () => {
 });
 
 Deno.test("canvas sizes: the default canvas is on the list for both stores", () => {
-  // The picker shows the stored size as selected, so a default that is not
-  // in the list would render the sidebar selecting the wrong entry.
   for (const platform of ["ios", "android"] as const) {
     assert(
       findCanvasSizePreset(platform, DEFAULT_DIMENSIONS[platform]) !== null,
@@ -110,8 +108,16 @@ Deno.test("canvas sizes: ids are unique and each carries its own pixels", () => 
 });
 
 Deno.test("canvas sizes: an unlisted size is reported as unknown, not guessed", () => {
-  // A hand-edited config.json keeps working; the sidebar adds its own entry.
   assertEquals(findCanvasSizePreset("ios", { width: 999, height: 1111 }), null);
+});
+
+Deno.test("canvas sizes: every Android size is one Play accepts", () => {
+  for (const { id, dimensions } of CANVAS_SIZE_PRESETS.android) {
+    const short = Math.min(dimensions.width, dimensions.height);
+    const long = Math.max(dimensions.width, dimensions.height);
+    assert(short >= 320 && long <= 3840, `${id}: side out of range`);
+    assert(long <= 2 * short, `${id}: long side over twice the short`);
+  }
 });
 
 Deno.test("canvas sizes: the iPhone Duo's two displays are both offered", () => {
